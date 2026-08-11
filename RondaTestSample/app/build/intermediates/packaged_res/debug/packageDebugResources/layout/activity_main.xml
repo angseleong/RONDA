@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/invitation_bg"
+    android:padding="32dp">
+
+    <ImageView
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_heart"
+        android:contentDescription="@string/heart_desc" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/invitation_title"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/invitation_text"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/invitation_names"
+        android:textSize="20sp"
+        android:textColor="@color/invitation_text"
+        android:gravity="center" />
+
+    <View
+        android:layout_width="80dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/invitation_rule" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/invitation_body"
+        android:textSize="16sp"
+        android:lineSpacingMultiplier="1.3"
+        android:textColor="@color/invitation_text"
+        android:gravity="center" />
+
+    <!--
+        Penanda keselamatan. Sengaja ditampilkan agar APK ini tidak pernah bisa
+        disalahartikan sebagai malware sungguhan jika file-nya keluar dari tim.
+        Jangan dihapus.
+    -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="@string/test_sample_notice"
+        android:textSize="11sp"
+        android:textColor="@color/invitation_notice"
+        android:gravity="center" />
+
+</LinearLayout>
