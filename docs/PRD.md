@@ -273,7 +273,7 @@ These are hard rules. Any implementation that violates them is rejected regardle
 | # | Deliverable | Target date | Status |
 |---|---|---|---|
 | D1 | Project proposal (submitted via HackNusa form) | 21 Aug 2026 | ✅ Submitted |
-| D2 | Context documents (`README`, `PRD`, `SECURITY`, `ARCHITECTURE`, `USER_FLOW`, `PROMPT`, `DESIGN`, `TESTING`, `TODO`, `CHANGELOG`) | 12 Aug 2026 | In progress |
+| D2 | Context documents (`README`, `PRD`, `ARCHITECTURE`, `TODO`) | 12 Aug 2026 | In progress |
 | D3 | Detection engine — install-time scanning + risk rule | 15 Aug 2026 | Not started |
 | D4 | Test-sample APK | 15 Aug 2026 | Not started |
 | D5 | Soft-block overlay (FR-8) | 17 Aug 2026 | Not started |
