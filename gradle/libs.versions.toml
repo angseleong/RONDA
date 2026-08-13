@@ -9,8 +9,8 @@ activityCompose = "1.8.0"
 kotlin = "2.2.10"
 composeBom = "2026.02.01"
 coroutines = "1.10.2"
-firebaseBom = "34.1.0"
-googleServices = "4.4.2"
+firebaseBom = "34.17.0"
+googleServices = "4.5.0"
 zxing = "3.5.3"
 
 [libraries]
