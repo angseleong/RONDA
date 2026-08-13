@@ -32,7 +32,7 @@
 - [x] Implement `OverlayService`: draw full-screen warning when flagged app is in foreground
 - [x] Overlay is branded as RONDA, no "continue" button, clearly states the app is suspected malware
 - [x] Overlay clears when app is uninstalled (`ACTION_PACKAGE_REMOVED` → unflag → service stops)
-- [ ] Overlay clears when marked safe — blocked on Block 4: the Mark Safe button exists on `AlertDetailScreen` but is not wired yet. `FlaggedAppStore.unflag()` is the hook it will call.
+- [x] Overlay clears when marked safe — done in Block 4: `CommandHandler.markSafe()` calls `FlaggedAppStore.unflag()`, and `OverlayService` stops itself once nothing is flagged.
 - [x] Test: open test-sample APK → RONDA overlay covers it immediately — **verified 14 Aug** on `Pixel_6` (API 33): `OverlayService: Overlay shown over com.ronda.testsample`
 
 **Checkpoint (17 Aug):** Opening the test-sample APK triggers the RONDA warning overlay. Works offline.
@@ -66,12 +66,38 @@ Bug found and fixed during this run: `Pairing.isActive` was a derived property w
 `@get:Exclude`, so the SDK wrote a junk `active` boolean into `pairings/` alongside
 `status` and logged a `ClassMapper` warning on every read.
 
-## BACKLOG — Block 4: Guardian Response (20 Aug)
+## ACTIVE — Block 4: Guardian Response (20 Aug)
 
-- [ ] Guardian taps "Uninstall" → writes command to Firebase RTDB
-- [ ] Protected device listens for commands, triggers `Intent.ACTION_DELETE` for flagged package
-- [ ] Guardian taps "Mark Safe" → adds package to local allowlist, clears overlay
-- [ ] Protected home screen shows uninstall confirmation prompt (large text, high contrast)
+- [x] Guardian taps "Uninstall" → writes command to Firebase RTDB (`CommandRepository.send()`)
+- [x] Protected device listens for commands, triggers `Intent.ACTION_DELETE` for flagged package (`CommandHandler`, run from `DetectionService`)
+- [x] Guardian taps "Mark Safe" → adds package to local allowlist (`SafeAppStore`), clears overlay
+- [x] Protected home screen shows uninstall confirmation prompt (large text, high contrast) — `UninstallPromptScreen`
+- [x] End-to-end test: guardian taps each button → protected acts, guardian sees the outcome — **verified 14 Aug**
+
+**Verification log (14 Aug, two Pixel 6 / API 33 emulators):**
+
+*Uninstall*
+1. Guardian tapped "Hapus aplikasi" → command written to `commands/QTDEZ3/`
+2. Protected `CommandHandler` picked it up, raised `importance=4, category=alarm`, stored the request to disk
+3. `UninstallPromptScreen` explained the request, then opened the system dialog
+4. Confirmed → package gone, block cleared, `OverlayService` stopped itself
+5. `InstallReceiver` reported `status = uninstalled`; guardian's screen showed "Aplikasi sudah dihapus dari HP orang tua Anda"
+
+*Mark safe*
+6. Test APK reinstalled → fresh alert, overlay covering it
+7. Guardian tapped "Tandai aman" → overlay disappeared **while the app was still on screen**, no user action on the protected phone
+8. `SafeAppStore` persisted; reinstalling again logged "Package is on the guardian's allowlist, skipping"
+
+**Two bugs found by running it, neither catchable by a build:**
+- `ACTION_DELETE` was refused silently — `REQUEST_DELETE_PACKAGES` was not declared in the manifest. No crash, no dialog, no log unless watching `UninstallerActivity`.
+- The uninstall prompt only appeared after a fresh `onResume`. If RONDA was already open when the guardian decided, the screen never changed. `PendingUninstallStore.observe()` now drives it reactively.
+
+**Design note.** `executedAt` on a command means *delivered*, not *done*. An
+uninstall is only reported as complete when the OS broadcasts
+`ACTION_PACKAGE_REMOVED` and `InstallReceiver` writes `status = uninstalled`. The
+guardian is never told an app was removed because a command was received —
+Android requires the person holding the phone to confirm in a system dialog, and
+they may decline.
 
 ## BACKLOG — Block 5: Demo (21 Aug)
 

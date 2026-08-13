@@ -83,8 +83,25 @@
     <string name="alert_detail_blocked">Aplikasi ini sudah ditutup di HP orang tua Anda.</string>
     <string name="alert_action_uninstall">Hapus aplikasi</string>
     <string name="alert_action_safe">Tandai aman</string>
-    <string name="alert_action_pending_note">Tombol ini aktif di Block 4.</string>
     <string name="alert_back">Kembali</string>
+
+    <!-- Guardian: state after a decision has been sent -->
+    <string name="alert_waiting_uninstall">Permintaan hapus sudah dikirim</string>
+    <string name="alert_waiting_safe">Aplikasi sudah ditandai aman</string>
+    <string name="alert_waiting_detail">RONDA menunggu HP orang tua Anda menyelesaikannya. Anda akan lihat hasilnya di sini.</string>
+    <string name="alert_outcome_uninstalled">Aplikasi sudah dihapus dari HP orang tua Anda.</string>
+    <string name="alert_outcome_safe">Aplikasi ini ditandai aman. Peringatan sudah dibuka.</string>
+
+    <!-- Protected: guardian asked for an uninstall -->
+    <string name="channel_guardian_request">Permintaan penjaga</string>
+    <string name="channel_guardian_request_desc">Saat penjaga Anda meminta sesuatu dilakukan di HP ini.</string>
+    <string name="uninstall_request_notification_title">Penjaga Anda minta aplikasi dihapus</string>
+    <string name="uninstall_request_notification_body">Ketuk untuk menghapus %1$s.</string>
+    <string name="uninstall_prompt_title">Penjaga Anda minta aplikasi ini dihapus</string>
+    <string name="uninstall_prompt_body">Aplikasi ini diduga dapat membaca kode OTP dari SMS Anda.</string>
+    <string name="uninstall_prompt_next">Setelah Anda menekan tombol di bawah, HP akan menanyakan sekali lagi. Pilih "OK" atau "Hapus" pada pertanyaan itu.</string>
+    <string name="uninstall_prompt_confirm">Hapus aplikasi ini</string>
+    <string name="uninstall_prompt_later">Nanti saja</string>
 
     <!-- Guardian notifications -->
     <string name="channel_guardian_watch">Penjagaan RONDA</string>

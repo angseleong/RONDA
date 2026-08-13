@@ -11,6 +11,13 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.ronda.app.alert.CommandHandler
+import com.ronda.app.pairing.RoleStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class DetectionService : Service() {
 
@@ -21,13 +28,35 @@ class DetectionService : Service() {
     }
 
     private var installReceiver: InstallReceiver? = null
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "DetectionService created")
-        
+
         startForeground(NOTIFICATION_ID, createPersistentNotification())
         registerInstallReceiver()
+        listenForGuardianCommands()
+    }
+
+    /**
+     * The guardian's half of the conversation arrives here.
+     *
+     * It rides on the service that is already running rather than a second
+     * foreground service: the protected phone would otherwise carry two
+     * permanent notifications for what the user experiences as one feature.
+     */
+    private fun listenForGuardianCommands() {
+        val pairingId = RoleStore(this).pairingId
+        if (pairingId == null) {
+            Log.d(TAG, "Not paired — no guardian to take commands from")
+            return
+        }
+
+        scope.launch {
+            runCatching { CommandHandler(this@DetectionService).run(pairingId) }
+                .onFailure { Log.e(TAG, "Command stream failed", it) }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -38,6 +67,7 @@ class DetectionService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "DetectionService destroyed")
+        scope.cancel()
         unregisterInstallReceiver()
     }
 

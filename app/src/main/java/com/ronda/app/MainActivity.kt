@@ -2,8 +2,10 @@ package com.ronda.app
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,11 +20,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.ronda.app.alert.Alert
 import com.ronda.app.alert.AlertRepository
+import com.ronda.app.alert.Command
+import com.ronda.app.alert.CommandRepository
 import com.ronda.app.alert.GuardianAlertService
 import com.ronda.app.detection.DetectionService
 import com.ronda.app.detection.FlaggedAppStore
+import com.ronda.app.detection.PendingUninstall
+import com.ronda.app.detection.PendingUninstallStore
 import com.ronda.app.overlay.OverlayService
 import com.ronda.app.pairing.Role
 import com.ronda.app.pairing.RoleStore
@@ -31,9 +38,11 @@ import com.ronda.app.ui.guardian.GuardianHomeScreen
 import com.ronda.app.ui.guardian.GuardianPairingScreen
 import com.ronda.app.ui.onboarding.RoleSelectionScreen
 import com.ronda.app.ui.protectedrole.ProtectedPairingScreen
+import com.ronda.app.ui.protectedrole.UninstallPromptScreen
 import com.ronda.app.ui.setup.SetupScreen
 import com.ronda.app.ui.setup.SetupStatus
 import com.ronda.app.ui.theme.RONDATheme
+import kotlinx.coroutines.launch
 
 /**
  * The whole app is one Activity. Which screen it shows is a function of two
@@ -48,6 +57,13 @@ class MainActivity : ComponentActivity() {
     private var role by mutableStateOf<Role?>(null)
     private var pairingId by mutableStateOf<String?>(null)
     private var selectedAlertId by mutableStateOf<String?>(null)
+
+    /** Guardian: alertId → action already sent, awaiting the protected phone. */
+    private var sentCommands by mutableStateOf(emptyMap<String, String>())
+
+    /** Protected: the uninstall request to show, and whether it was deferred. */
+    private var pendingUninstall by mutableStateOf<PendingUninstall?>(null)
+    private var uninstallDeferred by mutableStateOf(false)
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -115,9 +131,9 @@ class MainActivity : ComponentActivity() {
         if (selected != null) {
             AlertDetailScreen(
                 alert = selected,
-                // Wired to commands/{pairingId} in Block 4.
-                onUninstall = {},
-                onMarkSafe = {},
+                pendingAction = sentCommands[selected.alertId],
+                onUninstall = { sendCommand(currentPairing, selected, Command.ACTION_UNINSTALL) },
+                onMarkSafe = { sendCommand(currentPairing, selected, Command.ACTION_MARK_SAFE) },
                 onBack = { selectedAlertId = null },
                 modifier = modifier
             )
@@ -136,6 +152,31 @@ class MainActivity : ComponentActivity() {
             ProtectedPairingScreen(
                 protectedDeviceId = roleStore.deviceId,
                 onPaired = ::onPaired,
+                modifier = modifier
+            )
+            return
+        }
+
+        // Live, not polled on resume: the request is written by the service
+        // while this screen may already be visible.
+        LaunchedEffect(Unit) {
+            PendingUninstallStore(this@MainActivity).observe().collect { request ->
+                // A new request must not inherit the previous one's dismissal.
+                if (request?.packageName != pendingUninstall?.packageName) {
+                    uninstallDeferred = false
+                }
+                pendingUninstall = request
+            }
+        }
+
+        // A guardian request takes over the screen. The app underneath stays
+        // blocked whatever happens here, so deferring costs nothing.
+        val request = pendingUninstall
+        if (request != null && !uninstallDeferred) {
+            UninstallPromptScreen(
+                appLabel = appLabelOf(request.packageName),
+                onConfirm = { startUninstall(request.packageName) },
+                onLater = { uninstallDeferred = true },
                 modifier = modifier
             )
             return
@@ -161,6 +202,41 @@ class MainActivity : ComponentActivity() {
         pairingId = code
         refreshStatus()
     }
+
+    /**
+     * Guardian side. The button is marked as sent immediately rather than
+     * waiting for the write to confirm — a guardian who taps twice because
+     * nothing appeared to happen would queue two uninstall requests.
+     */
+    private fun sendCommand(pairing: String, alert: Alert, action: String) {
+        sentCommands = sentCommands + (alert.alertId to action)
+        lifecycleScope.launch {
+            runCatching {
+                CommandRepository().send(pairing, alert.alertId, action, alert.packageName)
+            }.onFailure {
+                Log.e(TAG, "Could not send $action for ${alert.packageName}", it)
+                sentCommands = sentCommands - alert.alertId
+            }
+        }
+    }
+
+    /**
+     * Protected side. Android has no API to remove another app silently, by
+     * design — this opens the system dialog and the user has the final say.
+     * The pending request is cleared by the removal broadcast, not here, so a
+     * cancelled dialog leaves the prompt in place.
+     */
+    private fun startUninstall(packageName: String) {
+        val intent = Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
+        runCatching { startActivity(intent) }
+            .onFailure { Log.e(TAG, "Could not open uninstall dialog for $packageName", it) }
+    }
+
+    private fun appLabelOf(packageName: String): String = runCatching {
+        packageManager.getApplicationLabel(
+            packageManager.getApplicationInfo(packageName, 0)
+        ).toString()
+    }.getOrDefault(packageName)
 
     /**
      * Permissions are granted in system Settings, so the result arrives as a
@@ -207,6 +283,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private const val TAG = "MainActivity"
+
         /** Set by [GuardianAlertService] so a tapped notification opens its alert. */
         const val EXTRA_ALERT_ID = "extra_alert_id"
     }

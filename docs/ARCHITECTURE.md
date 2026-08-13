@@ -14,7 +14,9 @@ com.ronda.app/
 │   ├── InstallReceiver.kt       # BroadcastReceiver for ACTION_PACKAGE_ADDED (runtime only, not manifest)
 │   ├── RiskEvaluator.kt         # Reads install source + permissions, returns risk level
 │   ├── RiskResult.kt            # Detection result + RiskLevel enum
-│   └── FlaggedAppStore.kt       # Packages flagged HIGH RISK; handoff to the soft-block
+│   ├── FlaggedAppStore.kt       # Packages flagged HIGH RISK; handoff to the soft-block
+│   ├── SafeAppStore.kt          # Guardian's allowlist; only the guardian can add to it
+│   └── PendingUninstallStore.kt # Uninstall requests awaiting the user's confirmation
 │
 ├── overlay/
 │   ├── OverlayService.kt        # Foreground Service drawing SYSTEM_ALERT_WINDOW
@@ -30,7 +32,9 @@ com.ronda.app/
 │   ├── AlertRepository.kt       # Writes and observes alert records in Firebase RTDB
 │   ├── SeenAlertStore.kt        # Alert ids already notified, prevents duplicate buzzing
 │   ├── GuardianAlertService.kt  # Guardian-side RTDB listener → high-priority notification
-│   └── CommandHandler.kt        # Block 4 — processes guardian commands (uninstall, mark-safe)
+│   ├── Command.kt               # Guardian decision model
+│   ├── CommandRepository.kt     # Writes and observes commands in Firebase RTDB
+│   └── CommandHandler.kt        # Protected-side processing of guardian commands
 │
 └── ui/
     ├── onboarding/
@@ -40,7 +44,8 @@ com.ronda.app/
     │   ├── GuardianHomeScreen.kt
     │   └── AlertDetailScreen.kt
     ├── protectedrole/
-    │   └── ProtectedPairingScreen.kt  # Enters the code read out by the guardian
+    │   ├── ProtectedPairingScreen.kt  # Enters the code read out by the guardian
+    │   └── UninstallPromptScreen.kt   # Explains the guardian's uninstall request
     ├── setup/
     │   └── SetupScreen.kt             # Permission guidance, protected device home
     └── theme/
@@ -144,13 +149,25 @@ after the code is typed. No lookup, no index.
 | `status`             | String  | `"pending"` → `"uninstalled"` or `"safe"`    |
 | `timestamp`          | Long    | `ServerValue.TIMESTAMP` — server clock, never the phone's |
 
-### `commands/{pairingId}/{commandId}` — Block 4
+### `commands/{pairingId}/{commandId}`
 
 | Field               | Type    | Description                                  |
 |----------------------|---------|----------------------------------------------|
 | `alertId`            | String  | Links to the alert that triggered this        |
 | `action`             | String  | `"uninstall"` or `"mark_safe"`               |
-| `executedAt`         | Long    | Null until protected device processes it      |
+| `packageName`        | String  | Carried on the command, not looked up from the alert |
+| `createdAt`          | Long    | `ServerValue.TIMESTAMP`                       |
+| `executedAt`         | Long    | Null until the protected device picks it up   |
+
+`executedAt` means **delivered and surfaced**, not "the app is gone". The two are
+reported separately on purpose: an uninstall is only complete once the OS
+broadcasts `ACTION_PACKAGE_REMOVED`, and only then does `InstallReceiver` set the
+alert's status to `uninstalled`. A guardian must never be told an app was removed
+on the strength of a command that was merely received.
+
+`packageName` is duplicated onto the command rather than read back from the
+alert: the protected device must know what to act on even if the alert record is
+unreachable, and acting on the wrong package would be unrecoverable.
 
 ## 4. Alert Delivery — RTDB listener, not FCM
 
@@ -207,8 +224,9 @@ switch off mobile data does not suppress the alert, it only delays it.
 
 ### Protected
 1. **ProtectedPairingScreen** — Shown while unpaired. Types the code the guardian reads out.
-2. **SetupScreen** — Doubles as the protected home: permission status and what RONDA is doing.
-3. **WarningOverlay** (not a Compose screen) — Full-screen `SYSTEM_ALERT_WINDOW` drawn by `OverlayService`. Branded as RONDA. No "continue" button. Only exits: Home button or guardian marks safe.
+2. **UninstallPromptScreen** — Takes over the screen when the guardian requests a removal. Explains who asked and why, then opens the system dialog. Android has no API to remove another app silently, by design; this screen is the context that the terse system dialog does not provide.
+3. **SetupScreen** — Doubles as the protected home: permission status and what RONDA is doing.
+4. **WarningOverlay** (not a Compose screen) — Full-screen `SYSTEM_ALERT_WINDOW` drawn by `OverlayService`. Branded as RONDA. No "continue" button. Only exits: Home button or guardian marks safe.
 
 **Why pairing does not use a camera.** The plan said "protected scans QR". It is
 built the other way round — guardian *displays*, protected *types* — because the
