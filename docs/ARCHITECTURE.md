@@ -8,7 +8,8 @@ com.ronda.app/
 ├── RondaApp.kt                  # Application class (FCM init, WorkManager)
 │
 ├── detection/
-│   ├── InstallReceiver.kt       # BroadcastReceiver for ACTION_PACKAGE_ADDED
+│   ├── DetectionService.kt      # Foreground Service, registers InstallReceiver at runtime
+│   ├── InstallReceiver.kt       # BroadcastReceiver for ACTION_PACKAGE_ADDED (runtime only, not manifest)
 │   └── RiskEvaluator.kt         # Reads install source + permissions, returns risk level
 │
 ├── overlay/
@@ -40,6 +41,9 @@ com.ronda.app/
 
 ```
 ┌─────────────────── PROTECTED DEVICE ───────────────────┐
+│                                                         │
+│  DetectionService (foreground, always running)           │
+│       └── registers InstallReceiver at runtime          │
 │                                                         │
 │  OS broadcasts ACTION_PACKAGE_ADDED                     │
 │           │                                             │

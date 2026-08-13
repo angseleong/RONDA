@@ -5,20 +5,18 @@
 
 ---
 
-## ACTIVE — Block 0: Project Setup (10–11 Aug)
+## DONE — Block 0: Project Setup (10–11 Aug)
 
-- [ ] Android Studio + SDK installed, emulator running (Pixel, API 33)
-- [ ] Create Kotlin + Compose project: `com.ronda.app`, `minSdk 30`
-- [ ] Verify empty app builds and runs on emulator
+- [x] Android Studio + SDK installed, emulator running
+- [x] Create Kotlin + Compose project: `com.ronda.app`, `minSdk 30`
+- [x] Verify empty app builds and runs on emulator
 - [x] `git init`, push to GitHub, first commit
-- [ ] Create empty package folders: `detection/`, `overlay/`, `pairing/`, `alert/`, `ui/`
+- [x] Create empty package folders: `detection/`, `overlay/`, `pairing/`, `alert/`, `ui/`
 - [x] Context documents finalized: `AGENTS.md`, `ARCHITECTURE.md`, `TODO.md`
 
----
+## ACTIVE — Block 1: Detection Engine (12–15 Aug)
 
-## BACKLOG — Block 1: Detection Engine (12–15 Aug)
-
-- [ ] Register `InstallReceiver` for `ACTION_PACKAGE_ADDED` in AndroidManifest
+- [ ] Register `InstallReceiver` for `ACTION_PACKAGE_ADDED` **at runtime** via `registerReceiver()` from a foreground service (cannot use manifest since API 26)
 - [ ] Implement `RiskEvaluator`: read install source via `getInstallSourceInfo()`, read declared permissions via `getPackageInfo(GET_PERMISSIONS)`
 - [ ] Risk rule: sideloaded (not `com.android.vending`) AND declares `READ_SMS` → HIGH RISK
 - [ ] On HIGH RISK: show a local notification on the protected device (temporary, before FCM is wired)
@@ -26,6 +24,8 @@
 - [ ] End-to-end test: install test-sample APK on emulator → RONDA detects and shows notification
 
 **Checkpoint (15 Aug):** Installing the test-sample APK on the emulator produces a local detection notification.
+
+---
 
 ## BACKLOG — Block 2: Soft-Block Overlay (16–17 Aug)
 
