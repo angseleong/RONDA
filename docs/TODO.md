@@ -16,12 +16,12 @@
 
 ## ACTIVE — Block 1: Detection Engine (12–15 Aug)
 
-- [ ] Register `InstallReceiver` for `ACTION_PACKAGE_ADDED` **at runtime** via `registerReceiver()` from a foreground service (cannot use manifest since API 26)
-- [ ] Implement `RiskEvaluator`: read install source via `getInstallSourceInfo()`, read declared permissions via `getPackageInfo(GET_PERMISSIONS)`
-- [ ] Risk rule: sideloaded (not `com.android.vending`) AND declares `READ_SMS` → HIGH RISK
-- [ ] On HIGH RISK: show a local notification on the protected device (temporary, before FCM is wired)
-- [ ] Build test-sample APK (`com.test.undangan`): declares `READ_SMS`, single screen "Undangan Pernikahan", does nothing else
-- [ ] End-to-end test: install test-sample APK on emulator → RONDA detects and shows notification
+- [x] Register `InstallReceiver` for `ACTION_PACKAGE_ADDED` **at runtime** via `registerReceiver()` from a foreground service (cannot use manifest since API 26)
+- [x] Implement `RiskEvaluator`: read install source via `getInstallSourceInfo()`, read declared permissions via `getPackageInfo(GET_PERMISSIONS)`
+- [x] Risk rule: sideloaded (not `com.android.vending`) AND declares `READ_SMS` → HIGH RISK
+- [x] On HIGH RISK: show a local notification on the protected device (temporary, before FCM is wired)
+- [x] Build test-sample APK (`com.test.undangan`): declares `READ_SMS`, single screen "Undangan Pernikahan", does nothing else
+- [x] End-to-end test: install test-sample APK on emulator → RONDA detects and shows notification
 
 **Checkpoint (15 Aug):** Installing the test-sample APK on the emulator produces a local detection notification.
 
