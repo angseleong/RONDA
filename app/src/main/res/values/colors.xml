@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Warning overlay: deliberately NOT Android system styling. -->
+    <color name="overlay_background">#FF8C1010</color>
+    <color name="overlay_panel">#33000000</color>
+    <color name="overlay_text_primary">#FFFFFFFF</color>
+    <color name="overlay_text_secondary">#FFFFD9D9</color>
 </resources>

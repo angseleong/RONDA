@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        SINYAL DETEKSI RONDA (FR-3).
+        Permission ini HANYA dideklarasikan di manifest. Aplikasi ini tidak pernah
+        memintanya saat runtime dan tidak pernah membaca satu pun SMS.
+        Tujuannya semata-mata agar mesin deteksi RONDA punya target uji yang aman.
+
+        Untuk menguji cabang kedua dari risk rule, ganti baris di bawah menjadi:
+        <uses-permission android:name="android.permission.RECEIVE_SMS" />
+        (lihat README.md — bagian "Varian RECEIVE_SMS")
+    -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!--
+        Sengaja TIDAK mendeklarasikan android.permission.INTERNET.
+        Tanpa permission ini, aplikasi secara teknis tidak mampu mengirim data ke mana pun.
+    -->
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

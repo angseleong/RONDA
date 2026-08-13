@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    RONDA warning overlay.
+
+    Two hard rules from the PRD apply to this layout:
+    1. It is clearly branded as RONDA and must never imitate an Android system
+       dialog — that is the technique used by overlay-based banking trojans.
+    2. There is no "continue anyway" button. The only exits are the Home button
+       or the guardian marking the app safe.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/overlay_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="56dp">
+
+        <!-- Branding: the user must know this is RONDA, not the system -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/overlay_brand"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.15" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/overlay_brand_tagline"
+            android:textColor="@color/overlay_text_secondary"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="⚠"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="72sp"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/overlay_title"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <!-- Filled in by OverlayService with the flagged app's label -->
+        <TextView
+            android:id="@+id/overlay_app_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/overlay_body"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="21sp"
+            android:lineSpacingMultiplier="1.25"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:orientation="vertical"
+            android:background="@color/overlay_panel"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/overlay_reason_label"
+                android:textColor="@color/overlay_text_secondary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/overlay_reason"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="20sp"
+                android:lineSpacingMultiplier="1.2" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/overlay_guardian_notified"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:lineSpacingMultiplier="1.2"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/overlay_exit_hint"
+            android:textColor="@color/overlay_text_secondary"
+            android:textSize="18sp"
+            android:gravity="center" />
+    </LinearLayout>
+</ScrollView>

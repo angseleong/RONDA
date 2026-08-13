@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Undangan Pernikahan</string>
+    <string name="heart_desc">Ikon hati</string>
+    <string name="invitation_title">Undangan Pernikahan</string>
+    <string name="invitation_names">Andi &amp; Sari</string>
+    <string name="invitation_body">Dengan hormat kami mengundang\nBapak/Ibu/Saudara/i untuk hadir\npada acara pernikahan kami.\n\nSabtu, 12 September 2026\nPukul 10.00 WIB</string>
+    <string name="test_sample_notice">SAMPEL UJI RONDA — aplikasi ini tidak melakukan apa pun.\nBukan malware. Dibuat untuk pengujian mesin deteksi.</string>
+</resources>
