@@ -8,7 +8,8 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.ronda.app.R
+import com.ronda.app.Permissions
+import com.ronda.app.overlay.OverlayService
 
 class InstallReceiver : BroadcastReceiver() {
 
@@ -19,17 +20,47 @@ class InstallReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_PACKAGE_ADDED) {
-            val packageName = intent.data?.schemeSpecificPart ?: return
-            Log.d(TAG, "New package installed: $packageName")
+        val packageName = intent.data?.schemeSpecificPart ?: return
 
-            val evaluator = RiskEvaluator(context)
-            val result = evaluator.evaluate(packageName)
-
-            if (result.riskLevel == RiskLevel.HIGH) {
-                showRiskNotification(context, result)
+        when (intent.action) {
+            Intent.ACTION_PACKAGE_ADDED -> onPackageAdded(context, packageName)
+            Intent.ACTION_PACKAGE_REMOVED -> {
+                // An update fires REMOVED + ADDED; the app is still installed,
+                // so it must stay flagged.
+                if (!intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) {
+                    onPackageRemoved(context, packageName)
+                }
             }
         }
+    }
+
+    private fun onPackageAdded(context: Context, packageName: String) {
+        Log.d(TAG, "New package installed: $packageName")
+
+        val evaluator = RiskEvaluator(context)
+        val result = evaluator.evaluate(packageName)
+
+        if (result.riskLevel != RiskLevel.HIGH) return
+
+        showRiskNotification(context, result)
+
+        // Remember the package so the soft-block knows what to cover, then
+        // start blocking. Detection still alerts even if blocking cannot run.
+        FlaggedAppStore(context).flag(packageName)
+        if (Permissions.canBlock(context)) {
+            OverlayService.start(context)
+        } else {
+            Log.w(TAG, "Cannot block $packageName: overlay or usage-stats permission missing")
+        }
+    }
+
+    private fun onPackageRemoved(context: Context, packageName: String) {
+        val store = FlaggedAppStore(context)
+        if (!store.isFlagged(packageName)) return
+
+        Log.d(TAG, "Flagged package uninstalled, clearing block: $packageName")
+        // OverlayService stops itself once no flagged packages remain.
+        store.unflag(packageName)
     }
 
     private fun showRiskNotification(context: Context, result: RiskResult) {

@@ -14,7 +14,7 @@
 - [x] Create empty package folders: `detection/`, `overlay/`, `pairing/`, `alert/`, `ui/`
 - [x] Context documents finalized: `AGENTS.md`, `ARCHITECTURE.md`, `TODO.md`
 
-## ACTIVE — Block 1: Detection Engine (12–15 Aug)
+## DONE — Block 1: Detection Engine (12–15 Aug)
 
 - [x] Register `InstallReceiver` for `ACTION_PACKAGE_ADDED` **at runtime** via `registerReceiver()` from a foreground service (cannot use manifest since API 26)
 - [x] Implement `RiskEvaluator`: read install source via `getInstallSourceInfo()`, read declared permissions via `getPackageInfo(GET_PERMISSIONS)`
@@ -25,18 +25,19 @@
 
 **Checkpoint (15 Aug):** Installing the test-sample APK on the emulator produces a local detection notification.
 
----
+## ACTIVE — Block 2: Soft-Block Overlay (16–17 Aug)
 
-## BACKLOG — Block 2: Soft-Block Overlay (16–17 Aug)
-
-- [ ] Implement permission setup screen: guide user to enable `SYSTEM_ALERT_WINDOW` and `PACKAGE_USAGE_STATS`
-- [ ] Implement `ForegroundAppMonitor`: poll `UsageStatsManager` for current foreground app
-- [ ] Implement `OverlayService`: draw full-screen warning when flagged app is in foreground
-- [ ] Overlay is branded as RONDA, no "continue" button, clearly states the app is suspected malware
-- [ ] Overlay clears when app is uninstalled or marked safe
-- [ ] Test: open test-sample APK → RONDA overlay covers it immediately
+- [x] Implement permission setup screen: guide user to enable `SYSTEM_ALERT_WINDOW` and `PACKAGE_USAGE_STATS`
+- [x] Implement `ForegroundAppMonitor`: poll `UsageStatsManager` for current foreground app
+- [x] Implement `OverlayService`: draw full-screen warning when flagged app is in foreground
+- [x] Overlay is branded as RONDA, no "continue" button, clearly states the app is suspected malware
+- [x] Overlay clears when app is uninstalled (`ACTION_PACKAGE_REMOVED` → unflag → service stops)
+- [ ] Overlay clears when marked safe — blocked on Block 3/4: the Mark Safe button lives on the guardian device. `FlaggedAppStore.unflag()` is the hook it will call.
+- [ ] Test: open test-sample APK → RONDA overlay covers it immediately — **not yet run, no AVD on this machine**
 
 **Checkpoint (17 Aug):** Opening the test-sample APK triggers the RONDA warning overlay. Works offline.
+
+---
 
 ## BACKLOG — Block 3: Pairing + Alerting (18–19 Aug)
 

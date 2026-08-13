@@ -47,7 +47,10 @@ class DetectionService : Service() {
 
     private fun registerInstallReceiver() {
         if (installReceiver == null) {
-            val filter = IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                // Uninstalling a flagged app must clear its block (FR-8).
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
                 addDataScheme("package")
             }
             installReceiver = InstallReceiver()

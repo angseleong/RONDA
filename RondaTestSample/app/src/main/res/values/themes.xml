@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Sengaja memakai tema bawaan platform (bukan AppCompat/Material Components)
+        agar project ini tidak butuh dependency AndroidX sama sekali.
+        Semakin sedikit dependency, semakin kecil risiko build gagal saat sprint.
+    -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/invitation_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

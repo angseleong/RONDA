@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">RONDA</string>
+
+    <!-- Warning overlay. Plain Indonesian, no security jargon. -->
+    <string name="overlay_brand">RONDA</string>
+    <string name="overlay_brand_tagline">Pelindung Keluarga</string>
+    <string name="overlay_title">JANGAN BUKA APLIKASI INI</string>
+    <string name="overlay_body">Aplikasi ini diduga dapat membaca kode OTP dari SMS Anda dan menguras rekening bank Anda.</string>
+    <string name="overlay_reason_label">Kenapa ditandai bahaya:</string>
+    <string name="overlay_reason">Aplikasi ini dipasang dari luar Play Store, dan meminta izin untuk membaca SMS Anda.</string>
+    <string name="overlay_guardian_notified">Penjaga Anda sudah diberi tahu. Tunggu sampai mereka menghubungi Anda.</string>
+    <string name="overlay_exit_hint">Tekan tombol Home untuk keluar.</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">Pengaturan RONDA</string>
+    <string name="setup_status_active">RONDA aktif melindungi HP ini</string>
+    <string name="setup_status_incomplete">RONDA belum aktif sepenuhnya</string>
+    <string name="setup_status_active_detail">Aplikasi berbahaya akan terdeteksi saat dipasang, dan langsung ditutup dengan peringatan.</string>
+    <string name="setup_status_incomplete_detail">Nyalakan izin di bawah ini agar RONDA bisa melindungi HP ini sepenuhnya.</string>
+
+    <string name="permission_granted">Sudah aktif</string>
+    <string name="permission_missing">Belum aktif</string>
+    <string name="permission_enable">Nyalakan</string>
+
+    <string name="permission_notifications_title">Notifikasi</string>
+    <string name="permission_notifications_why">Agar RONDA bisa memberi peringatan saat ada aplikasi berbahaya dipasang.</string>
+
+    <string name="permission_overlay_title">Tampilkan di atas aplikasi lain</string>
+    <string name="permission_overlay_why">Agar RONDA bisa menutupi aplikasi berbahaya dengan peringatan. RONDA tidak bisa membaca isi layar Anda.</string>
+
+    <string name="permission_usage_title">Akses penggunaan aplikasi</string>
+    <string name="permission_usage_why">Agar RONDA tahu aplikasi mana yang sedang dibuka. Yang terbaca hanya nama aplikasi, bukan isinya.</string>
+
+    <string name="setup_privacy_note">RONDA tidak pernah meminta izin SMS, tidak membaca pesan Anda, dan tidak menggunakan layanan Aksesibilitas.</string>
 </resources>
