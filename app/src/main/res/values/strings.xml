@@ -32,4 +32,66 @@
     <string name="permission_usage_why">Agar RONDA tahu aplikasi mana yang sedang dibuka. Yang terbaca hanya nama aplikasi, bukan isinya.</string>
 
     <string name="setup_privacy_note">RONDA tidak pernah meminta izin SMS, tidak membaca pesan Anda, dan tidak menggunakan layanan Aksesibilitas.</string>
+
+    <!-- Role selection. Written for the person holding the phone, not for a
+         security engineer: "HP saya" / "HP orang tua saya", never "node role". -->
+    <string name="role_title">Siapa yang pakai HP ini?</string>
+    <string name="role_subtitle">Pilihan ini menentukan tugas RONDA di HP ini. Setelah dipilih, pilihan tidak bisa diubah kecuali aplikasi dipasang ulang.</string>
+    <string name="role_protected_title">HP orang tua saya</string>
+    <string name="role_protected_body">RONDA akan mengawasi HP ini. Kalau ada aplikasi berbahaya dipasang, RONDA menutupnya dan memberi tahu Anda.</string>
+    <string name="role_guardian_title">HP saya sebagai penjaga</string>
+    <string name="role_guardian_body">RONDA akan mengirim peringatan ke HP ini kalau ada yang mencurigakan di HP orang tua Anda.</string>
+    <string name="role_choose">Pilih</string>
+
+    <!-- Guardian pairing -->
+    <string name="pair_guardian_title">Hubungkan ke HP orang tua</string>
+    <string name="pair_guardian_step">Buka RONDA di HP orang tua Anda, pilih \"HP orang tua saya\", lalu masukkan kode di bawah ini.</string>
+    <string name="pair_guardian_code_label">Kode penghubung</string>
+    <string name="pair_guardian_or_scan">Atau pindai kode QR ini dengan aplikasi pemindai QR bawaan HP.</string>
+    <string name="pair_guardian_waiting">Menunggu HP orang tua memasukkan kode…</string>
+    <string name="pair_guardian_expiry">Kode berlaku 10 menit.</string>
+    <string name="pair_qr_desc">Kode QR berisi kode penghubung</string>
+    <string name="pair_creating">Membuat kode…</string>
+
+    <!-- Protected pairing -->
+    <string name="pair_protected_title">Masukkan kode dari HP penjaga</string>
+    <string name="pair_protected_step">Minta anak Anda membuka RONDA dan membacakan kode 6 huruf yang muncul di HP mereka.</string>
+    <string name="pair_protected_field">Kode penghubung</string>
+    <string name="pair_protected_submit">Hubungkan</string>
+    <string name="pair_error_invalid">Kode harus 6 huruf atau angka.</string>
+    <string name="pair_error_notfound">Kode tidak ditemukan. Periksa lagi ketikan Anda.</string>
+    <string name="pair_error_used">Kode ini sudah dipakai. Minta kode baru.</string>
+    <string name="pair_error_expired">Kode sudah kedaluwarsa. Minta kode baru.</string>
+    <string name="pair_connecting">Menghubungkan…</string>
+
+    <!-- Guardian home -->
+    <string name="guardian_home_title">RONDA Penjaga</string>
+    <string name="guardian_home_connected">Terhubung dengan HP orang tua Anda</string>
+    <string name="guardian_home_empty_title">Belum ada peringatan</string>
+    <string name="guardian_home_empty_body">RONDA sedang mengawasi. Anda akan diberi tahu kalau ada aplikasi berbahaya dipasang di HP orang tua Anda.</string>
+    <string name="guardian_home_alerts">Peringatan</string>
+    <string name="guardian_watch_title">RONDA menjaga</string>
+    <string name="guardian_watch_body">Siap menerima peringatan dari HP orang tua Anda.</string>
+
+    <!-- Alert detail -->
+    <string name="alert_detail_title">Aplikasi berbahaya terdeteksi</string>
+    <string name="alert_detail_source">Dipasang dari</string>
+    <string name="alert_detail_permissions">Izin yang diminta</string>
+    <string name="alert_detail_package">Nama teknis</string>
+    <string name="alert_detail_why">Kenapa ini berbahaya</string>
+    <string name="alert_detail_why_body">Aplikasi ini dipasang dari luar Play Store dan meminta izin membaca SMS. Gabungan keduanya adalah cara penipu mencuri kode OTP bank.</string>
+    <string name="alert_detail_blocked">Aplikasi ini sudah ditutup di HP orang tua Anda.</string>
+    <string name="alert_action_uninstall">Hapus aplikasi</string>
+    <string name="alert_action_safe">Tandai aman</string>
+    <string name="alert_action_pending_note">Tombol ini aktif di Block 4.</string>
+    <string name="alert_back">Kembali</string>
+
+    <!-- Guardian notifications -->
+    <string name="channel_guardian_watch">Penjagaan RONDA</string>
+    <string name="channel_guardian_watch_desc">Menjaga koneksi agar peringatan sampai ke HP ini.</string>
+    <string name="channel_guardian_alerts">Peringatan bahaya</string>
+    <string name="channel_guardian_alerts_desc">Peringatan saat aplikasi berbahaya dipasang di HP yang dijaga.</string>
+    <string name="alert_notification_title">BAHAYA: aplikasi mencurigakan dipasang</string>
+    <string name="alert_notification_body">%1$s dipasang di HP orang tua Anda.</string>
+    <string name="alert_notification_detail">%1$s dipasang di HP orang tua Anda.\n\nDipasang dari: %2$s\nIzin yang diminta: %3$s\n\nAplikasi sudah ditutup sementara. Ketuk untuk memutuskan.</string>
 </resources>

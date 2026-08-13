@@ -25,29 +25,31 @@
 
 **Checkpoint (15 Aug):** Installing the test-sample APK on the emulator produces a local detection notification.
 
-## ACTIVE — Block 2: Soft-Block Overlay (16–17 Aug)
+## DONE — Block 2: Soft-Block Overlay (16–17 Aug)
 
 - [x] Implement permission setup screen: guide user to enable `SYSTEM_ALERT_WINDOW` and `PACKAGE_USAGE_STATS`
 - [x] Implement `ForegroundAppMonitor`: poll `UsageStatsManager` for current foreground app
 - [x] Implement `OverlayService`: draw full-screen warning when flagged app is in foreground
 - [x] Overlay is branded as RONDA, no "continue" button, clearly states the app is suspected malware
 - [x] Overlay clears when app is uninstalled (`ACTION_PACKAGE_REMOVED` → unflag → service stops)
-- [ ] Overlay clears when marked safe — blocked on Block 3/4: the Mark Safe button lives on the guardian device. `FlaggedAppStore.unflag()` is the hook it will call.
+- [ ] Overlay clears when marked safe — blocked on Block 4: the Mark Safe button exists on `AlertDetailScreen` but is not wired yet. `FlaggedAppStore.unflag()` is the hook it will call.
 - [ ] Test: open test-sample APK → RONDA overlay covers it immediately — **not yet run, no AVD on this machine**
 
 **Checkpoint (17 Aug):** Opening the test-sample APK triggers the RONDA warning overlay. Works offline.
 
 ---
 
-## BACKLOG — Block 3: Pairing + Alerting (18–19 Aug)
+## ACTIVE — Block 3: Pairing + Alerting (18–19 Aug)
 
-- [ ] Implement `RoleSelectionScreen` (Guardian / Protected), store role in SharedPreferences
-- [ ] Guardian: generate pairing token, display as QR code
-- [ ] Protected: scan QR code, write pairing record to Firebase RTDB
-- [ ] On HIGH RISK detection: write alert record to Firebase RTDB
-- [ ] Firebase triggers FCM push to guardian device
-- [ ] Guardian receives high-priority notification with app name and risk details
-- [ ] Guardian UI: `AlertDetailScreen` with Uninstall / Mark Safe buttons
+- [x] Implement `RoleSelectionScreen` (Guardian / Protected), store role in SharedPreferences (`RoleStore`, write-once)
+- [x] Guardian: generate pairing token, display as QR code (`GuardianPairingScreen` — QR **and** a readable 6-char code)
+- [x] Protected: enter pairing code, write pairing record to Firebase RTDB — **changed from "scan QR"**: guardian is usually not in the room, and an emulator camera cannot scan another emulator's screen. QR is still generated; see `docs/ARCHITECTURE.md` §5.
+- [x] On HIGH RISK detection: write alert record to Firebase RTDB (`AlertRepository.submit()` from `InstallReceiver`)
+- [x] ~~Firebase triggers FCM push to guardian device~~ → **replaced by RTDB listener.** FCM legacy server keys were shut off June 2024; device-to-device push now needs a Cloud Function on the Blaze plan. `GuardianAlertService` holds an RTDB listener instead. Rationale and trade-off in `docs/ARCHITECTURE.md` §4.
+- [x] Guardian receives high-priority notification with app name and risk details
+- [x] Guardian UI: `AlertDetailScreen` with Uninstall / Mark Safe buttons (buttons rendered; their actions are Block 4)
+- [ ] **Blocked on you:** create Firebase project + Realtime Database, put `google-services.json` in `app/`. Steps and DB rules in `docs/ARCHITECTURE.md` §7. Nothing compiles until this exists.
+- [ ] End-to-end test: two emulators, pair them, install test APK on the protected one → guardian gets a notification
 
 **Checkpoint (19 Aug):** Two emulators — installing test APK on one causes the other to alert.
 

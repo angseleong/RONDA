@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Pairing + alert sync via Firebase Realtime Database. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -21,6 +25,7 @@
 
 
     <application
+        android:name=".RondaApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -46,6 +51,20 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Blocking a detected malicious app" />
+        </service>
+
+        <!--
+            Guardian side only. Keeps the RTDB connection alive so an alert
+            reaches the guardian while RONDA is in the background — the job FCM
+            would do, minus the server. Never started on a protected device.
+        -->
+        <service
+            android:name=".alert.GuardianAlertService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Listening for alerts from a paired device" />
         </service>
 
         <activity

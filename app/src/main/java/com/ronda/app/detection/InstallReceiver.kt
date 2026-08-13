@@ -9,7 +9,14 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
+import com.ronda.app.alert.AlertRepository
 import com.ronda.app.overlay.OverlayService
+import com.ronda.app.pairing.RoleStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class InstallReceiver : BroadcastReceiver() {
 
@@ -17,6 +24,7 @@ class InstallReceiver : BroadcastReceiver() {
         private const val TAG = "InstallReceiver"
         private const val CHANNEL_ID = "ronda_alert_channel"
         private const val NOTIFICATION_ID_BASE = 1000
+        private const val ALERT_WRITE_TIMEOUT_MS = 8_000L
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -51,6 +59,39 @@ class InstallReceiver : BroadcastReceiver() {
             OverlayService.start(context)
         } else {
             Log.w(TAG, "Cannot block $packageName: overlay or usage-stats permission missing")
+        }
+
+        publishAlert(context, result)
+    }
+
+    /**
+     * Tell the guardian. Local protection above already happened, so a failure
+     * here degrades RONDA to the offline behaviour of Block 2 rather than
+     * leaving the victim unprotected.
+     *
+     * goAsync() buys the write a few extra seconds beyond the ~10s a receiver
+     * normally gets. If it does not land in time, Realtime Database persistence
+     * keeps the write queued on disk and flushes it when the app next runs.
+     */
+    private fun publishAlert(context: Context, result: RiskResult) {
+        val pairingId = RoleStore(context).pairingId
+        if (pairingId == null) {
+            Log.w(TAG, "Not paired yet — guardian cannot be notified about ${result.packageName}")
+            return
+        }
+
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            try {
+                withTimeoutOrNull(ALERT_WRITE_TIMEOUT_MS) {
+                    val alertId = AlertRepository().submit(pairingId, result)
+                    Log.d(TAG, "Alert $alertId published for ${result.packageName}")
+                } ?: Log.w(TAG, "Alert write did not confirm in time; queued for retry")
+            } catch (e: Exception) {
+                Log.e(TAG, "Could not publish alert for ${result.packageName}", e)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
