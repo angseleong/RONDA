@@ -1,5 +1,6 @@
 package com.ronda.app.pairing
 
+import com.google.firebase.database.Exclude
 import com.google.firebase.database.FirebaseDatabase
 import com.ronda.app.awaitGet
 import com.ronda.app.awaitSet
@@ -21,6 +22,12 @@ data class Pairing(
     val createdAt: Long = 0L,
     val expiresAt: Long = 0L
 ) {
+    /**
+     * Derived, never stored. Without @get:Exclude the SDK treats the getter as
+     * a field and writes a junk `active` boolean next to `status` — two sources
+     * of truth for the same fact, and a warning on every read.
+     */
+    @get:Exclude
     val isActive: Boolean get() = status == STATUS_ACTIVE
 
     companion object {
