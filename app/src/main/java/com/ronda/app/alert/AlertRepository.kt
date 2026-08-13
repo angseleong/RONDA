@@ -43,6 +43,17 @@ class AlertRepository {
         return ref.key.orEmpty()
     }
 
+    /**
+     * Protected side: report what actually happened to a flagged app.
+     *
+     * Written when the outcome is real — an app is only `uninstalled` once the
+     * OS says it is gone, never on the strength of a command being delivered.
+     */
+    suspend fun updateStatus(pairingId: String, alertId: String, status: String) {
+        if (alertId.isEmpty()) return
+        alerts.child(pairingId).child(alertId).child("status").awaitSet(status)
+    }
+
     /** Guardian side: every alert for this pairing, newest first. */
     fun observeAlerts(pairingId: String): Flow<List<Alert>> =
         alerts.child(pairingId).valueEvents().map { snapshot ->

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ronda.app.R
 import com.ronda.app.alert.Alert
+import com.ronda.app.alert.Command
 
 /**
  * The decision screen. The guardian sees exactly what RONDA saw and picks one
@@ -33,12 +34,17 @@ import com.ronda.app.alert.Alert
  * guardian may well be the only person in the family who can judge whether an
  * app their parent just installed is legitimate.
  *
- * Block 3 builds this screen and its buttons; Block 4 wires the buttons to
- * `commands/{pairingId}` so the protected phone acts on them.
+ * The buttons write to `commands/{pairingId}`; the protected phone acts on them.
+ *
+ * @param pendingAction the action already sent and not yet confirmed by the
+ *   protected phone, or null. Uninstall in particular takes as long as it takes
+ *   the person holding that phone to tap through the system dialog, and the
+ *   guardian is owed an honest "waiting" rather than a button that looks unpressed.
  */
 @Composable
 fun AlertDetailScreen(
     alert: Alert,
+    pendingAction: String?,
     onUninstall: () -> Unit,
     onMarkSafe: () -> Unit,
     onBack: () -> Unit,
@@ -122,30 +128,83 @@ fun AlertDetailScreen(
 
         Spacer(Modifier.height(28.dp))
 
-        Button(
-            onClick = onUninstall,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
-        ) {
-            Text(stringResource(R.string.alert_action_uninstall), fontSize = 18.sp)
+        when {
+            // The protected phone has reported a real outcome — nothing left to decide.
+            alert.status != Alert.STATUS_PENDING -> OutcomeBanner(alert.status)
+
+            pendingAction != null -> WaitingBanner(pendingAction)
+
+            else -> {
+                Button(
+                    onClick = onUninstall,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(stringResource(R.string.alert_action_uninstall), fontSize = 18.sp)
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedButton(onClick = onMarkSafe, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.alert_action_safe), fontSize = 18.sp)
+                }
+            }
         }
+    }
+}
 
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedButton(onClick = onMarkSafe, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.alert_action_safe), fontSize = 18.sp)
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(R.string.alert_action_pending_note),
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+@Composable
+private fun OutcomeBanner(status: String) {
+    val isSafe = status == Alert.STATUS_SAFE
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSafe) MaterialTheme.colorScheme.surfaceVariant
+            else MaterialTheme.colorScheme.primaryContainer
         )
+    ) {
+        Text(
+            text = stringResource(
+                if (isSafe) R.string.alert_outcome_safe else R.string.alert_outcome_uninstalled
+            ),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun WaitingBanner(pendingAction: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text(
+                text = stringResource(
+                    if (pendingAction == Command.ACTION_UNINSTALL) {
+                        R.string.alert_waiting_uninstall
+                    } else {
+                        R.string.alert_waiting_safe
+                    }
+                ),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.alert_waiting_detail),
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
     }
 }
 

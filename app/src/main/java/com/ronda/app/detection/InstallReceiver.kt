@@ -9,6 +9,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
+import com.ronda.app.alert.Alert
 import com.ronda.app.alert.AlertRepository
 import com.ronda.app.overlay.OverlayService
 import com.ronda.app.pairing.RoleStore
@@ -44,6 +45,13 @@ class InstallReceiver : BroadcastReceiver() {
 
     private fun onPackageAdded(context: Context, packageName: String) {
         Log.d(TAG, "New package installed: $packageName")
+
+        // The guardian has already looked at this one and cleared it. Flagging
+        // it again would overrule a decision only they are allowed to make.
+        if (SafeAppStore(context).isAllowed(packageName)) {
+            Log.d(TAG, "Package is on the guardian's allowlist, skipping: $packageName")
+            return
+        }
 
         val evaluator = RiskEvaluator(context)
         val result = evaluator.evaluate(packageName)
@@ -96,12 +104,41 @@ class InstallReceiver : BroadcastReceiver() {
     }
 
     private fun onPackageRemoved(context: Context, packageName: String) {
-        val store = FlaggedAppStore(context)
-        if (!store.isFlagged(packageName)) return
+        // A reinstall is a new question, so any earlier decision is forgotten
+        // regardless of whether this package was the flagged one.
+        SafeAppStore(context).forget(packageName)
 
-        Log.d(TAG, "Flagged package uninstalled, clearing block: $packageName")
-        // OverlayService stops itself once no flagged packages remain.
-        store.unflag(packageName)
+        val pendingUninstalls = PendingUninstallStore(context)
+        val alertId = pendingUninstalls.alertIdFor(packageName)
+        pendingUninstalls.clear(packageName)
+
+        val store = FlaggedAppStore(context)
+        if (store.isFlagged(packageName)) {
+            Log.d(TAG, "Flagged package uninstalled, clearing block: $packageName")
+            // OverlayService stops itself once no flagged packages remain.
+            store.unflag(packageName)
+        }
+
+        // Only now is it true that the app is gone — report it to the guardian.
+        if (alertId != null) reportUninstalled(context, alertId, packageName)
+    }
+
+    private fun reportUninstalled(context: Context, alertId: String, packageName: String) {
+        val pairingId = RoleStore(context).pairingId ?: return
+
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            try {
+                withTimeoutOrNull(ALERT_WRITE_TIMEOUT_MS) {
+                    AlertRepository().updateStatus(pairingId, alertId, Alert.STATUS_UNINSTALLED)
+                    Log.d(TAG, "Reported $packageName as uninstalled to guardian")
+                } ?: Log.w(TAG, "Uninstall report did not confirm in time; queued for retry")
+            } catch (e: Exception) {
+                Log.e(TAG, "Could not report uninstall of $packageName", e)
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     private fun showRiskNotification(context: Context, result: RiskResult) {
