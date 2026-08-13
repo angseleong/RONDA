@@ -1,0 +1,53 @@
+package com.ronda.app.alert
+
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
+import com.ronda.app.awaitSet
+import com.ronda.app.detection.RiskResult
+import com.ronda.app.valueEvents
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+/**
+ * Alerts, stored under the pairing that owns them: `alerts/{pairingId}/{alertId}`.
+ *
+ * Nesting by pairing rather than keeping one flat `alerts` list means the
+ * guardian subscribes to a single node and receives only its own alerts — no
+ * query, no `.indexOn` rule, and no way to read another family's alerts.
+ */
+class AlertRepository {
+
+    private val alerts = FirebaseDatabase.getInstance().reference.child("alerts")
+
+    /**
+     * Protected side: publish a detection.
+     *
+     * The timestamp is set by the server, not the phone — a device with a wrong
+     * clock would otherwise sort itself to the bottom of the guardian's list and
+     * be missed.
+     *
+     * @return the generated alert id
+     */
+    suspend fun submit(pairingId: String, result: RiskResult): String {
+        val ref = alerts.child(pairingId).push()
+        ref.awaitSet(
+            mapOf(
+                "packageName" to result.packageName,
+                "appLabel" to result.appLabel,
+                "installSource" to result.installSource,
+                "flaggedPermissions" to result.flaggedPermissions,
+                "status" to Alert.STATUS_PENDING,
+                "timestamp" to ServerValue.TIMESTAMP
+            )
+        )
+        return ref.key.orEmpty()
+    }
+
+    /** Guardian side: every alert for this pairing, newest first. */
+    fun observeAlerts(pairingId: String): Flow<List<Alert>> =
+        alerts.child(pairingId).valueEvents().map { snapshot ->
+            snapshot.children.mapNotNull { child ->
+                child.getValue(Alert::class.java)?.apply { alertId = child.key.orEmpty() }
+            }.sortedByDescending { it.timestamp }
+        }
+}
