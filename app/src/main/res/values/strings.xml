@@ -111,4 +111,8 @@
     <string name="alert_notification_title">BAHAYA: aplikasi mencurigakan dipasang</string>
     <string name="alert_notification_body">%1$s dipasang di HP orang tua Anda.</string>
     <string name="alert_notification_detail">%1$s dipasang di HP orang tua Anda.\n\nDipasang dari: %2$s\nIzin yang diminta: %3$s\n\nAplikasi sudah ditutup sementara. Ketuk untuk memutuskan.</string>
+    <string name="channel_guardian_outcome">Hasil tindakan</string>
+    <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP orang tua.</string>
+    <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>
+    <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP orang tua Anda.</string>
 </resources>

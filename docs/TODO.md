@@ -92,6 +92,22 @@ Bug found and fixed during this run: `Pairing.isActive` was a derived property w
 - `ACTION_DELETE` was refused silently — `REQUEST_DELETE_PACKAGES` was not declared in the manifest. No crash, no dialog, no log unless watching `UninstallerActivity`.
 - The uninstall prompt only appeared after a fresh `onResume`. If RONDA was already open when the guardian decided, the screen never changed. `PendingUninstallStore.observe()` now drives it reactively.
 
+**Bug found on a from-scratch run (14 Aug, second pass).** Everything above was
+verified on devices that were *already paired* when `DetectionService` first
+started. On a phone set up from zero the order is role → service start →
+pairing, and the service read `RoleStore.pairingId` only in `onCreate` — so it
+logged "Not paired" once and never looked again. No guardian command was ever
+collected: **Uninstall** produced no prompt and **Mark safe** never lifted the
+overlay, with nothing in the logs but that one line. The lookup moved to
+`onStartCommand` (idempotent via `commandJob`), which MainActivity re-triggers on
+every resume. Re-verified end to end on two freshly reset emulators.
+
+Also added: the guardian now gets a notification when the protected phone
+actually completes the removal (`status = uninstalled` → "Aplikasi berbahaya
+sudah dihapus"), and that alert's original red notification is cancelled. Before
+this, the outcome was only visible if the guardian happened to have the alert
+open.
+
 **Design note.** `executedAt` on a command means *delivered*, not *done*. An
 uninstall is only reported as complete when the OS broadcasts
 `ACTION_PACKAGE_REMOVED` and `InstallReceiver` writes `status = uninstalled`. The
