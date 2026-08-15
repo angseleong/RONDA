@@ -1,0 +1,303 @@
+#!/usr/bin/env bash
+#
+# ronda — demo driver for the two-emulator RONDA simulation.
+#
+# One phone plays the parent (PROTECTED, runs detection + overlay), the other
+# plays the child (GUARDIAN, receives alerts). Everything the demo needs is a
+# subcommand here; run `scripts/ronda help` for the list.
+#
+set -euo pipefail
+
+PROTECTED_AVD="${RONDA_PROTECTED_AVD:-Pixel_6}"
+GUARDIAN_AVD="${RONDA_GUARDIAN_AVD:-RONDA_Guardian}"
+
+PKG="com.ronda.app"
+SAMPLE_PKG="com.ronda.testsample"
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SHOT_DIR="${RONDA_SHOT_DIR:-$ROOT/build/demo-shots}"
+
+export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+ADB="$ANDROID_HOME/platform-tools/adb"
+EMULATOR="$ANDROID_HOME/emulator/emulator"
+
+say()  { printf '\033[1;36m▸ %s\033[0m\n' "$*"; }
+warn() { printf '\033[1;33m! %s\033[0m\n' "$*"; }
+die()  { printf '\033[1;31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
+
+# ---------------------------------------------------------------- devices ----
+
+# Serial of a running AVD, empty if it is not booted.
+serial_for() {
+  local avd="$1" s
+  for s in $("$ADB" devices | awk '/^emulator-.*device$/{print $1}'); do
+    if [ "$("$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "$avd" ]; then
+      echo "$s"; return 0
+    fi
+  done
+  echo ""
+}
+
+require_serial() {
+  local avd="$1" s
+  s="$(serial_for "$avd")"
+  [ -n "$s" ] || die "Emulator $avd belum jalan. Jalankan: scripts/ronda up"
+  echo "$s"
+}
+
+protected() { require_serial "$PROTECTED_AVD"; }
+guardian()  { require_serial "$GUARDIAN_AVD"; }
+
+boot_avd() {
+  local avd="$1"
+  if [ -n "$(serial_for "$avd")" ]; then say "$avd sudah jalan"; return; fi
+  # Braces are load-bearing: bash 3.2 (the macOS default) swallows the
+  # following multi-byte "…" into the variable name under some locales.
+  say "Menyalakan ${avd}…"
+  nohup "$EMULATOR" -avd "$avd" -netdelay none -netspeed full >/dev/null 2>&1 &
+  local i s
+  for i in $(seq 1 90); do
+    s="$(serial_for "$avd")"
+    if [ -n "$s" ] && [ "$("$ADB" -s "$s" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
+      say "$avd siap ($s)"; return
+    fi
+    sleep 3
+  done
+  die "$avd tidak selesai booting dalam 4.5 menit"
+}
+
+# ------------------------------------------------------------------- ui ------
+# Compose exposes its text to uiautomator, so the demo can drive the real UI
+# instead of hardcoding tap coordinates that break on every layout change.
+
+ui_dump() {
+  local s="$1" i
+  for i in 1 2 3 4 5; do
+    if "$ADB" -s "$s" shell uiautomator dump /sdcard/ronda-ui.xml >/dev/null 2>&1; then
+      "$ADB" -s "$s" shell cat /sdcard/ronda-ui.xml 2>/dev/null | tr '>' '\n'
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+# Tap the n-th node whose text matches a regex. ui_tap <serial> <regex> [n]
+ui_tap() {
+  local s="$1" pattern="$2" idx="${3:-1}" node bounds x1 y1 x2 y2 i
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    node="$(ui_dump "$s" | grep -E "text=\"$pattern\"" | sed -n "${idx}p" || true)"
+    if [ -n "$node" ]; then
+      bounds="$(echo "$node" | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | head -1)"
+      read -r x1 y1 x2 y2 <<<"$(echo "$bounds" | grep -oE '[0-9]+' | tr '\n' ' ')"
+      "$ADB" -s "$s" shell input tap $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 ))
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# Print the first text matching a regex, e.g. the 6-char pairing code.
+ui_text() {
+  local s="$1" pattern="$2" i hit
+  for i in $(seq 1 15); do
+    hit="$(ui_dump "$s" | grep -oE "text=\"$pattern\"" | head -1 | sed -E 's/text="(.*)"/\1/' || true)"
+    if [ -n "$hit" ]; then echo "$hit"; return 0; fi
+    sleep 2
+  done
+  return 1
+}
+
+# -------------------------------------------------------------- commands ----
+
+cmd_up() { boot_avd "$PROTECTED_AVD"; boot_avd "$GUARDIAN_AVD"; }
+
+cmd_install() {
+  say "Build APK RONDA…"
+  (cd "$ROOT" && ./gradlew -q :app:assembleDebug)
+  local apk="$ROOT/app/build/outputs/apk/debug/app-debug.apk" s
+  for s in "$(protected)" "$(guardian)"; do
+    say "Pasang RONDA di $s"
+    "$ADB" -s "$s" install -r -t "$apk" >/dev/null
+  done
+}
+
+# Wipe both phones back to first-launch: role is write-once, so a fresh
+# simulation is only possible by clearing app data.
+cmd_reset() {
+  local s
+  for s in "$(protected)" "$(guardian)"; do
+    "$ADB" -s "$s" shell am force-stop "$PKG" || true
+    "$ADB" -s "$s" shell pm clear "$PKG" >/dev/null
+  done
+  "$ADB" -s "$(protected)" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  say "Dua HP kembali ke kondisi baru pasang (peran & pairing terhapus)"
+}
+
+# The three permissions SetupScreen walks a real user through Settings for.
+# Skipping that by hand every run is the single biggest time sink in the demo.
+cmd_perms() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  for s in "$p" "$g"; do
+    "$ADB" -s "$s" shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+  done
+  "$ADB" -s "$p" shell appops set "$PKG" SYSTEM_ALERT_WINDOW allow
+  "$ADB" -s "$p" shell appops set "$PKG" GET_USAGE_STATS allow
+  say "Izin notifikasi + overlay + usage stats diberikan lewat adb"
+}
+
+cmd_open() {
+  local s
+  for s in "$(protected)" "$(guardian)"; do
+    "$ADB" -s "$s" shell am start -n "$PKG/.MainActivity" >/dev/null
+  done
+  say "RONDA dibuka di dua HP"
+}
+
+# Pick PROTECTED on the first phone and GUARDIAN on the second. Both cards use
+# the same "Pilih" label, so they are addressed by order: protected card first.
+cmd_role() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  ui_tap "$p" "Pilih" 1 || die "Layar pilih peran tidak muncul di $PROTECTED_AVD (sudah pernah pilih? jalankan: scripts/ronda reset)"
+  say "$PROTECTED_AVD → HP orang tua (PROTECTED)"
+  ui_tap "$g" "Pilih" 2 || die "Layar pilih peran tidak muncul di $GUARDIAN_AVD"
+  say "$GUARDIAN_AVD → HP penjaga (GUARDIAN)"
+}
+
+# Read the code off the guardian's screen and type it on the protected phone —
+# the same thing a guardian would read out over the phone.
+cmd_pair() {
+  local p g code
+  p="$(protected)"; g="$(guardian)"
+  code="$(ui_text "$g" "[A-Z0-9]{6}")" || die "Kode pairing belum muncul di $GUARDIAN_AVD"
+  say "Kode dari penjaga: $code"
+  ui_tap "$p" "Kode penghubung" || die "Kolom kode tidak ketemu di $PROTECTED_AVD"
+  "$ADB" -s "$p" shell input text "$code"
+  ui_tap "$p" "Hubungkan" || die "Tombol Hubungkan tidak ketemu"
+  sleep 4
+  cmd_status
+}
+
+# Install the READ_SMS sample. Optional arg fakes the installing app:
+#   scripts/ronda attack                    → sideload  → HIGH RISK, alert
+#   scripts/ronda attack com.android.vending → Play Store → hanya dicatat
+cmd_attack() {
+  local installer="${1:-}" p apk
+  p="$(protected)"
+  apk="$ROOT/RondaTestSample/app/build/outputs/apk/debug/app-debug.apk"
+  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q :app:assembleDebug)
+  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  if [ -n "$installer" ]; then
+    say "Pasang APK umpan seolah-olah dari $installer"
+    "$ADB" -s "$p" install -r -t -i "$installer" "$apk" >/dev/null
+  else
+    say "Sideload APK umpan (deklarasi READ_SMS, bukan dari Play Store)"
+    "$ADB" -s "$p" install -r -t "$apk" >/dev/null
+  fi
+  sleep 3
+  "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -6
+}
+
+# Open the flagged app so the soft-block overlay has something to cover.
+cmd_victim() {
+  "$ADB" -s "$(protected)" shell monkey -p "$SAMPLE_PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  say "APK umpan dibuka — overlay RONDA harusnya langsung menutupinya"
+}
+
+cmd_status() {
+  local avd s role pair
+  for avd in "$PROTECTED_AVD" "$GUARDIAN_AVD"; do
+    s="$(serial_for "$avd")"
+    if [ -z "$s" ]; then printf '%-16s mati\n' "$avd"; continue; fi
+    local prefs
+    prefs="$("$ADB" -s "$s" shell "run-as $PKG cat /data/data/$PKG/shared_prefs/ronda_role.xml" 2>/dev/null || true)"
+    # Both greps miss on a freshly cleared phone; without || true that is a
+    # non-zero assignment and set -e kills the script mid-report.
+    role="$(echo "$prefs" | grep -o 'name="role">[^<]*' | cut -d'>' -f2 || true)"
+    pair="$(echo "$prefs" | grep -o 'name="pairing_id">[^<]*' | cut -d'>' -f2 || true)"
+    printf '%-16s %-14s peran=%-9s pairing=%s\n' "$avd" "$s" "${role:-belum}" "${pair:-belum}"
+  done
+}
+
+cmd_logs() {
+  local s avd
+  for avd in "$PROTECTED_AVD" "$GUARDIAN_AVD"; do
+    s="$(serial_for "$avd")"
+    [ -n "$s" ] || continue
+    "$ADB" -s "$s" logcat -v brief -s \
+      InstallReceiver:D RiskEvaluator:D DetectionService:D OverlayService:D \
+      GuardianAlertService:D CommandHandler:D MainActivity:D \
+      | sed "s/^/[${avd}] /" &
+  done
+  wait
+}
+
+cmd_shot() {
+  mkdir -p "$SHOT_DIR"
+  local stamp avd s
+  stamp="$(date +%H%M%S)"
+  for avd in "$PROTECTED_AVD" "$GUARDIAN_AVD"; do
+    s="$(serial_for "$avd")"
+    [ -n "$s" ] || continue
+    "$ADB" -s "$s" exec-out screencap -p > "$SHOT_DIR/${stamp}-${avd}.png"
+  done
+  say "Screenshot → $SHOT_DIR"
+}
+
+# Full simulation from a clean install, ending right after detection fires.
+cmd_demo() {
+  cmd_up
+  cmd_install
+  cmd_reset
+  cmd_perms
+  cmd_open
+  sleep 3
+  cmd_role
+  sleep 5
+  cmd_pair
+  cmd_perms   # pm clear revoked them; re-grant now that the role is set
+  cmd_attack
+  say "Selesai. Cek notifikasi di $GUARDIAN_AVD, lalu: scripts/ronda victim"
+}
+
+cmd_help() {
+  cat <<'EOF'
+scripts/ronda <perintah>
+
+  demo      Simulasi penuh dari nol: nyalakan → pasang → reset → pilih peran →
+            pairing → sideload APK READ_SMS. Ini yang dipakai kalau mau lihat
+            seluruh alur dalam satu perintah.
+
+  up        Nyalakan kedua emulator (skip yang sudah jalan)
+  install   Build + pasang RONDA di kedua HP
+  reset     pm clear kedua HP → balik ke layar pilih peran (peran write-once)
+  perms     Beri izin notifikasi, overlay, usage stats lewat adb
+  open      Buka RONDA di kedua HP
+  role      Pilih peran otomatis: HP-1 = orang tua, HP-2 = penjaga
+  pair      Baca kode di HP penjaga, ketikkan di HP orang tua
+  attack [installer]
+            Pasang APK umpan yang mendeklarasikan READ_SMS.
+            Tanpa argumen = sideload → HIGH RISK → alert ke penjaga.
+            `attack com.android.vending` = seolah dari Play Store → tidak
+            memicu alert (membuktikan aturan dua sinyal).
+  victim    Buka APK umpan di HP orang tua → overlay RONDA menutupinya
+  status    Peran + pairing tiap HP
+  logs      Logcat gabungan kedua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
+  shot      Screenshot kedua HP ke build/demo-shots/
+
+AVD bisa diganti lewat env: RONDA_PROTECTED_AVD, RONDA_GUARDIAN_AVD
+EOF
+}
+
+cmd="${1:-help}"
+if [ $# -gt 0 ]; then shift; fi
+
+case "$cmd" in
+  demo|up|install|reset|perms|open|role|pair|attack|victim|status|logs|shot|help)
+    "cmd_$cmd" "$@" ;;
+  *) die "Perintah tidak dikenal: $cmd (lihat: scripts/ronda help)" ;;
+esac

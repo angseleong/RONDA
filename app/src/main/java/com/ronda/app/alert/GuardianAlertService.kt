@@ -73,15 +73,27 @@ class GuardianAlertService : Service() {
             AlertRepository().observeAlerts(pairingId)
                 .catch { Log.e(TAG, "Alert stream failed", it) }
                 .collect { alerts ->
-                    alerts
-                        .filter { it.alertId.isNotEmpty() && !seenAlerts.isNotified(it.alertId) }
-                        // Oldest first, so the newest threat ends up on top of
-                        // the notification shade.
-                        .sortedBy { it.timestamp }
+                    // Oldest first, so the newest threat ends up on top of
+                    // the notification shade.
+                    val known = alerts.filter { it.alertId.isNotEmpty() }.sortedBy { it.timestamp }
+
+                    known.filter { !seenAlerts.isNotified(it.alertId) }
                         .forEach { alert ->
                             notifyAlert(alert)
                             seenAlerts.markNotified(alert.alertId)
                         }
+
+                    // The protected phone sets this status only after the OS
+                    // confirms the package is gone, so it is safe to tell the
+                    // guardian the job is actually done — the tap happened on
+                    // the other phone and they have no other way to know.
+                    known.filter {
+                        it.status == Alert.STATUS_UNINSTALLED &&
+                            !seenAlerts.isNotified(outcomeKey(it.alertId))
+                    }.forEach { alert ->
+                        notifyUninstalled(alert)
+                        seenAlerts.markNotified(outcomeKey(alert.alertId))
+                    }
                 }
         }
     }
@@ -101,16 +113,7 @@ class GuardianAlertService : Service() {
             }
         )
 
-        val openDetail = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(MainActivity.EXTRA_ALERT_ID, alert.alertId)
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            alert.alertId.hashCode(),
-            openDetail,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = openAlertIntent(alert)
 
         val body = getString(R.string.alert_notification_body, alert.appLabel)
         val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
@@ -136,6 +139,53 @@ class GuardianAlertService : Service() {
         manager.notify(ALERT_NOTIFICATION_ID_BASE + alert.alertId.hashCode(), notification)
     }
 
+    /**
+     * Good news, so it does not use the alarm channel: this must be findable in
+     * the shade without being another thing that buzzes like an emergency.
+     */
+    private fun notifyUninstalled(alert: Alert) {
+        Log.d(TAG, "Protected phone removed ${alert.packageName}")
+
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(
+            NotificationChannel(
+                OUTCOME_CHANNEL_ID,
+                getString(R.string.channel_guardian_outcome),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = getString(R.string.channel_guardian_outcome_desc) }
+        )
+
+        val notification = NotificationCompat.Builder(this, OUTCOME_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_delete)
+            .setContentTitle(getString(R.string.uninstalled_notification_title))
+            .setContentText(getString(R.string.uninstalled_notification_body, alert.appLabel))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(openAlertIntent(alert))
+            .setAutoCancel(true)
+            .build()
+
+        // The threat is resolved; leaving its red alert in the shade would have
+        // the guardian acting on something that no longer exists.
+        manager.cancel(ALERT_NOTIFICATION_ID_BASE + alert.alertId.hashCode())
+        manager.notify(OUTCOME_NOTIFICATION_ID_BASE + alert.alertId.hashCode(), notification)
+    }
+
+    private fun openAlertIntent(alert: Alert): PendingIntent {
+        val openDetail = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_ALERT_ID, alert.alertId)
+        }
+        return PendingIntent.getActivity(
+            this,
+            alert.alertId.hashCode(),
+            openDetail,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** Separate key so the outcome notification is independent of the alert's. */
+    private fun outcomeKey(alertId: String): String = "$alertId:uninstalled"
+
     private fun createPersistentNotification(): Notification {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
@@ -159,8 +209,10 @@ class GuardianAlertService : Service() {
         private const val TAG = "GuardianAlertService"
         private const val NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID_BASE = 2000
+        private const val OUTCOME_NOTIFICATION_ID_BASE = 2500
         private const val CHANNEL_ID = "ronda_guardian_watch_channel"
         private const val ALERT_CHANNEL_ID = "ronda_guardian_alert_channel"
+        private const val OUTCOME_CHANNEL_ID = "ronda_guardian_outcome_channel"
 
         /** Safe to call repeatedly — starting a running service is a no-op. */
         fun start(context: Context) {

@@ -15,6 +15,7 @@ import com.ronda.app.alert.CommandHandler
 import com.ronda.app.pairing.RoleStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ class DetectionService : Service() {
     }
 
     private var installReceiver: InstallReceiver? = null
+    private var commandJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate() {
@@ -36,7 +38,6 @@ class DetectionService : Service() {
 
         startForeground(NOTIFICATION_ID, createPersistentNotification())
         registerInstallReceiver()
-        listenForGuardianCommands()
     }
 
     /**
@@ -45,15 +46,25 @@ class DetectionService : Service() {
      * It rides on the service that is already running rather than a second
      * foreground service: the protected phone would otherwise carry two
      * permanent notifications for what the user experiences as one feature.
+     *
+     * Deliberately *not* in onCreate. Detection starts as soon as the role is
+     * chosen, which is before pairing — reading the pairing id once at creation
+     * meant the phone was still unpaired at the only moment it ever looked, and
+     * the guardian's commands were never collected on a freshly set up device.
+     * MainActivity re-starts this service on every resume, so onStartCommand is
+     * the hook that eventually sees a pairing id.
      */
     private fun listenForGuardianCommands() {
+        if (commandJob?.isActive == true) return
+
         val pairingId = RoleStore(this).pairingId
         if (pairingId == null) {
-            Log.d(TAG, "Not paired — no guardian to take commands from")
+            Log.d(TAG, "Not paired yet — will look again on next start")
             return
         }
 
-        scope.launch {
+        Log.d(TAG, "Listening for guardian commands on $pairingId")
+        commandJob = scope.launch {
             runCatching { CommandHandler(this@DetectionService).run(pairingId) }
                 .onFailure { Log.e(TAG, "Command stream failed", it) }
         }
@@ -61,6 +72,7 @@ class DetectionService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "DetectionService started")
+        listenForGuardianCommands()
         return START_STICKY
     }
 
