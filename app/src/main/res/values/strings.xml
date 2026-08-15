@@ -31,6 +31,9 @@
     <string name="permission_usage_title">Akses penggunaan aplikasi</string>
     <string name="permission_usage_why">Agar RONDA tahu aplikasi mana yang sedang dibuka. Yang terbaca hanya nama aplikasi, bukan isinya.</string>
 
+    <string name="permission_battery_title">Tidak dibatasi baterai</string>
+    <string name="permission_battery_why">Agar sistem tidak mematikan RONDA di latar belakang. Tanpa ini, RONDA bisa berhenti mengawasi tanpa pemberitahuan.</string>
+
     <string name="setup_privacy_note">RONDA tidak pernah meminta izin SMS, tidak membaca pesan Anda, dan tidak menggunakan layanan Aksesibilitas.</string>
 
     <!-- Role selection. Written for the person holding the phone, not for a

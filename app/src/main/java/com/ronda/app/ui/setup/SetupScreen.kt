@@ -37,6 +37,7 @@ fun SetupScreen(
     onRequestNotifications: () -> Unit,
     onOpenOverlaySettings: () -> Unit,
     onOpenUsageSettings: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -80,6 +81,15 @@ fun SetupScreen(
             why = stringResource(R.string.permission_usage_why),
             granted = status.usageStats,
             onEnable = onOpenUsageSettings
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        PermissionRow(
+            title = stringResource(R.string.permission_battery_title),
+            why = stringResource(R.string.permission_battery_why),
+            granted = status.batteryExemption,
+            onEnable = onOpenBatterySettings
         )
 
         Spacer(Modifier.height(24.dp))
@@ -173,7 +183,8 @@ private fun PermissionRow(
 data class SetupStatus(
     val notifications: Boolean,
     val overlay: Boolean,
-    val usageStats: Boolean
+    val usageStats: Boolean,
+    val batteryExemption: Boolean
 ) {
-    val isFullyProtected: Boolean get() = notifications && overlay && usageStats
+    val isFullyProtected: Boolean get() = notifications && overlay && usageStats && batteryExemption
 }
