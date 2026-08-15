@@ -77,7 +77,7 @@ com.ronda.app/
 │                       │  - getPackageInfo(GET_PERMISSIONS)
 │                       ▼                                 │
 │              Risk == HIGH?                              │
-│              (sideloaded + READ_SMS)                    │
+│              (sideloaded + Dangerous Perms)             │
 │               │              │                          │
 │            NO │           YES│                          │
 │            (log)             ▼                          │
@@ -145,7 +145,7 @@ after the code is typed. No lookup, no index.
 | `packageName`        | String  | e.g. `"com.penipu.undangan"`                 |
 | `appLabel`           | String  | Human-readable name, e.g. `"Undangan Nikah"` |
 | `installSource`      | String  | e.g. `"com.whatsapp"`, `"manual"`            |
-| `flaggedPermissions` | List    | e.g. `["READ_SMS", "RECEIVE_SMS"]`           |
+| `flaggedPermissions` | List    | e.g. `["READ_SMS", "BIND_ACCESSIBILITY_SERVICE"]` |
 | `status`             | String  | `"pending"` → `"uninstalled"` or `"safe"`    |
 | `timestamp`          | Long    | `ServerValue.TIMESTAMP` — server clock, never the phone's |
 

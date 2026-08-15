@@ -48,12 +48,12 @@ Antivirus loses the trust battle, not the technical one. RONDA does not try to w
 
 - Android native app (Kotlin), single APK, two selectable roles.
 - Install-time detection: read install source + declared manifest permissions.
-- Risk rule: sideloaded (non-Play Store) **AND** declares `READ_SMS` → flag as high risk.
+- Risk rule: sideloaded (non-Play Store) **AND** declares at least one of 7 dangerous permissions (`READ_SMS`, `RECEIVE_SMS`, `SEND_SMS`, `BIND_ACCESSIBILITY_SERVICE`, `BIND_NOTIFICATION_LISTENER_SERVICE`, `SYSTEM_ALERT_WINDOW`, `BIND_DEVICE_ADMIN`) → flag as high risk.
 - Guardian ↔ Protected device pairing via QR code, performed once during setup.
 - On-device soft-block: a full-screen warning overlay that covers the flagged app whenever it is opened, using `PACKAGE_USAGE_STATS` + `SYSTEM_ALERT_WINDOW`.
 - Real-time push alert from protected device to guardian device via Firebase Cloud Messaging (FCM).
 - Guardian-triggered remote uninstall (opens the system uninstall dialog on the protected device).
-- Benign test-sample APK that declares `READ_SMS` and does nothing, used for demos.
+- Benign test-sample APKs (flavors for `READ_SMS`, `BIND_ACCESSIBILITY_SERVICE`, `BIND_NOTIFICATION_LISTENER_SERVICE`, `SYSTEM_ALERT_WINDOW`) that do nothing, used for demos.
 
 **Out-of-Scope (POC):**
 
@@ -124,7 +124,7 @@ On first launch, the user chooses **Guardian** or **Protected**. One APK, one co
 - A `BroadcastReceiver` listens for `ACTION_PACKAGE_ADDED`.
 - On trigger, the app reads:
   - **Install source** via `PackageManager.getInstallSourceInfo()`. Anything other than `com.android.vending` is a risk signal.
-  - **Declared permissions** via `getPackageInfo(PackageManager.GET_PERMISSIONS)`. Presence of `READ_SMS` or `RECEIVE_SMS` is a risk signal.
+  - **Declared permissions** via `getPackageInfo(PackageManager.GET_PERMISSIONS)`. Presence of any of the 7 tracked dangerous permissions (`READ_SMS`, `RECEIVE_SMS`, `SEND_SMS`, `BIND_ACCESSIBILITY_SERVICE`, `BIND_NOTIFICATION_LISTENER_SERVICE`, `SYSTEM_ALERT_WINDOW`, `BIND_DEVICE_ADMIN`) is a risk signal.
 - **Risk rule:** both signals present → HIGH RISK. One signal only → log, do not alert.
 - Detection reads *declared* permissions from the manifest, not *granted* permissions. This means RONDA flags intent before the victim can grant anything.
 
@@ -159,7 +159,7 @@ On first launch, the user chooses **Guardian** or **Protected**. One APK, one co
 
 ### FR-9 — Test sample APK
 
-A separate, harmless APK that declares `READ_SMS` and performs no action. Used to demonstrate detection without handling real malware. Real malware is never used in development or demos.
+Separate, harmless APK flavors that declare dangerous permissions (e.g. `READ_SMS`, `BIND_ACCESSIBILITY_SERVICE`) and perform no action. Used to demonstrate detection without handling real malware. Real malware is never used in development or demos.
 
 ---
 
@@ -209,7 +209,7 @@ These are hard rules. Any implementation that violates them is rejected regardle
 ## 6. Assumptions
 
 1. Malware targeting banking OTPs must declare an SMS-reading permission in its manifest. This is enforced by the Android permission model and cannot be bypassed without an OS exploit.
-2. Legitimate apps rarely declare `READ_SMS`. Google has restricted it on the Play Store since 2019, which is what makes the two-signal rule accurate.
+2. Legitimate apps rarely declare `READ_SMS` or `BIND_ACCESSIBILITY_SERVICE` outside of their intended core use cases. Google has restricted them on the Play Store, which is what makes the two-signal rule accurate.
 3. The guardian has a reliable smartphone and internet connection.
 4. Pairing happens in person (e.g. during a family visit).
 5. A time gap exists between installation and the victim granting permissions — long enough for the guardian to intervene.
@@ -273,13 +273,13 @@ These are hard rules. Any implementation that violates them is rejected regardle
 | # | Deliverable | Target date | Status |
 |---|---|---|---|
 | D1 | Project proposal (submitted via HackNusa form) | 21 Aug 2026 | ✅ Submitted |
-| D2 | Context documents (`README`, `PRD`, `ARCHITECTURE`, `TODO`) | 12 Aug 2026 | In progress |
-| D3 | Detection engine — install-time scanning + risk rule | 15 Aug 2026 | Not started |
-| D4 | Test-sample APK | 15 Aug 2026 | Not started |
-| D5 | Soft-block overlay (FR-8) | 17 Aug 2026 | Not started |
-| D6 | QR pairing flow | 18 Aug 2026 | Not started |
-| D7 | FCM alert pipeline | 20 Aug 2026 | Not started |
-| D7b | Remote uninstall action | 20 Aug 2026 | Not started |
+| D2 | Context documents (`README`, `PRD`, `ARCHITECTURE`, `TODO`) | 12 Aug 2026 | ✅ Done |
+| D3 | Detection engine — install-time scanning + risk rule | 15 Aug 2026 | ✅ Done |
+| D4 | Test-sample APK | 15 Aug 2026 | ✅ Done |
+| D5 | Soft-block overlay (FR-8) | 17 Aug 2026 | ✅ Done |
+| D6 | QR pairing flow | 18 Aug 2026 | ✅ Done |
+| D7 | Alert pipeline | 20 Aug 2026 | ✅ Done |
+| D7b | Remote uninstall action | 20 Aug 2026 | ✅ Done |
 | D8 | Demo video (60 s, two devices side by side) | 21 Aug 2026 | Not started |
 | D9 | Final presentation, Bandung | 3 Oct 2026 | Conditional on advancing |
 

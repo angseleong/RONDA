@@ -39,7 +39,7 @@
 
 ---
 
-## ACTIVE — Block 3: Pairing + Alerting (18–19 Aug)
+## DONE — Block 3: Pairing + Alerting (18–19 Aug)
 
 - [x] Implement `RoleSelectionScreen` (Guardian / Protected), store role in SharedPreferences (`RoleStore`, write-once)
 - [x] Guardian: generate pairing token, display as QR code (`GuardianPairingScreen` — QR **and** a readable 6-char code)
@@ -66,7 +66,7 @@ Bug found and fixed during this run: `Pairing.isActive` was a derived property w
 `@get:Exclude`, so the SDK wrote a junk `active` boolean into `pairings/` alongside
 `status` and logged a `ClassMapper` warning on every read.
 
-## ACTIVE — Block 4: Guardian Response (20 Aug)
+## DONE — Block 4: Guardian Response (20 Aug)
 
 - [x] Guardian taps "Uninstall" → writes command to Firebase RTDB (`CommandRepository.send()`)
 - [x] Protected device listens for commands, triggers `Intent.ACTION_DELETE` for flagged package (`CommandHandler`, run from `DetectionService`)
@@ -115,7 +115,60 @@ guardian is never told an app was removed because a command was received —
 Android requires the person holding the phone to confirm in a system dialog, and
 they may decline.
 
+## ACTIVE — Block 4A: Detection Engine Upgrade (Pre-Demo)
+
+- [ ] Perluas `DANGEROUS_PERMISSIONS` dari 2 → 7 di `RiskEvaluator`.
+- [ ] Update `RiskResult` enum KDoc.
+- [ ] Update user-facing strings di `strings.xml` agar mencakup izin baru.
+- [ ] Update `AlertDetailScreen` untuk menggunakan human-readable permission.
+- [ ] Tambahkan 4 product flavors di `RondaTestSample/app/build.gradle.kts` (`sms`, `accessibility`, `notification`, `overlay`).
+- [ ] Buat manifest dan strings terpisah untuk setiap flavor.
+
+## ACTIVE — Block 4D: Resilience - Battery Optimization (Pre-Demo)
+
+- [ ] Tambah `isBatteryOptimized` check dan `batteryOptimizationIntent` di `Permissions.kt`.
+- [ ] Tambah baris "Tidak dibatasi baterai" di `SetupScreen.kt`.
+- [ ] Tambah string relevan di `strings.xml`.
+
+---
+
+## ACTIVE — Block 4F: Guardian Dashboard UX (Pre-Demo)
+
+- [ ] Buat file `docs/design.md` yang merancang detail UI/UX untuk Guardian Dashboard (komponen, status state, tata letak, dan flow).
+- [ ] Update data class `Pairing` di Firebase untuk menyimpan atribut keamanan (hasOverlay, hasUsageStats, dll) dan `SecurityLevel`.
+- [ ] Buat logika di HP Protected (`DetectionService` / `MainActivity`) untuk sync nilai permission ke Firebase.
+- [ ] Implementasi UI berdasarkan `design.md`: Rombak layout `GuardianHomeScreen` per perangkat (Header nama HP, icon shield status, dan last seen).
+- [ ] Implementasi UI berdasarkan `design.md`: Pisahkan daftar alert menjadi "Butuh Tindakan Segera" (merah) dan "Riwayat Pengawasan" (abu-abu).
+- [ ] Update `strings.xml` untuk status teks (`status_safe`, `history_uninstalled`, dll).
+
+---
+
 ## BACKLOG — Block 5: Demo (21 Aug)
 
 - [ ] Record 60-second demo video: two devices side by side
 - [ ] Final submission
+
+---
+
+## BACKLOG — Post-Demo
+
+### Block 4B: Initial Scan
+- [ ] Panggil `scanExistingApps()` sekali saat `onCreate()` di `DetectionService`.
+- [ ] Pindahkan/ekstrak `publishAlert()` dari `InstallReceiver` agar bisa digunakan di `DetectionService`.
+
+### Block 4C: Multi-Ortu
+- [ ] Ubah `pairingId` menjadi multiple (`pairingIds`) di `RoleStore.kt` untuk sisi Guardian.
+- [ ] Tambah `protectedLabel` ke data `Pairing` di Firebase.
+- [ ] Update `GuardianAlertService` agar collect alert dari semua `pairingIds`.
+- [ ] Update `GuardianPairingScreen` untuk memasukkan label HP (misal: "HP Ibu").
+- [ ] Rombak `GuardianHomeScreen` untuk menampilkan daftar HP dan tombol tambah perangkat.
+- [ ] Tangani flow tambah perangkat baru di `MainActivity`.
+
+### Block 4D: Resilience - QR Deep Link
+- [ ] Tambah intent filter `ronda://pair` di `AndroidManifest.xml`.
+- [ ] Tangani deep link di `onCreate()` dan `onNewIntent()` pada `MainActivity.kt`.
+- [ ] Pre-fill kode pairing di `ProtectedPairingScreen` jika dibuka lewat deep link.
+
+### Block 4E: Strategy Document
+- [ ] Buat file `docs/STRATEGY.md`.
+- [ ] Tulis poin-poin kemitraan (OJK, Kominfo, Bank) dan roadmap monetisasi.
