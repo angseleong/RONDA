@@ -50,6 +50,7 @@
     <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
 
     <string name="watch_history_header">Riwayat</string>
+    <string name="watch_empty_history">Belum ada keputusan yang Anda buat. Aplikasi yang sudah Anda tandai aman atau berbahaya akan tersimpan di sini.</string>
 
     <string name="watch_status_pending">Menunggu keputusanmu</string>
     <string name="watch_status_passive">Tidak perlu tindakan</string>

@@ -4,6 +4,10 @@
     <!-- Warning overlay. Plain Indonesian, no security jargon. -->
     <string name="overlay_brand">RONDA</string>
     <string name="overlay_brand_tagline">Pelindung Keluarga</string>
+
+    <!-- Splash. Same words as the overlay tagline, kept as its own key so the
+         two can diverge without one silently changing the other. -->
+    <string name="splash_tagline">Pelindung Keluarga</string>
     <string name="overlay_title">JANGAN BUKA APLIKASI INI</string>
     <string name="overlay_body">Aplikasi ini diduga dapat membaca kode OTP dari SMS Anda dan menguras rekening bank Anda.</string>
     <string name="overlay_reason_label">Kenapa ditandai bahaya:</string>

@@ -38,6 +38,7 @@ import com.ronda.app.ui.guardian.GuardianPairingScreen
 import com.ronda.app.ui.guardian.GuardianViewModel
 import com.ronda.app.ui.guardian.WatchListScreen
 import com.ronda.app.ui.onboarding.RoleSelectionScreen
+import com.ronda.app.ui.onboarding.SplashScreen
 import com.ronda.app.ui.protectedrole.ProtectedPairingScreen
 import com.ronda.app.ui.protectedrole.UninstallPromptScreen
 import com.ronda.app.ui.setup.SetupScreen
@@ -65,6 +66,9 @@ class MainActivity : ComponentActivity() {
     private var pendingUninstall by mutableStateOf<PendingUninstall?>(null)
     private var uninstallDeferred by mutableStateOf(false)
 
+    /** Cold start only — set false in [onCreate] when restoring state. */
+    private var showSplash by mutableStateOf(true)
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { refreshStatus() }
@@ -79,9 +83,23 @@ class MainActivity : ComponentActivity() {
 
         // Only on a genuinely new launch, so a rotation does not re-prompt.
         if (savedInstanceState == null) requestNotificationPermission()
+        showSplash = savedInstanceState == null
+
+        // A guardian arriving from an alert notification skips the splash: they
+        // tapped it to see one specific app, and a brand beat in front of that
+        // is an obstacle, not a welcome.
+        if (selectedPackage != null) showSplash = false
 
         setContent {
             RONDATheme {
+                // Only on a cold start. Surviving a rotation would replay the
+                // splash every time the phone is turned, which is the difference
+                // between a brand beat and an obstruction.
+                if (showSplash) {
+                    SplashScreen(onFinished = { showSplash = false })
+                    return@RONDATheme
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val screenModifier = Modifier.padding(innerPadding)
                     when (role) {

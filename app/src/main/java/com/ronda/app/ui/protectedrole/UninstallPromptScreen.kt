@@ -90,17 +90,23 @@ fun UninstallPromptScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // lineHeight is the whole fix. Without it Compose falls back to
+                // the font's own metrics, which at 32sp Bold are tighter than
+                // the ascenders need — so "Undangan Pernikahan" wrapped onto two
+                // lines that overlapped. App labels are arbitrary length and
+                // frequently wrap, so this can never be left to the default.
                 Text(
                     text = appLabel,
-                    fontSize = 32.sp,
+                    fontSize = 30.sp,
+                    lineHeight = 38.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.uninstall_prompt_body),
                     style = ProtectedBody,
@@ -110,19 +116,30 @@ fun UninstallPromptScreen(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
         // Says what the next screen will look like. The system dialog that
         // follows is unbranded and abrupt; being told it is coming is the
         // difference between confirming and backing out in confusion.
-        Text(
-            text = stringResource(R.string.uninstall_prompt_next),
-            style = ProtectedBody,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        //
+        // On its own tinted ground because it is an instruction about what
+        // happens next, not more description of the app — running it as loose
+        // centred text let it blur into the red card above it.
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.uninstall_prompt_next),
+                style = ProtectedBody,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp)
+            )
+        }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(24.dp))
 
         Button(
             onClick = onConfirm,

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ronda.app.R
 import com.ronda.app.pairing.Role
+import com.ronda.app.ui.components.RondaMark
 import com.ronda.app.ui.theme.ProtectedBody
 import com.ronda.app.ui.theme.ProtectedSubtitle
 import com.ronda.app.ui.theme.ProtectedTitle
@@ -51,17 +52,16 @@ fun RoleSelectionScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 32.dp)
     ) {
-        Text(
-            text = stringResource(R.string.watch_title),
-            style = ProtectedTitle,
-            color = MaterialTheme.colorScheme.primary
-        )
+        // The mark alone, not the lockup: the name is about to be said in the
+        // body copy anyway, and this is the one screen with room to let the
+        // identity land on its own before the app starts asking questions.
+        RondaMark(size = 84.dp)
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(18.dp))
 
         Text(
             text = stringResource(R.string.role_title),
-            style = ProtectedSubtitle,
+            style = ProtectedTitle,
             color = MaterialTheme.colorScheme.onSurface
         )
 

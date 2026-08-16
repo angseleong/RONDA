@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
 import com.ronda.app.core.Verdict
+import com.ronda.app.ui.components.RondaWordmark
 import com.ronda.app.ui.guardian.components.AlertRow
 import com.ronda.app.ui.guardian.components.StatusHero
 import com.ronda.app.ui.theme.Eyebrow
@@ -113,15 +114,37 @@ fun WatchListScreen(
                 }
             }
 
-            if (state.history.isNotEmpty()) {
-                item {
+            // Always present, even with nothing in it. A section that only
+            // appears once it has content leaves the guardian unable to answer
+            // "where do my past decisions go?" until after they have already
+            // made one — and the first decision is exactly the one they are
+            // most nervous about. An empty shelf still tells you it is a shelf.
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = stringResource(R.string.watch_history_header),
                         style = Eyebrow,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 2.dp)
+                        modifier = Modifier.weight(1f)
                     )
+                    if (state.history.isNotEmpty()) {
+                        Text(
+                            text = "${state.history.size}",
+                            style = Eyebrow,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+            }
+
+            if (state.history.isEmpty()) {
+                item { EmptyState(text = stringResource(R.string.watch_empty_history)) }
+            } else {
                 items(state.history, key = { "history:${it.packageName}" }) { verdict ->
                     AlertRow(
                         verdict = verdict,
@@ -148,12 +171,8 @@ private fun Header(connected: Boolean) {
             .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = stringResource(R.string.watch_title),
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f)
-        )
+        RondaWordmark(height = 30.dp)
+        Spacer(Modifier.weight(1f))
 
         val tone = if (connected) bandSafe else bandWarn
         Surface(

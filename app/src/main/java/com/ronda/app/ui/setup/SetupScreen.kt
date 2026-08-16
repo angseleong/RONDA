@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ronda.app.R
+import com.ronda.app.ui.components.RondaWordmark
 import com.ronda.app.ui.theme.ProtectedBody
 import com.ronda.app.ui.theme.ProtectedSubtitle
-import com.ronda.app.ui.theme.ProtectedTitle
 import com.ronda.app.ui.theme.bandSafe
 import com.ronda.app.ui.theme.bandSafeTint
 import com.ronda.app.ui.theme.bandWarn
@@ -65,11 +65,7 @@ fun SetupScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
-        Text(
-            text = stringResource(R.string.setup_title),
-            style = ProtectedTitle,
-            color = MaterialTheme.colorScheme.primary
-        )
+        RondaWordmark(height = 30.dp)
 
         Spacer(Modifier.height(20.dp))
 
