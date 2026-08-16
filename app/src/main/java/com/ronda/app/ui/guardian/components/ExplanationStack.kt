@@ -1,5 +1,6 @@
 package com.ronda.app.ui.guardian.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,8 +20,6 @@ import com.ronda.app.core.Signals
 import com.ronda.app.core.Verdict
 import com.ronda.app.core.severity
 import com.ronda.app.ui.theme.Eyebrow
-import com.ronda.app.ui.theme.linenDim
-import com.ronda.app.ui.theme.nightRaised
 
 /**
  * The core content of the decision screen: one card per active signal, most
@@ -39,15 +38,21 @@ fun ExplanationStack(
         explanationKeys(verdict).forEach { key ->
             val res = CATALOG[key] ?: return@forEach
             Surface(
-                color = nightRaised,
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier.fillMaxWidth()
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant,
+                        RoundedCornerShape(16.dp)
+                    )
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(res.first),
                         style = Eyebrow,
-                        color = linenDim
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(

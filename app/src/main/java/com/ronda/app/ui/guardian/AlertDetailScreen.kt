@@ -1,6 +1,7 @@
 package com.ronda.app.ui.guardian
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,11 +36,9 @@ import com.ronda.app.ui.guardian.components.ExplanationStack
 import com.ronda.app.ui.guardian.components.ScoreBlock
 import com.ronda.app.ui.guardian.components.relativeTime
 import com.ronda.app.ui.theme.Eyebrow
-import com.ronda.app.ui.theme.calm
-import com.ronda.app.ui.theme.lamp
-import com.ronda.app.ui.theme.linenDim
-import com.ronda.app.ui.theme.night
-import com.ronda.app.ui.theme.nightRaised
+import com.ronda.app.ui.theme.bandSafe
+import com.ronda.app.ui.theme.bandWarn
+import com.ronda.app.ui.theme.bandWarnTint
 
 /**
  * The decision screen: score, identity, explanations, decision.
@@ -66,14 +65,17 @@ fun AlertDetailScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
-        TextButton(onClick = onBack) { Text(stringResource(R.string.detail_back)) }
+        TextButton(onClick = onBack, modifier = Modifier.padding(vertical = 4.dp)) {
+            Text("‹  " + stringResource(R.string.detail_back))
+        }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         ScoreBlock(score = verdict.score, level = level)
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(24.dp))
 
         // --- Identity ---
         Text(
@@ -81,12 +83,13 @@ fun AlertDetailScreen(
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
+        Spacer(Modifier.height(2.dp))
         Text(
             text = verdict.packageName,
             style = MaterialTheme.typography.bodyMedium,
-            color = linenDim
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(
                 if (verdict.signals.any { it.key == "SRC_PLAY" }) R.string.detail_source_play
@@ -96,17 +99,17 @@ fun AlertDetailScreen(
                 relativeTime(verdict.detectedAt)
             ),
             style = MaterialTheme.typography.bodyMedium,
-            color = linenDim
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (verdict.overrodeAt > 0L) {
-            Spacer(Modifier.height(12.dp))
-            Surface(color = lamp.copy(alpha = 0.14f), shape = RoundedCornerShape(12.dp)) {
+            Spacer(Modifier.height(14.dp))
+            Surface(color = bandWarnTint, shape = RoundedCornerShape(14.dp)) {
                 Text(
                     text = stringResource(R.string.watch_override, protectedName) +
                         " · " + relativeTime(verdict.overrodeAt),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = lamp,
+                    color = bandWarn,
                     modifier = Modifier.padding(14.dp)
                 )
             }
@@ -155,11 +158,14 @@ private fun Decision(
             Text(
                 text = stringResource(R.string.resolved_safe),
                 style = MaterialTheme.typography.bodyLarge,
-                color = calm
+                color = bandSafe
             )
             if (undoable) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(onClick = onUndo, modifier = Modifier.fillMaxWidth()) {
+                Spacer(Modifier.height(14.dp))
+                OutlinedButton(
+                    onClick = onUndo,
+                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                ) {
                     Text(stringResource(R.string.action_undo))
                 }
             }
@@ -171,23 +177,36 @@ private fun Decision(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onRequestUninstall, modifier = Modifier.fillMaxWidth()) {
+            Spacer(Modifier.height(14.dp))
+            OutlinedButton(
+                onClick = onRequestUninstall,
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
                 Text(stringResource(R.string.action_request_uninstall, protectedName))
             }
         }
 
         else -> {
-            // Primary keeps protection, so it needs no confirmation.
+            // Primary keeps protection, so it needs no confirmation. It is also
+            // the only red button in the app outside the overlay — the colour is
+            // spent here because this is the consequential tap.
             Button(
                 onClick = onMarkUnsafe,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = lamp, contentColor = night)
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
             ) {
                 Text(stringResource(R.string.action_mark_unsafe))
             }
-            Spacer(Modifier.height(10.dp))
-            OutlinedButton(onClick = onAskMarkSafe, modifier = Modifier.fillMaxWidth()) {
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onAskMarkSafe,
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
                 Text(stringResource(R.string.action_mark_safe))
             }
         }
@@ -204,14 +223,17 @@ private fun TechnicalDetails(verdict: Verdict, open: Boolean, onToggle: () -> Un
         Text(
             text = (if (open) "− " else "+ ") + stringResource(R.string.detail_technical),
             style = MaterialTheme.typography.bodyMedium,
-            color = linenDim,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onToggle)
-                .padding(vertical = 12.dp)
+                .padding(vertical = 14.dp)
         )
         AnimatedVisibility(visible = open) {
-            Surface(color = nightRaised, shape = RoundedCornerShape(12.dp)) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(14.dp)
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Label(R.string.detail_technical_vector)
                     Mono(verdict.vector)
@@ -239,7 +261,11 @@ private fun TechnicalDetails(verdict: Verdict, open: Boolean, onToggle: () -> Un
 
 @Composable
 private fun Label(res: Int) {
-    Text(text = stringResource(res), style = Eyebrow, color = linenDim)
+    Text(
+        text = stringResource(res),
+        style = Eyebrow,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
     Spacer(Modifier.height(4.dp))
 }
 

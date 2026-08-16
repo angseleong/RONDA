@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -18,9 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
-import com.ronda.app.ui.theme.lamp
-import com.ronda.app.ui.theme.night
-import com.ronda.app.ui.theme.nightRaised
 
 /**
  * Confirmation for "Tandai aman" only.
@@ -39,7 +36,7 @@ fun DecisionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(),
-        containerColor = nightRaised
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)) {
             Text(
@@ -50,17 +47,28 @@ fun DecisionSheet(
 
             Spacer(Modifier.height(24.dp))
 
+            // Confirming here *removes* protection, so it does not get the
+            // primary treatment — the outlined "Batal" below is the safer path
+            // and the two must not look equally weighted in the other direction.
             Button(
                 onClick = onConfirm,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = lamp, contentColor = night)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
             ) {
                 Text(stringResource(R.string.confirm_safe_yes))
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
 
-            OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
                 Text(stringResource(R.string.confirm_safe_cancel))
             }
         }

@@ -12,6 +12,40 @@
     <string name="watch_connected">Terhubung dengan HP %1$s</string>
     <string name="watch_disconnected">Tidak bisa terhubung ke HP %1$s. Pastikan HP-nya menyala dan terhubung internet.</string>
 
+    <!--
+        Header chip. The long sentences above stay for the hero card, which has
+        room to explain; the chip sits next to the wordmark and only has room to
+        state the fact.
+    -->
+    <string name="watch_chip_connected">Terhubung</string>
+    <string name="watch_chip_disconnected">Terputus</string>
+
+    <!--
+        Hero card. One of three states, and the headline is the answer to the
+        only question the guardian opened the app to ask.
+    -->
+    <string name="watch_hero_safe_title">HP %1$s aman</string>
+    <string name="watch_hero_safe_body">RONDA sedang berjaga. Tidak ada aplikasi yang menunggu keputusan Anda.</string>
+    <string name="watch_hero_review_title">%1$d aplikasi menunggu keputusan Anda</string>
+    <string name="watch_hero_review_body">Buka satu per satu dan baca alasannya sebelum memutuskan.</string>
+    <string name="watch_hero_offline_title">RONDA tidak bisa memantau</string>
+    <string name="watch_hero_offline_body">Sambungan ke HP %1$s terputus. Selama terputus, aplikasi baru di sana tidak terpantau.</string>
+
+    <!-- Summary tiles under the hero headline. -->
+    <string name="watch_stat_review">Perlu diperiksa</string>
+    <string name="watch_stat_monitored">Terpantau</string>
+    <string name="watch_stat_history">Sudah diputuskan</string>
+
+    <!--
+        Band names. These are the enum constants spelled out as resources so the
+        UI never renders RiskLevel.name directly — renaming a constant is a
+        refactor, and it must not silently change what an older reader sees.
+    -->
+    <string name="band_aman">AMAN</string>
+    <string name="band_rendah">RENDAH</string>
+    <string name="band_peringatan">PERINGATAN</string>
+    <string name="band_darurat">DARURAT</string>
+
     <string name="watch_empty_review">Belum ada aplikasi yang perlu diperiksa. RONDA sedang berjaga di HP %1$s.</string>
     <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
 

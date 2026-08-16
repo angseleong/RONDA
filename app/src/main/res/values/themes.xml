@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.RONDA" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        The Activity theme only has to survive the moment before Compose takes
+        over. Setting the window background to `paper` removes the flash of
+        default white-then-repaint on launch, and forcing light status/navigation
+        bar icons keeps the system bars legible over the light UI — Compose's
+        `enableEdgeToEdge()` draws underneath both.
+    -->
+    <style name="Theme.RONDA" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
 </resources>

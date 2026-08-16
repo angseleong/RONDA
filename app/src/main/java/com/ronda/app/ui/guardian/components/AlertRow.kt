@@ -1,5 +1,6 @@
 package com.ronda.app.ui.guardian.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,16 +25,14 @@ import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.RiskLevel
 import com.ronda.app.core.Verdict
 import com.ronda.app.core.VerdictState
-import com.ronda.app.ui.theme.Eyebrow
-import com.ronda.app.ui.theme.lamp
-import com.ronda.app.ui.theme.linenDim
-import com.ronda.app.ui.theme.nightRaised
+import com.ronda.app.ui.theme.bandWarn
+import com.ronda.app.ui.theme.bandWarnTint
 
 /**
  * One app in the watch list. The score badge carries the triage; the first
  * sentence carries just enough of the reason to decide whether to open it.
  *
- * Resolved rows drop to 60% opacity — still readable as history, visibly not
+ * Resolved rows drop to 65% opacity — still readable as history, visibly not
  * asking for anything.
  */
 @Composable
@@ -58,16 +57,18 @@ fun AlertRow(
     }
 
     Surface(
-        color = nightRaised,
-        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(18.dp),
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .alpha(if (resolved) 0.6f else 1f)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(18.dp))
+            .alpha(if (resolved) 0.65f else 1f)
     ) {
-        Row(Modifier.padding(16.dp)) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
             ScoreBadge(score = verdict.score, level = level)
             Spacer(Modifier.width(14.dp))
+
             Column(Modifier.weight(1f)) {
                 Text(
                     text = verdict.appLabel,
@@ -76,15 +77,17 @@ fun AlertRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(text = level.name, style = Eyebrow, color = linenDim)
+
+                Spacer(Modifier.height(6.dp))
+                BandChip(level)
 
                 if (firstSentence.isNotBlank()) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         text = firstSentence,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = linenDim,
-                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -93,23 +96,33 @@ fun AlertRow(
                 Text(
                     text = "${relativeTime(verdict.detectedAt)} · ${statusLabel(verdict)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = linenDim
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // RONDA could not stop them, so it makes the override visible.
-                // This is the mechanism, not a log line — it gets the accent.
+                // This is the mechanism, not a log line — it gets its own block.
                 if (verdict.overrodeAt > 0L) {
-                    Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.height(10.dp))
+                    Surface(color = bandWarnTint, shape = RoundedCornerShape(10.dp)) {
                         Text(
                             text = stringResource(R.string.watch_override, protectedName) +
                                 " · " + relativeTime(verdict.overrodeAt),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = lamp
+                            color = bandWarn,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)
                         )
                     }
                 }
             }
+
+            // Affordance. A card that opens something should say so; without it
+            // the rows read as a static report.
+            Text(
+                text = "›",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }

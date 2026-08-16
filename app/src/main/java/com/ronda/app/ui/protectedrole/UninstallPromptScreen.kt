@@ -1,18 +1,22 @@
 package com.ronda.app.ui.protectedrole
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ronda.app.ui.theme.ProtectedBody
+import com.ronda.app.ui.theme.ProtectedTitle
 import com.ronda.app.R
 
 /**
@@ -35,7 +41,8 @@ import com.ronda.app.R
  * app?" with no idea where it came from, which is exactly the confusion scammers
  * rely on.
  *
- * Type is large and the contrast is high for the same reason the overlay is.
+ * It is the one screen in the app allowed to be loud. Red is spent here and on
+ * the overlay and nowhere else.
  */
 @Composable
 fun UninstallPromptScreen(
@@ -47,30 +54,43 @@ fun UninstallPromptScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(horizontal = 20.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "!",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
         Text(
             text = stringResource(R.string.uninstall_prompt_title),
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
+            style = ProtectedTitle,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.error
         )
 
         Spacer(Modifier.height(24.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            )
+        Surface(
+            color = MaterialTheme.colorScheme.errorContainer,
+            shape = RoundedCornerShape(22.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -80,21 +100,24 @@ fun UninstallPromptScreen(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Text(
                     text = stringResource(R.string.uninstall_prompt_body),
-                    fontSize = 20.sp,
+                    style = ProtectedBody,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(24.dp))
 
+        // Says what the next screen will look like. The system dialog that
+        // follows is unbranded and abrupt; being told it is coming is the
+        // difference between confirming and backing out in confusion.
         Text(
             text = stringResource(R.string.uninstall_prompt_next),
-            fontSize = 18.sp,
+            style = ProtectedBody,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -103,24 +126,21 @@ fun UninstallPromptScreen(
 
         Button(
             onClick = onConfirm,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(64.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError
             )
         ) {
-            Text(
-                text = stringResource(R.string.uninstall_prompt_confirm),
-                fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
+            Text(text = stringResource(R.string.uninstall_prompt_confirm), fontSize = 20.sp)
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
 
         // The app underneath stays blocked either way, so deferring is safe.
-        TextButton(onClick = onLater) {
-            Text(stringResource(R.string.uninstall_prompt_later), fontSize = 17.sp)
+        TextButton(onClick = onLater, modifier = Modifier.height(52.dp)) {
+            Text(stringResource(R.string.uninstall_prompt_later), fontSize = 18.sp)
         }
     }
 }
