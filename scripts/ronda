@@ -204,8 +204,25 @@ cmd_attack() {
 
 # Open the flagged app so the soft-block overlay has something to cover.
 cmd_victim() {
-  "$ADB" -s "$(protected)" shell monkey -p "$SAMPLE_PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  local p
+  p="$(protected)"
+  "$ADB" -s "$p" shell monkey -p "$SAMPLE_PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
   say "APK umpan dibuka — overlay RONDA harusnya langsung menutupinya"
+  sleep 3
+
+  # The overlay grabs focus, so the focused window flipping to RONDA is proof it
+  # is really on screen. Checking it here turns the one failure that looks like
+  # nothing happened at all into a message that says what to do.
+  if "$ADB" -s "$p" shell dumpsys window | grep -q 'mCurrentFocus=.*com\.ronda\.app'; then
+    say "Overlay aktif — blokir jalan"
+    return
+  fi
+  warn "Overlay tidak muncul. Cek berurutan:"
+  warn "  1. scripts/ronda perms   (izin overlay/usage stats hilang setelah reset)"
+  warn "  2. adb -s $p shell dumpsys usagestats | grep ACTIVITY_RESUMED | tail -3"
+  warn "     Kalau baris terakhir jauh lebih tua dari jam sekarang, log usage"
+  warn "     event emulator macet (biasanya setelah layar mati) dan RONDA buta."
+  warn "     Perbaikannya: adb -s $p reboot"
 }
 
 cmd_status() {

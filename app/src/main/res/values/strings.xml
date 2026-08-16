@@ -75,11 +75,9 @@
 
     <!-- Alert detail -->
     <string name="alert_detail_title">Aplikasi berbahaya terdeteksi</string>
-    <string name="alert_detail_source">Dipasang dari</string>
-    <string name="alert_detail_permissions">Izin yang diminta</string>
+        <string name="alert_detail_score">Skor risiko</string>
     <string name="alert_detail_package">Nama teknis</string>
     <string name="alert_detail_why">Kenapa ini berbahaya</string>
-    <string name="alert_detail_why_body">Aplikasi ini dipasang dari luar Play Store dan meminta izin membaca SMS. Gabungan keduanya adalah cara penipu mencuri kode OTP bank.</string>
     <string name="alert_detail_blocked">Aplikasi ini sudah ditutup di HP orang tua Anda.</string>
     <string name="alert_action_uninstall">Hapus aplikasi</string>
     <string name="alert_action_safe">Tandai aman</string>
@@ -110,7 +108,6 @@
     <string name="channel_guardian_alerts_desc">Peringatan saat aplikasi berbahaya dipasang di HP yang dijaga.</string>
     <string name="alert_notification_title">BAHAYA: aplikasi mencurigakan dipasang</string>
     <string name="alert_notification_body">%1$s dipasang di HP orang tua Anda.</string>
-    <string name="alert_notification_detail">%1$s dipasang di HP orang tua Anda.\n\nDipasang dari: %2$s\nIzin yang diminta: %3$s\n\nAplikasi sudah ditutup sementara. Ketuk untuk memutuskan.</string>
     <string name="channel_guardian_outcome">Hasil tindakan</string>
     <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP orang tua.</string>
     <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>

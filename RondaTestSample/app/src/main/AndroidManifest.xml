@@ -14,9 +14,18 @@
     <uses-permission android:name="android.permission.READ_SMS" />
 
     <!--
-        Sengaja TIDAK mendeklarasikan android.permission.INTERNET.
-        Tanpa permission ini, aplikasi secara teknis tidak mampu mengirim data ke mana pun.
+        SINYAL KEDUA. Dideklarasikan sejak mesin skor RONDA memakai kombinasi,
+        bukan lagi aturan biner: READ_SMS sendirian hanya bernilai 58 (RENDAH,
+        tidak memicu apa-apa), karena aplikasi yang bisa membaca SMS tapi tidak
+        punya jalan keluar memang belum berbahaya. Kombinasi READ_SMS + INTERNET
+        adalah jalur pencurian OTP yang utuh — skornya 85 (PERINGATAN).
+
+        Aman untuk APK umpan ini: satu-satunya kode di dalamnya adalah layar
+        statis "Undangan Pernikahan". Tidak ada satu baris pun yang menyentuh
+        jaringan, jadi permission ini mati sepenuhnya. Yang menjaga APK ini tetap
+        tidak berbahaya adalah ketiadaan kode jaringan, bukan ketiadaan baris ini.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="false"

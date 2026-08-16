@@ -39,6 +39,14 @@ class RoleStore(context: Context) {
 
     val isPaired: Boolean get() = pairingId != null
 
+    /**
+     * What the guardian calls the protected person, used throughout the guardian
+     * UI ("HP Ibu", never "HP kamu"). Set during pairing; defaults until then.
+     */
+    var protectedName: String
+        get() = prefs.getString(KEY_PROTECTED_NAME, null) ?: DEFAULT_PROTECTED_NAME
+        set(value) = prefs.edit().putString(KEY_PROTECTED_NAME, value).apply()
+
     /** No-op if a role is already set — see the write-once note above. */
     fun chooseRole(newRole: Role) {
         if (role != null) return
@@ -50,5 +58,7 @@ class RoleStore(context: Context) {
         const val KEY_ROLE = "role"
         const val KEY_DEVICE_ID = "device_id"
         const val KEY_PAIRING_ID = "pairing_id"
+        const val KEY_PROTECTED_NAME = "protected_name"
+        const val DEFAULT_PROTECTED_NAME = "Ibu"
     }
 }

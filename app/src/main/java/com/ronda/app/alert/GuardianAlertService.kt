@@ -12,7 +12,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.core.RiskEvaluator
+import com.ronda.app.core.RiskLevel
 import com.ronda.app.pairing.Role
+import com.ronda.app.ui.guardian.components.explanationKeys
+import com.ronda.app.ui.guardian.components.sentenceRes
 import com.ronda.app.pairing.RoleStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,42 +105,73 @@ class GuardianAlertService : Service() {
     private fun notifyAlert(alert: Alert) {
         Log.d(TAG, "New alert for guardian: ${alert.packageName}")
 
+        // Only DARURAT earns the alarm treatment. A PERINGATAN that buzzes like
+        // an emergency trains the guardian to swipe both away.
+        val darurat = RiskLevel.of(alert.score) == RiskLevel.DARURAT
+
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(
-                ALERT_CHANNEL_ID,
+                if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID,
                 getString(R.string.channel_guardian_alerts),
-                NotificationManager.IMPORTANCE_HIGH
+                if (darurat) NotificationManager.IMPORTANCE_HIGH
+                else NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = getString(R.string.channel_guardian_alerts_desc)
                 enableVibration(true)
+                // Takes effect only if the guardian grants DND policy access;
+                // harmless otherwise.
+                setBypassDnd(darurat)
             }
         )
 
         val pendingIntent = openAlertIntent(alert)
 
         val body = getString(R.string.alert_notification_body, alert.appLabel)
-        val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
+        val notification =
+            NotificationCompat.Builder(this, if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
-            .setContentTitle(getString(R.string.alert_notification_title))
+            .setContentTitle(
+                getString(R.string.alert_notification_title) + " (${alert.score}/100)"
+            )
             .setContentText(body)
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(
-                    getString(
-                        R.string.alert_notification_detail,
-                        alert.appLabel,
-                        alert.installSource,
-                        alert.flaggedPermissions.joinToString(", ")
-                    )
+                    (listOf(body) + topReasons(alert)).joinToString("\n\n")
                 )
             )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setPriority(
+                if (darurat) NotificationCompat.PRIORITY_HIGH
+                else NotificationCompat.PRIORITY_DEFAULT
+            )
+            .setCategory(
+                if (darurat) NotificationCompat.CATEGORY_ALARM
+                else NotificationCompat.CATEGORY_MESSAGE
+            )
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 
         manager.notify(ALERT_NOTIFICATION_ID_BASE + alert.alertId.hashCode(), notification)
+    }
+
+    /**
+     * The two worst sentences, in the guardian's own words for the protected
+     * person. Rebuilt locally from the alert's signal keys — the sentences are
+     * never sent over the wire, because only this device knows the nickname.
+     */
+    private fun topReasons(alert: Alert): List<String> {
+        val name = RoleStore(this).protectedName
+        val verdict = RiskEvaluator.evaluate(
+            packageName = alert.packageName,
+            appLabel = alert.appLabel,
+            activeKeys = alert.signals.toSet(),
+            detectedAt = alert.timestamp
+        )
+        return explanationKeys(verdict)
+            .mapNotNull { sentenceRes(it) }
+            .take(2)
+            .map { getString(it, name) }
     }
 
     /**
@@ -173,7 +208,7 @@ class GuardianAlertService : Service() {
     private fun openAlertIntent(alert: Alert): PendingIntent {
         val openDetail = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(MainActivity.EXTRA_ALERT_ID, alert.alertId)
+            putExtra(MainActivity.EXTRA_PACKAGE, alert.packageName)
         }
         return PendingIntent.getActivity(
             this,
@@ -212,6 +247,7 @@ class GuardianAlertService : Service() {
         private const val OUTCOME_NOTIFICATION_ID_BASE = 2500
         private const val CHANNEL_ID = "ronda_guardian_watch_channel"
         private const val ALERT_CHANNEL_ID = "ronda_guardian_alert_channel"
+        private const val WARN_CHANNEL_ID = "ronda_guardian_warn_channel"
         private const val OUTCOME_CHANNEL_ID = "ronda_guardian_outcome_channel"
 
         /** Safe to call repeatedly — starting a running service is a no-op. */

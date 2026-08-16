@@ -15,16 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.ronda.app.alert.Alert
-import com.ronda.app.alert.AlertRepository
-import com.ronda.app.alert.Command
-import com.ronda.app.alert.CommandRepository
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ronda.app.alert.GuardianAlertService
 import com.ronda.app.detection.DetectionService
 import com.ronda.app.detection.FlaggedAppStore
@@ -34,8 +32,11 @@ import com.ronda.app.overlay.OverlayService
 import com.ronda.app.pairing.Role
 import com.ronda.app.pairing.RoleStore
 import com.ronda.app.ui.guardian.AlertDetailScreen
-import com.ronda.app.ui.guardian.GuardianHomeScreen
+import com.ronda.app.ui.guardian.FakeGuardianRepository
+import com.ronda.app.ui.guardian.FirebaseGuardianRepository
 import com.ronda.app.ui.guardian.GuardianPairingScreen
+import com.ronda.app.ui.guardian.GuardianViewModel
+import com.ronda.app.ui.guardian.WatchListScreen
 import com.ronda.app.ui.onboarding.RoleSelectionScreen
 import com.ronda.app.ui.protectedrole.ProtectedPairingScreen
 import com.ronda.app.ui.protectedrole.UninstallPromptScreen
@@ -56,10 +57,9 @@ class MainActivity : ComponentActivity() {
     private var status by mutableStateOf(SetupStatus(false, false, false))
     private var role by mutableStateOf<Role?>(null)
     private var pairingId by mutableStateOf<String?>(null)
-    private var selectedAlertId by mutableStateOf<String?>(null)
 
-    /** Guardian: alertId → action already sent, awaiting the protected phone. */
-    private var sentCommands by mutableStateOf(emptyMap<String, String>())
+    /** Guardian: which app's detail screen is open, addressed by package. */
+    private var selectedPackage by mutableStateOf<String?>(null)
 
     /** Protected: the uninstall request to show, and whether it was deferred. */
     private var pendingUninstall by mutableStateOf<PendingUninstall?>(null)
@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
 
         role = roleStore.role
         pairingId = roleStore.pairingId
-        selectedAlertId = intent.getStringExtra(EXTRA_ALERT_ID)
+        selectedPackage = intent.getStringExtra(EXTRA_PACKAGE)
 
         // Only on a genuinely new launch, so a rotation does not re-prompt.
         if (savedInstanceState == null) requestNotificationPermission()
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent.getStringExtra(EXTRA_ALERT_ID)?.let { selectedAlertId = it }
+        intent.getStringExtra(EXTRA_PACKAGE)?.let { selectedPackage = it }
     }
 
     override fun onResume() {
@@ -122,25 +122,39 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        var alerts by remember { mutableStateOf(emptyList<Alert>()) }
-        LaunchedEffect(currentPairing) {
-            AlertRepository().observeAlerts(currentPairing).collect { alerts = it }
-        }
+        val viewModel: GuardianViewModel = viewModel(
+            key = currentPairing,
+            factory = viewModelFactory {
+                initializer {
+                    GuardianViewModel(
+                        if (currentPairing == DEMO_PAIRING) {
+                            FakeGuardianRepository(roleStore.protectedName)
+                        } else {
+                            FirebaseGuardianRepository(currentPairing, roleStore.protectedName)
+                        }
+                    )
+                }
+            }
+        )
+        val state by viewModel.state.collectAsState()
 
-        val selected = alerts.firstOrNull { it.alertId == selectedAlertId }
+        val selected = viewModel.find(selectedPackage)
         if (selected != null) {
             AlertDetailScreen(
-                alert = selected,
-                pendingAction = sentCommands[selected.alertId],
-                onUninstall = { sendCommand(currentPairing, selected, Command.ACTION_UNINSTALL) },
-                onMarkSafe = { sendCommand(currentPairing, selected, Command.ACTION_MARK_SAFE) },
-                onBack = { selectedAlertId = null },
+                verdict = selected,
+                protectedName = state.protectedName,
+                undoable = state.undoable == selected.packageName,
+                onMarkUnsafe = { viewModel.markUnsafe(selected.packageName) },
+                onMarkSafe = { viewModel.markSafe(selected.packageName) },
+                onUndo = { viewModel.undoMarkSafe(selected.packageName) },
+                onRequestUninstall = { viewModel.requestUninstall(selected.packageName) },
+                onBack = { selectedPackage = null },
                 modifier = modifier
             )
         } else {
-            GuardianHomeScreen(
-                alerts = alerts,
-                onAlertClick = { selectedAlertId = it.alertId },
+            WatchListScreen(
+                state = state,
+                onVerdictClick = { selectedPackage = it.packageName },
                 modifier = modifier
             )
         }
@@ -201,23 +215,6 @@ class MainActivity : ComponentActivity() {
         roleStore.pairingId = code
         pairingId = code
         refreshStatus()
-    }
-
-    /**
-     * Guardian side. The button is marked as sent immediately rather than
-     * waiting for the write to confirm — a guardian who taps twice because
-     * nothing appeared to happen would queue two uninstall requests.
-     */
-    private fun sendCommand(pairing: String, alert: Alert, action: String) {
-        sentCommands = sentCommands + (alert.alertId to action)
-        lifecycleScope.launch {
-            runCatching {
-                CommandRepository().send(pairing, alert.alertId, action, alert.packageName)
-            }.onFailure {
-                Log.e(TAG, "Could not send $action for ${alert.packageName}", it)
-                sentCommands = sentCommands - alert.alertId
-            }
-        }
     }
 
     /**
@@ -286,6 +283,19 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
 
         /** Set by [GuardianAlertService] so a tapped notification opens its alert. */
-        const val EXTRA_ALERT_ID = "extra_alert_id"
+        const val EXTRA_PACKAGE = "extra_package"
+
+        /**
+         * Pair with this code to serve the guardian UI from
+         * [FakeGuardianRepository] instead of Firebase — the offline path for
+         * recording the demo without two emulators and RTDB latency.
+         *
+         * Deliberately a pairing id rather than a build flag. A `const val
+         * DEMO_MODE` has to be flipped, rebuilt and reinstalled, and a build
+         * left in the wrong state shows five fake apps on a real guardian phone
+         * with no sign anything is wrong. Keying it to a pairing nobody types by
+         * accident makes that failure impossible.
+         */
+        const val DEMO_PAIRING = "DEMO01"
     }
 }
