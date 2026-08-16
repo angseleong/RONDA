@@ -11,6 +11,10 @@ import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
 import com.ronda.app.alert.Alert
 import com.ronda.app.alert.AlertRepository
+import com.ronda.app.core.RiskEvaluator
+import com.ronda.app.core.Verdict
+import com.ronda.app.core.VerdictState
+import com.ronda.app.detect.SignalExtractor
 import com.ronda.app.overlay.OverlayService
 import com.ronda.app.pairing.RoleStore
 import kotlinx.coroutines.CoroutineScope
@@ -53,12 +57,21 @@ class InstallReceiver : BroadcastReceiver() {
             return
         }
 
-        val evaluator = RiskEvaluator(context)
-        val result = evaluator.evaluate(packageName)
+        val extractor = SignalExtractor(context.packageManager)
+        val verdict = RiskEvaluator.evaluate(
+            packageName = packageName,
+            appLabel = extractor.labelOf(packageName),
+            activeKeys = extractor.extract(packageName)
+        )
+        Log.d(TAG, "Verdict for $packageName: ${verdict.vector} (${verdict.level})")
 
-        if (result.riskLevel != RiskLevel.HIGH) return
+        // PENDING_GUARDIAN is exactly "score >= 60" — the band where the overlay
+        // runs and the guardian is worth waking. AMAN and RENDAH stay on this
+        // phone: an alert the guardian cannot act on only teaches them to ignore
+        // the next one.
+        if (verdict.state != VerdictState.PENDING_GUARDIAN) return
 
-        showRiskNotification(context, result)
+        showRiskNotification(context, verdict)
 
         // Remember the package so the soft-block knows what to cover, then
         // start blocking. Detection still alerts even if blocking cannot run.
@@ -69,7 +82,7 @@ class InstallReceiver : BroadcastReceiver() {
             Log.w(TAG, "Cannot block $packageName: overlay or usage-stats permission missing")
         }
 
-        publishAlert(context, result)
+        publishAlert(context, verdict)
     }
 
     /**
@@ -81,10 +94,10 @@ class InstallReceiver : BroadcastReceiver() {
      * normally gets. If it does not land in time, Realtime Database persistence
      * keeps the write queued on disk and flushes it when the app next runs.
      */
-    private fun publishAlert(context: Context, result: RiskResult) {
+    private fun publishAlert(context: Context, verdict: Verdict) {
         val pairingId = RoleStore(context).pairingId
         if (pairingId == null) {
-            Log.w(TAG, "Not paired yet — guardian cannot be notified about ${result.packageName}")
+            Log.w(TAG, "Not paired yet — guardian cannot be notified about ${verdict.packageName}")
             return
         }
 
@@ -92,11 +105,11 @@ class InstallReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             try {
                 withTimeoutOrNull(ALERT_WRITE_TIMEOUT_MS) {
-                    val alertId = AlertRepository().submit(pairingId, result)
-                    Log.d(TAG, "Alert $alertId published for ${result.packageName}")
+                    val alertId = AlertRepository().submit(pairingId, verdict)
+                    Log.d(TAG, "Alert $alertId published for ${verdict.packageName}")
                 } ?: Log.w(TAG, "Alert write did not confirm in time; queued for retry")
             } catch (e: Exception) {
-                Log.e(TAG, "Could not publish alert for ${result.packageName}", e)
+                Log.e(TAG, "Could not publish alert for ${verdict.packageName}", e)
             } finally {
                 pendingResult.finish()
             }
@@ -141,7 +154,7 @@ class InstallReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun showRiskNotification(context: Context, result: RiskResult) {
+    private fun showRiskNotification(context: Context, verdict: Verdict) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create channel for API 26+
@@ -158,17 +171,15 @@ class InstallReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_alert) // using standard icon for now
-            .setContentTitle("HIGH RISK: Malware Detected")
-            .setContentText("${result.appLabel} is suspected of stealing banking codes.")
+            .setContentTitle("${verdict.level}: ${verdict.appLabel}")
+            .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("${result.appLabel} (${result.packageName}) is suspected of stealing banking codes.\n\n" +
-                        "Install Source: ${result.installSource}\n" +
-                        "Flagged Permissions: ${result.flaggedPermissions.joinToString(", ")}"))
+                .bigText(verdict.reasons.joinToString("\n\n").replace("**", "")))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
         // Use hash of package name to prevent multiple notifications for the same app building up
-        notificationManager.notify(NOTIFICATION_ID_BASE + result.packageName.hashCode(), notification)
+        notificationManager.notify(NOTIFICATION_ID_BASE + verdict.packageName.hashCode(), notification)
     }
 }
