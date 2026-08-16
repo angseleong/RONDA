@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Guardian screen chrome. Second person for the guardian, third person for the
+    protected user: %1$s is the pairing nickname, never "kamu".
+-->
+<resources>
+
+    <string name="watch_title">RONDA</string>
+    <string name="watch_tab_review">Perlu Diperiksa</string>
+    <string name="watch_tab_monitored">Terpantau</string>
+
+    <string name="watch_connected">Terhubung dengan HP %1$s</string>
+    <string name="watch_disconnected">Tidak bisa terhubung ke HP %1$s. Pastikan HP-nya menyala dan terhubung internet.</string>
+
+    <string name="watch_empty_review">Belum ada aplikasi yang perlu diperiksa. RONDA sedang berjaga di HP %1$s.</string>
+    <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
+
+    <string name="watch_status_pending">Menunggu keputusanmu</string>
+    <string name="watch_status_passive">Tidak perlu tindakan</string>
+    <string name="watch_status_safe">Ditandai aman</string>
+    <string name="watch_status_unsafe">Ditandai berbahaya</string>
+    <string name="watch_override">%1$s tetap membuka aplikasi ini meski sudah diperingatkan</string>
+
+    <string name="detail_of_100">/100</string>
+    <string name="detail_back">Kembali</string>
+    <string name="detail_source_sideload">Dipasang dari luar Play Store</string>
+    <string name="detail_source_play">Dipasang dari Play Store</string>
+    <string name="detail_installed_at">Dipasang %1$s</string>
+    <string name="detail_technical">Detail teknis</string>
+    <string name="detail_technical_vector">Vector</string>
+    <string name="detail_technical_math">Impact %1$s × Trust %2$s = %3$d</string>
+    <string name="detail_technical_attack">MITRE ATT&amp;CK</string>
+
+    <string name="action_mark_unsafe">Tandai berbahaya</string>
+    <string name="action_mark_safe">Tandai aman</string>
+    <string name="action_request_uninstall">Minta %1$s menghapus aplikasi ini</string>
+    <string name="action_undo">Batalkan</string>
+
+    <string name="confirm_safe_body">Aplikasi ini akan bisa dibuka %1$s tanpa peringatan lagi. Lanjutkan?</string>
+    <string name="confirm_safe_yes">Ya, tandai aman</string>
+    <string name="confirm_safe_cancel">Batal</string>
+
+    <string name="resolved_unsafe">Ditandai berbahaya. RONDA akan terus memperingatkan %1$s setiap aplikasi ini dibuka.</string>
+    <string name="resolved_safe">Ditandai aman. Peringatan dihentikan.</string>
+
+    <string name="a11y_score">Risiko %1$d dari 100, %2$s</string>
+
+    <string name="time_just_now">baru saja</string>
+    <string name="time_minutes">%1$d menit lalu</string>
+    <string name="time_hours">%1$d jam lalu</string>
+    <string name="time_days">%1$d hari lalu</string>
+
+</resources>

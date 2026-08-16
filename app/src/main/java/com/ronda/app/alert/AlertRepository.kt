@@ -3,7 +3,7 @@ package com.ronda.app.alert
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.ronda.app.awaitSet
-import com.ronda.app.detection.RiskResult
+import com.ronda.app.core.Verdict
 import com.ronda.app.valueEvents
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,14 +28,15 @@ class AlertRepository {
      *
      * @return the generated alert id
      */
-    suspend fun submit(pairingId: String, result: RiskResult): String {
+    suspend fun submit(pairingId: String, verdict: Verdict): String {
         val ref = alerts.child(pairingId).push()
         ref.awaitSet(
             mapOf(
-                "packageName" to result.packageName,
-                "appLabel" to result.appLabel,
-                "installSource" to result.installSource,
-                "flaggedPermissions" to result.flaggedPermissions,
+                "packageName" to verdict.packageName,
+                "appLabel" to verdict.appLabel,
+                "score" to verdict.score,
+                "signals" to verdict.signals.map { it.key },
+                "combos" to verdict.combos,
                 "status" to Alert.STATUS_PENDING,
                 "timestamp" to ServerValue.TIMESTAMP
             )
