@@ -14,6 +14,15 @@
     -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!--
+        Same failure shape as REQUEST_DELETE_PACKAGES above: without this declared,
+        ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS opens Settings' activity, which
+        checks this permission in onCreate() and finish()es silently if missing —
+        no dialog, no crash, no log.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+        tools:ignore="BatteryLife" />
+
     <!-- Pairing + alert sync via Firebase Realtime Database. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
