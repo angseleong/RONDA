@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.ronda.app.R
 import com.ronda.app.core.Verdict
 import com.ronda.app.ui.guardian.components.AlertRow
+import com.ronda.app.ui.theme.Eyebrow
 import com.ronda.app.ui.theme.calm
 import com.ronda.app.ui.theme.lamp
 import com.ronda.app.ui.theme.linenDim
@@ -37,6 +38,10 @@ import com.ronda.app.ui.theme.linenDim
  * The "Terpantau" tab is not filler — it is the evidence that RONDA does not
  * flag every sideloaded app. A guardian who can see the quiet ones trusts the
  * loud ones.
+ *
+ * Below both lists sits "Riwayat": everything the guardian has already ruled on.
+ * It hangs under either tab on purpose — "what did I decide about that app?" is
+ * a question that arrives without regard for which list is on screen.
  */
 @Composable
 fun WatchListScreen(
@@ -81,31 +86,51 @@ fun WatchListScreen(
             )
         }
 
-        if (list.isEmpty()) {
-            Text(
-                text = stringResource(
-                    if (tab == 0) R.string.watch_empty_review else R.string.watch_empty_monitored,
-                    state.protectedName
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = linenDim,
-                modifier = Modifier.padding(20.dp)
-            )
-            return@Column
-        }
-
         LazyColumn(
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(list, key = { it.packageName }) { verdict ->
-                AlertRow(
-                    verdict = verdict,
-                    protectedName = state.protectedName,
-                    onClick = { onVerdictClick(verdict) }
-                )
+            if (list.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(
+                            if (tab == 0) R.string.watch_empty_review
+                            else R.string.watch_empty_monitored,
+                            state.protectedName
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = linenDim
+                    )
+                }
+            } else {
+                items(list, key = { "open:${it.packageName}" }) { verdict ->
+                    AlertRow(
+                        verdict = verdict,
+                        protectedName = state.protectedName,
+                        onClick = { onVerdictClick(verdict) }
+                    )
+                }
             }
+
+            if (state.history.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.watch_history_header),
+                        style = Eyebrow,
+                        color = linenDim,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+                items(state.history, key = { "history:${it.packageName}" }) { verdict ->
+                    AlertRow(
+                        verdict = verdict,
+                        protectedName = state.protectedName,
+                        onClick = { onVerdictClick(verdict) }
+                    )
+                }
+            }
+
             item { Spacer(Modifier.height(8.dp)) }
         }
     }

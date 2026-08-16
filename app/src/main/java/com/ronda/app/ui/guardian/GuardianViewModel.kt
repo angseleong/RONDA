@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.Verdict
-import com.ronda.app.core.VerdictState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +13,8 @@ import kotlinx.coroutines.launch
 data class GuardianUiState(
     val needsReview: List<Verdict> = emptyList(),
     val monitored: List<Verdict> = emptyList(),
+    /** Already ruled on. Shown under both tabs, never inside either list. */
+    val history: List<Verdict> = emptyList(),
     val connected: Boolean = true,
     val protectedName: String = "Ibu",
     /** Package whose "mark safe" can still be taken back, or null. */
@@ -30,17 +31,18 @@ class GuardianViewModel(private val repo: GuardianRepository) : ViewModel() {
     init {
         viewModelScope.launch {
             repo.observeVerdicts().collect { verdicts ->
-                // Anything the guardian has yet to decide sorts to the top,
-                // regardless of age. Resolved rows are history.
-                val (review, monitored) = verdicts.partition {
+                // Two questions, in order. First: has the guardian ruled on it?
+                // If so it is history and leaves both tabs. Only among the ones
+                // still open does the score decide which tab it belongs to —
+                // that is what keeps "Terpantau" meaning "quiet", not "done".
+                val (decided, open) = verdicts.partition { it.state.decided }
+                val (review, monitored) = open.partition {
                     it.score >= RiskEvaluator.GUARDIAN_THRESHOLD
                 }
                 _state.value = _state.value.copy(
-                    needsReview = review.sortedWith(
-                        compareByDescending<Verdict> { it.state == VerdictState.PENDING_GUARDIAN }
-                            .thenByDescending { it.detectedAt }
-                    ),
-                    monitored = monitored.sortedByDescending { it.detectedAt }
+                    needsReview = review.sortedByDescending { it.detectedAt },
+                    monitored = monitored.sortedByDescending { it.detectedAt },
+                    history = decided.sortedByDescending { it.detectedAt }
                 )
             }
         }
@@ -52,7 +54,8 @@ class GuardianViewModel(private val repo: GuardianRepository) : ViewModel() {
     fun find(packageName: String?): Verdict? {
         if (packageName == null) return null
         val s = _state.value
-        return (s.needsReview + s.monitored).firstOrNull { it.packageName == packageName }
+        return (s.needsReview + s.monitored + s.history)
+            .firstOrNull { it.packageName == packageName }
     }
 
     fun markUnsafe(packageName: String) {

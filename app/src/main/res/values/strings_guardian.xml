@@ -15,6 +15,8 @@
     <string name="watch_empty_review">Belum ada aplikasi yang perlu diperiksa. RONDA sedang berjaga di HP %1$s.</string>
     <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
 
+    <string name="watch_history_header">Riwayat</string>
+
     <string name="watch_status_pending">Menunggu keputusanmu</string>
     <string name="watch_status_passive">Tidak perlu tindakan</string>
     <string name="watch_status_safe">Ditandai aman</string>

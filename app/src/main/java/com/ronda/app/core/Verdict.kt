@@ -58,6 +58,14 @@ enum class VerdictState {
     /** True while the overlay should reappear on every foreground launch. */
     val overlayActive: Boolean
         get() = this == PENDING_GUARDIAN || this == RESOLVED_UNSAFE
+
+    /**
+     * True once the guardian has actually ruled on it, which is what moves a row
+     * into history. [RESOLVED_PASSIVE] is deliberately excluded: nothing was ever
+     * asked of the guardian below the threshold, so there is no decision to file.
+     */
+    val decided: Boolean
+        get() = this == RESOLVED_SAFE || this == RESOLVED_UNSAFE
 }
 
 data class Verdict(
