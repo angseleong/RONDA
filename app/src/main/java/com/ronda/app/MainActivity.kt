@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
     private val roleStore by lazy { RoleStore(this) }
 
-    private var status by mutableStateOf(SetupStatus(false, false, false))
+    private var status by mutableStateOf(SetupStatus(false, false, false, false))
     private var role by mutableStateOf<Role?>(null)
     private var pairingId by mutableStateOf<String?>(null)
 
@@ -201,6 +201,7 @@ class MainActivity : ComponentActivity() {
             onRequestNotifications = ::requestNotificationPermission,
             onOpenOverlaySettings = { startActivity(Permissions.overlaySettingsIntent(this)) },
             onOpenUsageSettings = { startActivity(Permissions.usageStatsSettingsIntent()) },
+            onOpenBatterySettings = { startActivity(Permissions.batteryOptimizationIntent(this)) },
             modifier = modifier
         )
     }
@@ -249,7 +250,8 @@ class MainActivity : ComponentActivity() {
         status = SetupStatus(
             notifications = Permissions.hasNotifications(this),
             overlay = Permissions.hasOverlay(this),
-            usageStats = Permissions.hasUsageStats(this)
+            usageStats = Permissions.hasUsageStats(this),
+            batteryExemption = Permissions.hasBatteryExemption(this)
         )
 
         when (role) {

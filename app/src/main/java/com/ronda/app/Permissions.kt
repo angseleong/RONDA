@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import androidx.core.content.ContextCompat
@@ -50,6 +51,18 @@ object Permissions {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * True when the app is exempt from battery optimization.
+     *
+     * OEM skins (Xiaomi, Oppo, Vivo) aggressively kill background services.
+     * Without this exemption, [DetectionService] and [OverlayService] may be
+     * stopped silently, leaving the protected device unmonitored.
+     */
+    fun hasBatteryExemption(context: Context): Boolean {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(context.packageName)
+    }
+
     /** True when RONDA can both detect and block. */
     fun canBlock(context: Context): Boolean = hasOverlay(context) && hasUsageStats(context)
 
@@ -59,4 +72,15 @@ object Permissions {
     )
 
     fun usageStatsSettingsIntent(): Intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+
+    /**
+     * Opens the system dialog asking the user to exempt RONDA from battery
+     * optimization. Unlike overlay and usage-stats, this one is a direct
+     * system dialog — not a full Settings page — so the UX is smoother.
+     */
+    @Suppress("BatteryLife") // Intentional: foreground service must survive OEM kills.
+    fun batteryOptimizationIntent(context: Context): Intent = Intent(
+        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+        Uri.parse("package:${context.packageName}")
+    )
 }
