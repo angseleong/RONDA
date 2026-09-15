@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.RONDA" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Dark parent to match the dark-only Compose theme. The window paints
+         night before the first frame, so launch does not flash a white page
+         under a dark app. -->
+    <style name="Theme.RONDA" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/night</item>
+    </style>
 </resources>

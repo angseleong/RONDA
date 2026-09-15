@@ -67,31 +67,12 @@
     <string name="pair_error_expired">Kode sudah kedaluwarsa. Minta kode baru.</string>
     <string name="pair_connecting">Menghubungkan…</string>
 
-    <!-- Guardian home -->
-    <string name="guardian_home_title">RONDA Penjaga</string>
-    <string name="guardian_home_connected">Terhubung dengan HP orang tua Anda</string>
-    <string name="guardian_home_empty_title">Belum ada peringatan</string>
-    <string name="guardian_home_empty_body">RONDA sedang mengawasi. Anda akan diberi tahu kalau ada aplikasi berbahaya dipasang di HP orang tua Anda.</string>
-    <string name="guardian_home_alerts">Peringatan</string>
+    <!-- Guardian: the persistent watch notification -->
     <string name="guardian_watch_title">RONDA menjaga</string>
     <string name="guardian_watch_body">Siap menerima peringatan dari HP orang tua Anda.</string>
 
-    <!-- Alert detail -->
-    <string name="alert_detail_title">Aplikasi berbahaya terdeteksi</string>
-        <string name="alert_detail_score">Skor risiko</string>
-    <string name="alert_detail_package">Nama teknis</string>
-    <string name="alert_detail_why">Kenapa ini berbahaya</string>
-    <string name="alert_detail_blocked">Aplikasi ini sudah ditutup di HP orang tua Anda.</string>
-    <string name="alert_action_uninstall">Hapus aplikasi</string>
-    <string name="alert_action_safe">Tandai aman</string>
-    <string name="alert_back">Kembali</string>
-
-    <!-- Guardian: state after a decision has been sent -->
+    <!-- Guardian: feedback once an uninstall request has gone out -->
     <string name="alert_waiting_uninstall">Permintaan hapus sudah dikirim</string>
-    <string name="alert_waiting_safe">Aplikasi sudah ditandai aman</string>
-    <string name="alert_waiting_detail">RONDA menunggu HP orang tua Anda menyelesaikannya. Anda akan lihat hasilnya di sini.</string>
-    <string name="alert_outcome_uninstalled">Aplikasi sudah dihapus dari HP orang tua Anda.</string>
-    <string name="alert_outcome_safe">Aplikasi ini ditandai aman. Peringatan sudah dibuka.</string>
 
     <!-- Protected: guardian asked for an uninstall -->
     <string name="channel_guardian_request">Permintaan penjaga</string>

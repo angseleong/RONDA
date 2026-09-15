@@ -19,6 +19,17 @@ val linenDim = Color(0xFF8C93A3)
 val siren = Color(0xFFD2453B)
 val calm = Color(0xFF5B9A78)
 
+/** Hairline between regions — under the tabs, above a footnote. Never a card edge. */
+val seam = linenDim.copy(alpha = 0.24f)
+
+/**
+ * A colour's wash: the 14% tint that carries its meaning onto a surface
+ * without spending the colour itself. The score badge, the override notice
+ * and the setup banner all sit on a wash, which is what keeps the solid
+ * colour rare enough to mean something.
+ */
+fun wash(color: Color): Color = color.copy(alpha = 0.14f)
+
 /** The band's colour, used for the score numeral and its list badge. */
 fun scoreColor(level: RiskLevel): Color = when (level) {
     RiskLevel.AMAN -> calm

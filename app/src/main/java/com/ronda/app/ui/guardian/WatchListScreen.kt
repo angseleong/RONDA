@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -57,7 +55,7 @@ fun WatchListScreen(
             text = stringResource(R.string.watch_title),
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp)
+            modifier = Modifier.padding(start = 20.dp, top = 24.dp, end = 20.dp)
         )
 
         // An empty list means something very different when disconnected, so
@@ -86,13 +84,15 @@ fun WatchListScreen(
             )
         }
 
+        // Rows animate between the open list and Riwayat: a decision is the
+        // one thing that moves a row, and the move is what confirms it landed.
         LazyColumn(
-            contentPadding = PaddingValues(20.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (list.isEmpty()) {
-                item {
+                item(key = "empty") {
                     Text(
                         text = stringResource(
                             if (tab == 0) R.string.watch_empty_review
@@ -100,7 +100,10 @@ fun WatchListScreen(
                             state.protectedName
                         ),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = linenDim
+                        color = linenDim,
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(vertical = 8.dp)
                     )
                 }
             } else {
@@ -108,30 +111,34 @@ fun WatchListScreen(
                     AlertRow(
                         verdict = verdict,
                         protectedName = state.protectedName,
-                        onClick = { onVerdictClick(verdict) }
+                        onClick = { onVerdictClick(verdict) },
+                        modifier = Modifier.animateItem()
                     )
                 }
             }
 
             if (state.history.isNotEmpty()) {
-                item {
+                item(key = "history") {
                     Text(
                         text = stringResource(R.string.watch_history_header),
                         style = Eyebrow,
                         color = linenDim,
-                        modifier = Modifier.padding(top = 12.dp)
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(top = 12.dp)
                     )
                 }
                 items(state.history, key = { "history:${it.packageName}" }) { verdict ->
                     AlertRow(
                         verdict = verdict,
                         protectedName = state.protectedName,
-                        onClick = { onVerdictClick(verdict) }
+                        onClick = { onVerdictClick(verdict) },
+                        modifier = Modifier.animateItem()
                     )
                 }
             }
 
-            item { Spacer(Modifier.height(8.dp)) }
+            item(key = "tail") { Spacer(Modifier.height(8.dp)) }
         }
     }
 }

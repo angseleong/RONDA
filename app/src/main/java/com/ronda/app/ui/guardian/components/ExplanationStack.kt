@@ -1,11 +1,11 @@
 package com.ronda.app.ui.guardian.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,12 +35,12 @@ fun ExplanationStack(
     protectedName: String,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         explanationKeys(verdict).forEach { key ->
             val res = CATALOG[key] ?: return@forEach
             Surface(
                 color = nightRaised,
-                shape = RoundedCornerShape(14.dp),
+                shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp)) {
@@ -57,7 +57,6 @@ fun ExplanationStack(
                     )
                 }
             }
-            Spacer(Modifier.height(10.dp))
         }
     }
 }

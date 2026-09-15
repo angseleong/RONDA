@@ -13,7 +13,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ronda.app.R
 import com.ronda.app.core.RiskLevel
 import com.ronda.app.ui.theme.ScoreNumeral
@@ -36,13 +35,21 @@ fun ScoreBlock(score: Int, level: RiskLevel, modifier: Modifier = Modifier) {
             .clearAndSetSemantics { contentDescription = label },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(text = "$score", style = ScoreNumeral, color = scoreColor(level))
+        // "/100" hangs off the numeral's own baseline, not a guessed offset.
+        Row {
+            Text(
+                text = "$score",
+                style = ScoreNumeral,
+                color = scoreColor(level),
+                modifier = Modifier.alignByBaseline()
+            )
             Text(
                 text = stringResource(R.string.detail_of_100),
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
                 color = linenDim,
-                modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .alignByBaseline()
             )
         }
         Text(

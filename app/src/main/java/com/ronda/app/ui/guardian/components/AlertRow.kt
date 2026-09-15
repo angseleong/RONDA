@@ -1,6 +1,5 @@
 package com.ronda.app.ui.guardian.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,12 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
@@ -35,6 +32,10 @@ import com.ronda.app.ui.theme.nightRaised
  *
  * Resolved rows drop to 60% opacity — still readable as history, visibly not
  * asking for anything.
+ *
+ * The whole row is one tappable surface, so the ripple is clipped to the
+ * corners and TalkBack reads it as a single button: score, name, band,
+ * sentence, time.
  */
 @Composable
 fun AlertRow(
@@ -58,11 +59,11 @@ fun AlertRow(
     }
 
     Surface(
+        onClick = onClick,
         color = nightRaised,
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .alpha(if (resolved) 0.6f else 1f)
     ) {
         Row(Modifier.padding(16.dp)) {
@@ -80,11 +81,13 @@ fun AlertRow(
 
                 if (firstSentence.isNotBlank()) {
                     Spacer(Modifier.height(6.dp))
+                    // Two lines: one cuts most of these sentences before the
+                    // consequence, which is the part worth previewing.
                     Text(
                         text = firstSentence,
                         style = MaterialTheme.typography.bodyMedium,
                         color = linenDim,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -100,14 +103,12 @@ fun AlertRow(
                 // This is the mechanism, not a log line — it gets the accent.
                 if (verdict.overrodeAt > 0L) {
                     Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.watch_override, protectedName) +
-                                " · " + relativeTime(verdict.overrodeAt),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = lamp
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.watch_override, protectedName) +
+                            " · " + relativeTime(verdict.overrodeAt),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = lamp
+                    )
                 }
             }
         }

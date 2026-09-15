@@ -1,29 +1,32 @@
 package com.ronda.app.ui.protectedrole
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ronda.app.R
+import com.ronda.app.ui.theme.LargePrint
+import com.ronda.app.ui.theme.LargePrintLabel
+import com.ronda.app.ui.theme.siren
+import com.ronda.app.ui.theme.wash
 
 /**
  * What the protected phone shows once the guardian asks for an app to be removed.
@@ -36,6 +39,8 @@ import com.ronda.app.R
  * rely on.
  *
  * Type is large and the contrast is high for the same reason the overlay is.
+ * Red is spent once, on the frame around the app's name: that is the danger.
+ * The button that removes it is the ordinary amber of every protective action.
  */
 @Composable
 fun UninstallPromptScreen(
@@ -44,28 +49,31 @@ fun UninstallPromptScreen(
     onLater: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // System Back means the same as "Nanti saja": the prompt comes back later
+    // and the app underneath stays blocked either way.
+    BackHandler(onBack = onLater)
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = stringResource(R.string.uninstall_prompt_title),
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
         )
 
         Spacer(Modifier.height(24.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            )
+        Surface(
+            color = wash(siren),
+            shape = MaterialTheme.shapes.large,
+            border = BorderStroke(1.dp, siren.copy(alpha = 0.5f)),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
@@ -75,17 +83,16 @@ fun UninstallPromptScreen(
             ) {
                 Text(
                     text = appLabel,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.uninstall_prompt_body),
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
+                    style = LargePrint,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -94,33 +101,30 @@ fun UninstallPromptScreen(
 
         Text(
             text = stringResource(R.string.uninstall_prompt_next),
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = LargePrint,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
         )
 
         Spacer(Modifier.height(28.dp))
 
         Button(
             onClick = onConfirm,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
         ) {
-            Text(
-                text = stringResource(R.string.uninstall_prompt_confirm),
-                fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
+            Text(stringResource(R.string.uninstall_prompt_confirm), style = LargePrintLabel)
         }
 
         Spacer(Modifier.height(8.dp))
 
         // The app underneath stays blocked either way, so deferring is safe.
-        TextButton(onClick = onLater) {
-            Text(stringResource(R.string.uninstall_prompt_later), fontSize = 17.sp)
+        TextButton(
+            onClick = onLater,
+            modifier = Modifier.heightIn(min = 48.dp)
+        ) {
+            Text(stringResource(R.string.uninstall_prompt_later), style = LargePrintLabel)
         }
     }
 }

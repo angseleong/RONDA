@@ -7,6 +7,11 @@
        dialog — that is the technique used by overlay-based banking trojans.
     2. There is no "continue anyway" button. The only exits are the Home button
        or the guardian marking the app safe.
+
+    Set in the same two faces as the Compose screens (Archivo for the words
+    that shout, Inter for the sentences) so the overlay reads as RONDA and not
+    as the phone. The variable fonts take their weight from
+    fontVariationSettings rather than textStyle, which would fake it.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -30,8 +35,9 @@
             android:layout_height="wrap_content"
             android:text="@string/overlay_brand"
             android:textColor="@color/overlay_text_primary"
+            android:fontFamily="@font/archivo"
+            android:fontVariationSettings="'wght' 700"
             android:textSize="30sp"
-            android:textStyle="bold"
             android:letterSpacing="0.15" />
 
         <TextView
@@ -40,16 +46,19 @@
             android:layout_marginTop="2dp"
             android:text="@string/overlay_brand_tagline"
             android:textColor="@color/overlay_text_secondary"
+            android:fontFamily="@font/inter"
+            android:fontVariationSettings="'wght' 500"
             android:textSize="16sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <!-- Decorative: the title below says it in words -->
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_marginTop="24dp"
-            android:text="⚠"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="72sp"
-            android:contentDescription="@null" />
+            android:src="@android:drawable/ic_dialog_alert"
+            android:tint="@color/overlay_text_primary"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:layout_width="match_parent"
@@ -57,8 +66,10 @@
             android:layout_marginTop="16dp"
             android:text="@string/overlay_title"
             android:textColor="@color/overlay_text_primary"
+            android:fontFamily="@font/archivo"
+            android:fontVariationSettings="'wght' 700"
             android:textSize="32sp"
-            android:textStyle="bold"
+            android:lineSpacingMultiplier="1.1"
             android:gravity="center" />
 
         <!-- Filled in by OverlayService with the flagged app's label -->
@@ -68,8 +79,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:textColor="@color/overlay_text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:fontFamily="@font/archivo"
+            android:fontVariationSettings="'wght' 700"
+            android:textSize="26sp"
             android:gravity="center" />
 
         <TextView
@@ -78,8 +90,10 @@
             android:layout_marginTop="12dp"
             android:text="@string/overlay_body"
             android:textColor="@color/overlay_text_primary"
+            android:fontFamily="@font/inter"
+            android:fontVariationSettings="'wght' 400"
             android:textSize="21sp"
-            android:lineSpacingMultiplier="1.25"
+            android:lineSpacingMultiplier="1.3"
             android:gravity="center" />
 
         <LinearLayout
@@ -95,8 +109,9 @@
                 android:layout_height="wrap_content"
                 android:text="@string/overlay_reason_label"
                 android:textColor="@color/overlay_text_secondary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter"
+                android:fontVariationSettings="'wght' 500"
+                android:textSize="18sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -104,8 +119,10 @@
                 android:layout_marginTop="6dp"
                 android:text="@string/overlay_reason"
                 android:textColor="@color/overlay_text_primary"
+                android:fontFamily="@font/inter"
+                android:fontVariationSettings="'wght' 400"
                 android:textSize="20sp"
-                android:lineSpacingMultiplier="1.2" />
+                android:lineSpacingMultiplier="1.3" />
         </LinearLayout>
 
         <TextView
@@ -114,9 +131,10 @@
             android:layout_marginTop="28dp"
             android:text="@string/overlay_guardian_notified"
             android:textColor="@color/overlay_text_primary"
+            android:fontFamily="@font/inter"
+            android:fontVariationSettings="'wght' 500"
             android:textSize="21sp"
-            android:textStyle="bold"
-            android:lineSpacingMultiplier="1.2"
+            android:lineSpacingMultiplier="1.3"
             android:gravity="center" />
 
         <TextView
@@ -125,6 +143,8 @@
             android:layout_marginTop="20dp"
             android:text="@string/overlay_exit_hint"
             android:textColor="@color/overlay_text_secondary"
+            android:fontFamily="@font/inter"
+            android:fontVariationSettings="'wght' 400"
             android:textSize="18sp"
             android:gravity="center" />
     </LinearLayout>
