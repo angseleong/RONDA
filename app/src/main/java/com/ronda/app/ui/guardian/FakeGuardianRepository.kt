@@ -3,11 +3,11 @@ package com.ronda.app.ui.guardian
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.Verdict
 import com.ronda.app.core.VerdictState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 
 /**
  * The demo fixture. Five apps, no network, no Firebase — the recording must not
@@ -26,6 +26,9 @@ class FakeGuardianRepository(
 ) : GuardianRepository {
 
     private val decisions = MutableStateFlow(emptyMap<String, VerdictState>())
+
+    /** Packages the "protected phone" has confirmed removed, a few seconds after the request. */
+    private val removed = MutableStateFlow(emptySet<String>())
 
     private val now = System.currentTimeMillis()
 
@@ -77,17 +80,18 @@ class FakeGuardianRepository(
         )
     )
 
-    override fun observeVerdicts(): Flow<List<Verdict>> = decisions.asStateFlow().map { decided ->
-        fixtures.map { f ->
-            val verdict = RiskEvaluator.evaluate(
-                packageName = f.packageName,
-                appLabel = f.label,
-                activeKeys = f.keys,
-                detectedAt = now - f.ageMillis
-            ).copy(overrodeAt = f.overrodeAt)
-            decided[f.packageName]?.let { verdict.copy(state = it) } ?: verdict
+    override fun observeVerdicts(): Flow<List<Verdict>> =
+        combine(decisions, removed) { decided, gone ->
+            fixtures.map { f ->
+                val verdict = RiskEvaluator.evaluate(
+                    packageName = f.packageName,
+                    appLabel = f.label,
+                    activeKeys = f.keys,
+                    detectedAt = now - f.ageMillis
+                ).copy(overrodeAt = f.overrodeAt, removed = f.packageName in gone)
+                decided[f.packageName]?.let { verdict.copy(state = it) } ?: verdict
+            }
         }
-    }
 
     override fun observeConnected(): Flow<Boolean> = flowOf(true)
 
@@ -96,7 +100,13 @@ class FakeGuardianRepository(
             if (safe) VerdictState.RESOLVED_SAFE else VerdictState.RESOLVED_UNSAFE)
     }
 
+    /**
+     * Offline there is no other phone, so the fixture plays it: the "person
+     * holding the phone" taps Hapus about four seconds later, which is how long
+     * the real dialog takes when someone is expecting it.
+     */
     override suspend fun requestUninstall(packageName: String) {
-        // ponytail: nothing to do offline — the real repository writes a command.
+        delay(4_000L)
+        removed.value = removed.value + packageName
     }
 }

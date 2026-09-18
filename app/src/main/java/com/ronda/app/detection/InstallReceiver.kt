@@ -5,10 +5,10 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
+import com.ronda.app.R
 import com.ronda.app.alert.Alert
 import com.ronda.app.alert.AlertRepository
 import com.ronda.app.core.RiskEvaluator
@@ -154,24 +154,25 @@ class InstallReceiver : BroadcastReceiver() {
         }
     }
 
+    /**
+     * The protected phone's own notice. It says the same thing the overlay
+     * says, in the same plain words, so the shade and the screen never disagree.
+     */
     private fun showRiskNotification(context: Context, verdict: Verdict) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create channel for API 26+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Malware Alerts",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Alerts for high-risk application installations"
-            }
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            context.getString(R.string.channel_detection),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = context.getString(R.string.channel_detection_desc)
         }
+        notificationManager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert) // using standard icon for now
-            .setContentTitle("${verdict.level}: ${verdict.appLabel}")
+            .setSmallIcon(R.drawable.ic_shield_alert)
+            .setContentTitle(context.getString(R.string.detected_notification_title, verdict.appLabel))
             .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText(verdict.reasons.joinToString("\n\n").replace("**", "")))

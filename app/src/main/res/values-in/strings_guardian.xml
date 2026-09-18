@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Guardian screen chrome. Second person for the guardian, third person for the
+    protected user: %1$s is the pairing nickname, never "kamu".
+-->
+<resources>
+
+    <!-- Bottom nav -->
+    <string name="tab_alerts">Peringatan</string>
+    <string name="tab_history">Riwayat</string>
+    <string name="tab_settings">Setelan</string>
+
+    <!-- Home -->
+    <string name="home_guardian_device">HP %1$s</string>
+    <string name="status_connected">Terhubung</string>
+    <string name="status_disconnected">Terputus</string>
+    <string name="demo_mode">Mode demo</string>
+    <string name="watch_disconnected">Tidak bisa terhubung ke HP %1$s. Pastikan HP-nya menyala dan terhubung internet.</string>
+
+    <string name="hero_loading_title">Menghubungkan…</string>
+    <string name="hero_loading_body">Mengambil data dari HP %1$s.</string>
+    <string name="hero_all_clear_title">Semua aman</string>
+    <string name="hero_all_clear_body">Tidak ada aplikasi yang perlu diperiksa. RONDA sedang berjaga di HP %1$s.</string>
+    <plurals name="hero_review_title">
+        <item quantity="other">%1$d aplikasi perlu diperiksa</item>
+    </plurals>
+    <string name="hero_review_body">Buka untuk melihat alasannya, lalu putuskan.</string>
+
+    <string name="section_review">Perlu diperiksa</string>
+    <string name="section_review_empty">Tidak ada. Bagus.</string>
+    <string name="section_monitored">Terpantau</string>
+    <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
+
+    <string name="history_title">Riwayat</string>
+    <string name="history_empty_title">Belum ada riwayat</string>
+    <string name="history_empty_body">Keputusan yang sudah Anda ambil akan tercatat di sini.</string>
+
+    <string name="watch_status_pending">Menunggu keputusan Anda</string>
+    <string name="watch_status_passive">Tidak perlu tindakan</string>
+    <string name="watch_status_safe">Ditandai aman</string>
+    <string name="watch_status_unsafe">Ditandai berbahaya</string>
+    <string name="watch_status_removed">Sudah dihapus</string>
+    <string name="watch_override">%1$s tetap membuka aplikasi ini meski sudah diperingatkan</string>
+
+    <!-- Bands -->
+    <string name="level_aman">Aman</string>
+    <string name="level_rendah">Rendah</string>
+    <string name="level_peringatan">Peringatan</string>
+    <string name="level_darurat">Darurat</string>
+    <string name="score_of">%1$d/100</string>
+    <string name="a11y_score">Risiko %1$d dari 100, %2$s</string>
+
+    <!-- Detail -->
+    <string name="detail_title">Detail peringatan</string>
+    <string name="detail_back">Kembali</string>
+    <string name="detail_of_100">/100</string>
+    <string name="detail_score_label">Skor risiko</string>
+    <string name="detail_label_source">Sumber pemasangan</string>
+    <string name="detail_source_sideload">Bukan dari Play Store</string>
+    <string name="detail_source_play">Dari Play Store</string>
+    <string name="detail_label_installed">Dipasang</string>
+    <string name="detail_why">Kenapa ditandai</string>
+    <string name="detail_technical">Detail teknis</string>
+    <string name="detail_technical_vector">Vector</string>
+    <string name="detail_technical_math">Impact %1$s × Trust %2$s = %3$d</string>
+    <string name="detail_technical_attack">MITRE ATT&amp;CK</string>
+
+    <string name="action_uninstall">Hapus aplikasi ini</string>
+    <string name="action_uninstall_hint">%1$s akan diminta menekan \"Hapus\" di HP-nya. RONDA tidak bisa menghapus sendiri.</string>
+    <string name="action_mark_safe">Tandai aman</string>
+    <string name="action_undo">Batalkan</string>
+    <string name="action_request_again">Kirim lagi permintaannya</string>
+
+    <string name="confirm_safe_title">Tandai aman?</string>
+    <string name="confirm_safe_body">Aplikasi ini akan bisa dibuka %1$s tanpa peringatan lagi.</string>
+    <string name="confirm_safe_yes">Ya, tandai aman</string>
+
+    <string name="resolved_unsafe_waiting">Permintaan hapus sudah dikirim. Menunggu %1$s menekan \"Hapus\" di HP-nya.</string>
+    <string name="resolved_removed">Aplikasi sudah dihapus dari HP %1$s.</string>
+    <string name="resolved_safe">Ditandai aman. Peringatan dihentikan.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Setelan</string>
+    <string name="settings_device_section">HP yang dijaga</string>
+    <string name="settings_pairing_code">Kode penghubung</string>
+    <string name="settings_rename">Ubah nama panggilan</string>
+    <string name="settings_appearance">Tampilan</string>
+    <string name="theme_system">Ikuti HP</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_privacy">Privasi</string>
+    <string name="settings_disconnect">Putuskan hubungan</string>
+    <string name="settings_version">RONDA versi %1$s</string>
+    <string name="rename_title">Nama panggilan</string>
+    <string name="rename_body">Dipakai di seluruh layar Anda, misalnya \"HP Ibu\".</string>
+    <string name="rename_save">Simpan</string>
+    <string name="disconnect_title">Putuskan hubungan dengan HP %1$s?</string>
+    <string name="disconnect_body">HP ini berhenti menerima peringatan. Untuk menghubungkan lagi, buat kode baru dan masukkan di HP %1$s.</string>
+    <string name="disconnect_confirm">Ya, putuskan</string>
+
+    <string name="time_just_now">baru saja</string>
+    <string name="time_minutes">%1$d menit lalu</string>
+    <string name="time_hours">%1$d jam lalu</string>
+    <string name="time_days">%1$d hari lalu</string>
+
+</resources>

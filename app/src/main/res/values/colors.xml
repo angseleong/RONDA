@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Window background before Compose draws: the same night as ui/theme,
-         so a cold start never flashes white. -->
-    <color name="night">#FF12161F</color>
+    <!-- Forest green (DESIGN.md "safe"): launcher background and the splash window. -->
+    <color name="brand_green">#FF1D7F4E</color>
 
-    <!-- Warning overlay: deliberately NOT Android system styling. -->
-    <color name="overlay_background">#FF8C1010</color>
-    <color name="overlay_panel">#33000000</color>
+    <!-- Window background before Compose draws, so a cold start never flashes
+         the wrong colour. Overridden in values-night. -->
+    <color name="window_bg">#FFFFFFFF</color>
+
+    <!-- Warning overlay: drenched in danger red, deliberately NOT system styling.
+         Theme-independent — an alarm looks the same at noon and at midnight. -->
+    <color name="overlay_bg">#FFB91C1C</color>
     <color name="overlay_text_primary">#FFFFFFFF</color>
-    <color name="overlay_text_secondary">#FFFFD9D9</color>
+    <color name="overlay_text_secondary">#FFFECACA</color>
+    <color name="overlay_card">#FFFFFFFF</color>
+    <color name="overlay_card_border">#FFFCA5A5</color>
+    <color name="overlay_danger">#FFDC2626</color>
+    <color name="overlay_danger_tint">#FFFFF1F1</color>
+    <color name="overlay_ink">#FF0F172A</color>
+    <color name="overlay_ink_secondary">#FF64748B</color>
 </resources>

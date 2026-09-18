@@ -20,7 +20,13 @@ data class Pairing(
     val protectedDeviceId: String? = null,
     val status: String = STATUS_PENDING,
     val createdAt: Long = 0L,
-    val expiresAt: Long = 0L
+    val expiresAt: Long = 0L,
+    /**
+     * What the protected phone calls the guardian ("Dijaga oleh Rina"). A
+     * display name only — never an account, and still just package metadata
+     * plus one first name on the wire.
+     */
+    val guardianName: String = ""
 ) {
     /**
      * Derived, never stored. Without @get:Exclude the SDK treats the getter as
@@ -41,7 +47,8 @@ data class Pairing(
 }
 
 sealed interface ClaimResult {
-    data object Success : ClaimResult
+    /** Paired. Carries the guardian's name so the protected phone can say who. */
+    data class Success(val guardianName: String) : ClaimResult
 
     /** No such code — almost always a typo. */
     data object NotFound : ClaimResult
@@ -60,7 +67,7 @@ class PairingRepository {
     private val pairings = FirebaseDatabase.getInstance().reference.child("pairings")
 
     /** Guardian side: publish a fresh pending code for the protected device to claim. */
-    suspend fun createPairing(code: String, guardianDeviceId: String) {
+    suspend fun createPairing(code: String, guardianDeviceId: String, guardianName: String) {
         val now = System.currentTimeMillis()
         pairings.child(code).awaitSet(
             Pairing(
@@ -68,7 +75,8 @@ class PairingRepository {
                 protectedDeviceId = null,
                 status = Pairing.STATUS_PENDING,
                 createdAt = now,
-                expiresAt = now + Pairing.TTL_MS
+                expiresAt = now + Pairing.TTL_MS,
+                guardianName = guardianName
             )
         )
     }
@@ -100,7 +108,7 @@ class PairingRepository {
                             "status" to Pairing.STATUS_ACTIVE
                         )
                     )
-                    ClaimResult.Success
+                    ClaimResult.Success(pairing.guardianName)
                 }
             }
         } catch (e: Exception) {

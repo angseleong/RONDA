@@ -47,10 +47,29 @@ class RoleStore(context: Context) {
         get() = prefs.getString(KEY_PROTECTED_NAME, null) ?: DEFAULT_PROTECTED_NAME
         set(value) = prefs.edit().putString(KEY_PROTECTED_NAME, value).apply()
 
+    /**
+     * The guardian's own name. Typed on the guardian phone during pairing,
+     * carried in the pairing record, and shown on the protected phone as
+     * "Dijaga oleh Rina" — the PRD's "monitored, and by whom". Empty until
+     * pairing lands; the UI falls back to "keluarga Anda".
+     */
+    var guardianName: String
+        get() = prefs.getString(KEY_GUARDIAN_NAME, null).orEmpty()
+        set(value) = prefs.edit().putString(KEY_GUARDIAN_NAME, value).apply()
+
     /** No-op if a role is already set — see the write-once note above. */
     fun chooseRole(newRole: Role) {
         if (role != null) return
         prefs.edit().putString(KEY_ROLE, newRole.name).apply()
+    }
+
+    /**
+     * Guardian side: forget the pairing so a new code can be made. Local only —
+     * the database rules never let a client write `revoked` (ARCHITECTURE.md §7),
+     * and the role stays put: unpairing is not a way to flip sides.
+     */
+    fun unpair() {
+        prefs.edit().remove(KEY_PAIRING_ID).apply()
     }
 
     private companion object {
@@ -59,6 +78,7 @@ class RoleStore(context: Context) {
         const val KEY_DEVICE_ID = "device_id"
         const val KEY_PAIRING_ID = "pairing_id"
         const val KEY_PROTECTED_NAME = "protected_name"
+        const val KEY_GUARDIAN_NAME = "guardian_name"
         const val DEFAULT_PROTECTED_NAME = "Ibu"
     }
 }

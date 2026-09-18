@@ -124,7 +124,14 @@ class OverlayService : Service() {
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.OPAQUE
-        )
+        ).apply {
+            // One red field edge to edge: on API 30+ the flags above alone still
+            // leave a dark band under the status bar, because the window is fitted
+            // to the system insets. Fit none and extend into the cutout.
+            fitInsetsTypes = 0
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
 
         try {
             windowManager.addView(view, params)
@@ -162,17 +169,17 @@ class OverlayService : Service() {
 
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "RONDA Blocking",
+            getString(R.string.channel_blocking),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Active while a dangerous app is being blocked"
+            description = getString(R.string.channel_blocking_desc)
         }
         notificationManager.createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_lock)
-            .setContentTitle("Aplikasi berbahaya sedang diblokir")
-            .setContentText("RONDA menutup aplikasi ini sampai penjaga Anda memutuskan.")
+            .setSmallIcon(R.drawable.ic_shield_alert)
+            .setContentTitle(getString(R.string.blocking_notification_title))
+            .setContentText(getString(R.string.blocking_notification_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()

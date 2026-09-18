@@ -2,14 +2,16 @@ package com.ronda.app.ui.guardian.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -18,13 +20,15 @@ import com.ronda.app.core.Signal
 import com.ronda.app.core.Signals
 import com.ronda.app.core.Verdict
 import com.ronda.app.core.severity
-import com.ronda.app.ui.theme.Eyebrow
-import com.ronda.app.ui.theme.linenDim
-import com.ronda.app.ui.theme.nightRaised
+import com.ronda.app.ui.components.IconBox
+import com.ronda.app.ui.components.RondaCard
+import com.ronda.app.ui.components.RondaIcons
+import com.ronda.app.ui.theme.RondaTheme
+import com.ronda.app.ui.theme.Tone
 
 /**
  * The core content of the decision screen: one card per active signal, most
- * severe first, each an eyebrow label plus one complete Indonesian sentence.
+ * severe first, each a pictogram, a short label and one complete sentence.
  *
  * Sentences are never truncated and there is no "show more". They are the whole
  * reason the guardian can act on a number.
@@ -35,30 +39,44 @@ fun ExplanationStack(
     protectedName: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = RondaTheme.colors
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         explanationKeys(verdict).forEach { key ->
             val res = CATALOG[key] ?: return@forEach
-            Surface(
-                color = nightRaised,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(res.first),
-                        style = Eyebrow,
-                        color = linenDim
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = stringResource(res.second, protectedName),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+            val tone = toneOf(key)
+            RondaCard(contentPadding = PaddingValues(16.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.Top) {
+                    IconBox(icon = RondaIcons.forSignal(key), tone = tone, size = 40.dp)
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(res.first).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.fill(tone)
+                        )
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            text = stringResource(res.second, protectedName),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.textPrimary
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+/**
+ * Red for a capability that can empty an account on its own (a combo, or an
+ * impact weight of 30+), amber for the rest and for provenance, green for the
+ * one reassuring signal.
+ */
+private fun toneOf(key: String): Tone {
+    if ('+' in key) return Tone.DANGER
+    if (key == "SRC_PLAY" || key == "SRC_KNOWN_STORE") return Tone.SAFE
+    val signal = Signals[key] ?: return Tone.WARN
+    return if (signal.weight >= 30.0) Tone.DANGER else Tone.WARN
 }
 
 /**
@@ -85,7 +103,7 @@ fun explanationKeys(verdict: Verdict): List<String> {
 /** The sentence for a key, or null if it has none (e.g. SRC_PLAY). */
 internal fun sentenceRes(key: String): Int? = CATALOG[key]?.second
 
-/** Signal or combo key -> (eyebrow, sentence). Keys with no entry are skipped. */
+/** Signal or combo key -> (label, sentence). Keys with no entry are skipped. */
 private val CATALOG: Map<String, Pair<Int, Int>> = mapOf(
     "ACCESSIBILITY" to (R.string.cap_accessibility_eyebrow to R.string.cap_accessibility_body),
     "DEVICE_ADMIN" to (R.string.cap_device_admin_eyebrow to R.string.cap_device_admin_body),

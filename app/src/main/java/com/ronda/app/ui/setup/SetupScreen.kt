@@ -1,222 +1,44 @@
 package com.ronda.app.ui.setup
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
+import com.ronda.app.ui.components.BackTopBar
+import com.ronda.app.ui.components.IconBox
+import com.ronda.app.ui.components.RondaCard
+import com.ronda.app.ui.components.RondaIcon
+import com.ronda.app.ui.components.RondaIcons
+import com.ronda.app.ui.components.SegmentedProgress
+import com.ronda.app.ui.components.TactileButton
+import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.LargePrint
-import com.ronda.app.ui.theme.LargePrintLabel
-import com.ronda.app.ui.theme.calm
-import com.ronda.app.ui.theme.lamp
-import com.ronda.app.ui.theme.nightRaised
-import com.ronda.app.ui.theme.seam
-import com.ronda.app.ui.theme.wash
-
-/**
- * What RONDA still needs before it can protect this phone.
- *
- * Two of these permissions cannot be granted from a dialog — they only exist in
- * system Settings, so each row explains why it is needed and opens the right
- * screen. Rechecked on every resume, because OEM power management revokes them.
- *
- * Colour discipline: a missing permission is amber, not red. Red is reserved
- * for a DARURAT score across the whole app, and four red rows on the home
- * screen would teach the eye to ignore it.
- */
-@Composable
-fun SetupScreen(
-    status: SetupStatus,
-    onRequestNotifications: () -> Unit,
-    onOpenOverlaySettings: () -> Unit,
-    onOpenUsageSettings: () -> Unit,
-    onOpenBatterySettings: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 24.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.setup_title),
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        StatusBanner(isProtected = status.isFullyProtected)
-
-        Spacer(Modifier.height(24.dp))
-
-        PermissionRow(
-            title = stringResource(R.string.permission_notifications_title),
-            why = stringResource(R.string.permission_notifications_why),
-            granted = status.notifications,
-            onEnable = onRequestNotifications
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        PermissionRow(
-            title = stringResource(R.string.permission_overlay_title),
-            why = stringResource(R.string.permission_overlay_why),
-            granted = status.overlay,
-            onEnable = onOpenOverlaySettings
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        PermissionRow(
-            title = stringResource(R.string.permission_usage_title),
-            why = stringResource(R.string.permission_usage_why),
-            granted = status.usageStats,
-            onEnable = onOpenUsageSettings
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        PermissionRow(
-            title = stringResource(R.string.permission_battery_title),
-            why = stringResource(R.string.permission_battery_why),
-            granted = status.batteryExemption,
-            onEnable = onOpenBatterySettings
-        )
-
-        Spacer(Modifier.height(28.dp))
-        HorizontalDivider(color = seam)
-        Spacer(Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(R.string.setup_privacy_note),
-            style = LargePrint,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
-
-@Composable
-private fun StatusBanner(isProtected: Boolean) {
-    // The one state change on this screen happens off-screen, in Settings, and
-    // lands on resume. A crossfade is what tells the eye the trip worked.
-    val hue by animateColorAsState(
-        targetValue = if (isProtected) calm else lamp,
-        label = "setupStatus"
-    )
-
-    Surface(
-        color = wash(hue),
-        shape = MaterialTheme.shapes.large,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(
-                text = stringResource(
-                    if (isProtected) R.string.setup_status_active
-                    else R.string.setup_status_incomplete
-                ),
-                style = MaterialTheme.typography.headlineMedium,
-                color = hue
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(
-                    if (isProtected) R.string.setup_status_active_detail
-                    else R.string.setup_status_incomplete_detail
-                ),
-                style = LargePrint,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun PermissionRow(
-    title: String,
-    why: String,
-    granted: Boolean,
-    onEnable: () -> Unit
-) {
-    val hue = if (granted) calm else lamp
-
-    Surface(
-        color = nightRaised,
-        shape = MaterialTheme.shapes.large,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = why,
-                style = LargePrint,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier
-                            .size(10.dp)
-                            .background(hue, CircleShape)
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = stringResource(
-                            if (granted) R.string.permission_granted
-                            else R.string.permission_missing
-                        ),
-                        style = LargePrintLabel,
-                        color = hue
-                    )
-                }
-                if (!granted) {
-                    Button(
-                        onClick = onEnable,
-                        modifier = Modifier.heightIn(min = 48.dp)
-                    ) {
-                        Text(stringResource(R.string.permission_enable), style = LargePrintLabel)
-                    }
-                }
-            }
-        }
-    }
-}
+import com.ronda.app.ui.theme.LargePrintTitle
+import com.ronda.app.ui.theme.RondaTheme
+import com.ronda.app.ui.theme.Tone
 
 data class SetupStatus(
     val notifications: Boolean,
@@ -225,4 +47,212 @@ data class SetupStatus(
     val batteryExemption: Boolean
 ) {
     val isFullyProtected: Boolean get() = notifications && overlay && usageStats && batteryExemption
+
+    val grantedCount: Int
+        get() = listOf(notifications, overlay, usageStats, batteryExemption).count { it }
+
+    companion object {
+        const val TOTAL = 4
+    }
+}
+
+/**
+ * What RONDA still needs before it can protect this phone, one permission per
+ * screen (PRD: at most one decision on a protected screen).
+ *
+ * Two of these cannot be granted from a dialog — they only exist in system
+ * Settings — so each step explains why it is needed and opens the right page.
+ * Coming back from Settings re-checks everything, the segment fills green and
+ * the next step slides in. System Back returns to the home screen, where the
+ * status card still says what is missing.
+ */
+@Composable
+fun SetupWizardScreen(
+    status: SetupStatus,
+    onRequestNotifications: () -> Unit,
+    onOpenOverlaySettings: () -> Unit,
+    onOpenUsageSettings: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = RondaTheme.colors
+    BackHandler(onBack = onBack)
+
+    val steps = listOf(
+        Step(
+            key = "notifications",
+            icon = RondaIcons.bell,
+            title = R.string.permission_notifications_title,
+            why = R.string.permission_notifications_why,
+            granted = status.notifications,
+            enable = onRequestNotifications
+        ),
+        Step(
+            key = "overlay",
+            icon = RondaIcons.layers,
+            title = R.string.permission_overlay_title,
+            why = R.string.permission_overlay_why,
+            granted = status.overlay,
+            enable = onOpenOverlaySettings
+        ),
+        Step(
+            key = "usage",
+            icon = RondaIcons.eye,
+            title = R.string.permission_usage_title,
+            why = R.string.permission_usage_why,
+            granted = status.usageStats,
+            enable = onOpenUsageSettings
+        ),
+        Step(
+            key = "battery",
+            icon = RondaIcons.battery,
+            title = R.string.permission_battery_title,
+            why = R.string.permission_battery_why,
+            granted = status.batteryExemption,
+            enable = onOpenBatterySettings
+        )
+    )
+    val done = steps.count { it.granted }
+    val current = steps.firstOrNull { !it.granted }
+
+    Column(
+        modifier
+            .fillMaxSize()
+            .screenInsets()
+    ) {
+        BackTopBar(onBack = onBack, title = stringResource(R.string.setup_title))
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            SegmentedProgress(total = SetupStatus.TOTAL, done = done)
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = if (current == null) {
+                    stringResource(R.string.setup_all_done_label)
+                } else {
+                    stringResource(R.string.setup_step_of, done + 1, SetupStatus.TOTAL)
+                },
+                style = LargePrint,
+                color = colors.textSecondary
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Slides sideways between steps: the same direction the segments
+            // fill, so the motion says "next" without a word.
+            AnimatedContent(
+                targetState = current?.key ?: "done",
+                transitionSpec = {
+                    (slideInHorizontally { it / 3 } + fadeIn()) togetherWith
+                        (slideOutHorizontally { -it / 3 } + fadeOut())
+                },
+                label = "setupStep"
+            ) { key ->
+                val step = steps.firstOrNull { it.key == key }
+                if (step == null) AllDone(onBack) else StepCard(step)
+            }
+
+            Spacer(Modifier.height(20.dp))
+            Row(verticalAlignment = Alignment.Top) {
+                RondaIcon(
+                    id = RondaIcons.circleInfo,
+                    contentDescription = null,
+                    tint = colors.textSecondary,
+                    size = 20.dp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.setup_wizard_hint),
+                    style = LargePrint,
+                    color = colors.textSecondary
+                )
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+private data class Step(
+    val key: String,
+    @DrawableRes val icon: Int,
+    @StringRes val title: Int,
+    @StringRes val why: Int,
+    val granted: Boolean,
+    val enable: () -> Unit
+)
+
+@Composable
+private fun StepCard(step: Step) {
+    val colors = RondaTheme.colors
+    Column {
+        RondaCard(tone = Tone.WARN) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                // No 10sp status badge here: the amber card already says "not
+                // yet", and nothing on a protected screen drops below 20sp.
+                IconBox(icon = step.icon, tone = Tone.WARN, size = 72.dp)
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = stringResource(step.title),
+                    style = LargePrintTitle,
+                    color = colors.textPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = stringResource(step.why),
+                    style = LargePrint,
+                    color = colors.textPrimary,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+        TactileButton(
+            text = stringResource(R.string.permission_enable),
+            onClick = step.enable,
+            icon = RondaIcons.arrowRight,
+            large = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun AllDone(onFinish: () -> Unit) {
+    val colors = RondaTheme.colors
+    Column {
+        RondaCard(tone = Tone.SAFE) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                IconBox(icon = RondaIcons.shieldCheck, tone = Tone.SAFE, size = 72.dp, filled = true)
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.setup_all_done_title),
+                    style = LargePrintTitle,
+                    color = colors.textPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.setup_all_done_body),
+                    style = LargePrint,
+                    color = colors.textPrimary,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+        TactileButton(
+            text = stringResource(R.string.setup_finish),
+            onClick = onFinish,
+            icon = RondaIcons.check,
+            large = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

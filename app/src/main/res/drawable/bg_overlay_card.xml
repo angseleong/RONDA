@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The system card in View form: solid 4dp drop in the border colour under a bordered white face. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/overlay_card_border" />
+        </shape>
+    </item>
+    <item android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/overlay_card" />
+            <stroke
+                android:width="2.5dp"
+                android:color="@color/overlay_card_border" />
+        </shape>
+    </item>
+</layer-list>

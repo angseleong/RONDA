@@ -1,99 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    English is the default resource set on purpose: a phone whose system
+    language is English but whose app language is Indonesian resolves
+    [id, en]; without an explicit values-in folder, values-en would beat the
+    default. Indonesian, the primary language, lives in values-in.
+-->
 <resources>
-    <string name="app_name">RONDA</string>
+    <string name="app_name" translatable="false">RONDA</string>
+    <string name="lang_indonesian" translatable="false">Bahasa Indonesia</string>
+    <string name="lang_indonesian_body" translatable="false">Semua tulisan dalam Bahasa Indonesia</string>
+    <string name="lang_english" translatable="false">English</string>
+    <string name="lang_english_body" translatable="false">All text in English</string>
+    <string name="overlay_brand" translatable="false">RONDA</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
 
-    <!-- Warning overlay. Plain Indonesian, no security jargon. -->
-    <string name="overlay_brand">RONDA</string>
-    <string name="overlay_brand_tagline">Pelindung Keluarga</string>
-    <string name="overlay_title">JANGAN BUKA APLIKASI INI</string>
-    <string name="overlay_body">Aplikasi ini diduga dapat membaca kode OTP dari SMS Anda dan menguras rekening bank Anda.</string>
-    <string name="overlay_reason_label">Kenapa ditandai bahaya:</string>
-    <string name="overlay_reason">Aplikasi ini dipasang dari luar Play Store, dan meminta izin untuk membaca SMS Anda.</string>
-    <string name="overlay_guardian_notified">Penjaga Anda sudah diberi tahu. Tunggu sampai mereka menghubungi Anda.</string>
-    <string name="overlay_exit_hint">Tekan tombol Home untuk keluar.</string>
+    <string name="lang_title">Choose a language</string>
+    <string name="lang_body">Used across the whole app. You can change it later in Settings.</string>
+    <string name="lang_continue">Continue</string>
 
-    <!-- Setup screen -->
-    <string name="setup_title">Pengaturan RONDA</string>
-    <string name="setup_status_active">RONDA aktif melindungi HP ini</string>
-    <string name="setup_status_incomplete">RONDA belum aktif sepenuhnya</string>
-    <string name="setup_status_active_detail">Aplikasi berbahaya akan terdeteksi saat dipasang, dan langsung ditutup dengan peringatan.</string>
-    <string name="setup_status_incomplete_detail">Nyalakan izin di bawah ini agar RONDA bisa melindungi HP ini sepenuhnya.</string>
+    <string name="intro_title">RONDA guards your parents\' phone against scams</string>
+    <string name="intro_body">Scammers send app files over WhatsApp — an invitation, a delivery receipt, a bill. Once installed, that app can read bank OTP codes.</string>
+    <string name="intro_point_1_title">Caught at install time</string>
+    <string name="intro_point_1_body">RONDA checks every new app that arrives from outside the Play Store.</string>
+    <string name="intro_point_2_title">The guardian is told</string>
+    <string name="intro_point_2_body">The alert goes to a child or relative\'s phone — not to the person being scammed.</string>
+    <string name="intro_point_3_title">The app is covered</string>
+    <string name="intro_point_3_body">A dangerous app is covered by a RONDA warning until the guardian decides.</string>
+    <string name="intro_privacy">RONDA never reads your messages, never asks for SMS permission, and never uses the Accessibility service.</string>
+    <string name="intro_start">Get started</string>
 
-    <string name="permission_granted">Sudah aktif</string>
-    <string name="permission_missing">Belum aktif</string>
-    <string name="permission_enable">Nyalakan</string>
+    <string name="role_title">Whose phone is this?</string>
+    <string name="role_subtitle">This decides what RONDA does on this phone.</string>
+    <string name="role_protected_title">My parent\'s phone</string>
+    <string name="role_protected_body">RONDA watches this phone. If a dangerous app is installed, RONDA covers it and tells the guardian.</string>
+    <string name="role_guardian_title">My phone, as the guardian</string>
+    <string name="role_guardian_body">RONDA sends alerts to this phone when something suspicious shows up on your parent\'s phone.</string>
+    <string name="role_note">Once chosen, the role cannot be changed without reinstalling the app.</string>
+    <string name="role_continue">Continue</string>
 
-    <string name="permission_notifications_title">Notifikasi</string>
-    <string name="permission_notifications_why">Agar RONDA bisa memberi peringatan saat ada aplikasi berbahaya dipasang.</string>
+    <string name="pair_nickname_title">Who will you be guarding?</string>
+    <string name="pair_guardian_name_title">What is your name?</string>
+    <string name="pair_guardian_name_body">Shown on your parent\'s phone, as \"Guarded by …\".</string>
+    <string name="pair_guardian_name_placeholder">For example: Rina</string>
+    <string name="pair_nickname_body">This name appears on every screen — for example \"Mum\'s phone\".</string>
+    <string name="pair_nickname_field">Another name</string>
+    <string name="pair_nickname_placeholder">For example: Aunt Sari</string>
+    <string name="pair_nickname_continue">Continue</string>
+    <string-array name="nickname_options">
+        <item>Mum</item>
+        <item>Dad</item>
+        <item>Grandma</item>
+        <item>Grandpa</item>
+        <item>Mom</item>
+        <item>Papa</item>
+    </string-array>
+    <string name="pair_guardian_for">For %1$s\'s phone</string>
+    <string name="pair_guardian_change_name">Change name</string>
+    <string name="pair_guardian_title">Connect to your parent\'s phone</string>
+    <string name="pair_guardian_step">Open RONDA on %1$s\'s phone, choose \"My parent\'s phone\", then enter the code below.</string>
+    <string name="pair_guardian_code_label">Pairing code</string>
+    <string name="pair_guardian_or_scan_label">Or scan</string>
+    <string name="pair_guardian_or_scan">If both phones are in the same room, scan this QR code with the other phone\'s camera.</string>
+    <string name="pair_guardian_waiting">Waiting for the other phone to enter the code…</string>
+    <string name="pair_guardian_expiry">The code is valid for 10 minutes.</string>
+    <string name="pair_qr_desc">QR code containing the pairing code</string>
+    <string name="pair_creating">Creating a code…</string>
+    <string name="pair_retry">Try again</string>
 
-    <string name="permission_overlay_title">Tampilkan di atas aplikasi lain</string>
-    <string name="permission_overlay_why">Agar RONDA bisa menutupi aplikasi berbahaya dengan peringatan. RONDA tidak bisa membaca isi layar Anda.</string>
+    <string name="pair_protected_title">Enter the code from the guardian\'s phone</string>
+    <string name="pair_protected_step">Ask your child or relative to open RONDA and read out the 6-character code shown on their phone.</string>
+    <string name="pair_protected_field">Pairing code</string>
+    <string name="pair_protected_submit">Connect</string>
+    <string name="pair_error_invalid">The code is 6 letters or digits.</string>
+    <string name="pair_error_notfound">Code not found. Check what you typed.</string>
+    <string name="pair_error_used">This code has already been used. Ask for a new one.</string>
+    <string name="pair_error_expired">This code has expired. Ask for a new one.</string>
+    <string name="pair_error_offline">Could not reach the server. Check the internet connection, then try again.</string>
+    <string name="pair_connecting">Connecting…</string>
 
-    <string name="permission_usage_title">Akses penggunaan aplikasi</string>
-    <string name="permission_usage_why">Agar RONDA tahu aplikasi mana yang sedang dibuka. Yang terbaca hanya nama aplikasi, bukan isinya.</string>
+    <string name="setup_title">RONDA setup</string>
+    <string name="setup_step_of">Step %1$d of %2$d</string>
+    <string name="setup_wizard_hint">The phone will open a Settings page. Turn it on, then come back to RONDA.</string>
+    <string name="setup_all_done_label">All steps done</string>
+    <string name="setup_all_done_title">Everything is on</string>
+    <string name="setup_all_done_body">RONDA is now protecting this phone.</string>
+    <string name="setup_finish">Done</string>
 
-    <string name="permission_battery_title">Tidak dibatasi baterai</string>
-    <string name="permission_battery_why">Agar sistem tidak mematikan RONDA di latar belakang. Tanpa ini, RONDA bisa berhenti mengawasi tanpa pemberitahuan.</string>
+    <string name="permission_enable">Turn on</string>
 
-    <string name="setup_privacy_note">RONDA tidak pernah meminta izin SMS, tidak membaca pesan Anda, dan tidak menggunakan layanan Aksesibilitas.</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_why">So RONDA can tell you when a dangerous app is installed.</string>
+    <string name="permission_overlay_title">Display over other apps</string>
+    <string name="permission_overlay_why">So RONDA can cover a dangerous app with a warning. RONDA cannot read what is on your screen.</string>
+    <string name="permission_usage_title">Usage access</string>
+    <string name="permission_usage_why">So RONDA knows which app is open. It sees only the app\'s name, never its contents.</string>
+    <string name="permission_battery_title">No battery restriction</string>
+    <string name="permission_battery_why">So the phone does not shut RONDA down in the background. Without this, RONDA can stop watching without telling anyone.</string>
 
-    <!-- Role selection. Written for the person holding the phone, not for a
-         security engineer: "HP saya" / "HP orang tua saya", never "node role". -->
-    <string name="role_title">Siapa yang pakai HP ini?</string>
-    <string name="role_subtitle">Pilihan ini menentukan tugas RONDA di HP ini. Setelah dipilih, pilihan tidak bisa diubah kecuali aplikasi dipasang ulang.</string>
-    <string name="role_protected_title">HP orang tua saya</string>
-    <string name="role_protected_body">RONDA akan mengawasi HP ini. Kalau ada aplikasi berbahaya dipasang, RONDA menutupnya dan memberi tahu Anda.</string>
-    <string name="role_guardian_title">HP saya sebagai penjaga</string>
-    <string name="role_guardian_body">RONDA akan mengirim peringatan ke HP ini kalau ada yang mencurigakan di HP orang tua Anda.</string>
-    <string name="role_choose">Pilih</string>
+    <string name="setup_privacy_note">RONDA never asks for SMS permission, never reads your messages, and never uses the Accessibility service.</string>
 
-    <!-- Guardian pairing -->
-    <string name="pair_guardian_title">Hubungkan ke HP orang tua</string>
-    <string name="pair_guardian_step">Buka RONDA di HP orang tua Anda, pilih \"HP orang tua saya\", lalu masukkan kode di bawah ini.</string>
-    <string name="pair_guardian_code_label">Kode penghubung</string>
-    <string name="pair_guardian_or_scan">Atau pindai kode QR ini dengan aplikasi pemindai QR bawaan HP.</string>
-    <string name="pair_guardian_waiting">Menunggu HP orang tua memasukkan kode…</string>
-    <string name="pair_guardian_expiry">Kode berlaku 10 menit.</string>
-    <string name="pair_qr_desc">Kode QR berisi kode penghubung</string>
-    <string name="pair_creating">Membuat kode…</string>
+    <string name="home_protected_title_active">This phone is protected</string>
+    <string name="home_protected_body_active">Your guardian is watching over this phone. If a dangerous app is installed, RONDA covers it and tells them right away.</string>
+    <string name="home_protected_title_incomplete">RONDA is not fully on yet</string>
+    <string name="home_protected_body_incomplete">%1$d of %2$d settings are on. Turn on the rest so RONDA can protect this phone.</string>
+    <string name="home_protected_continue_setup">Continue setup</string>
+    <string name="home_protected_watch_active">Monitoring is on</string>
+    <string name="home_protected_guarded_by">Guarded by %1$s</string>
+    <string name="home_protected_guarded_by_unknown">Guarded by your family</string>
+    <string name="home_protected_profile">About this protection</string>
+    <string name="home_protected_profile_body">This phone is guarded with your consent. RONDA only sees which apps are installed — not your messages, not your screen.</string>
+    <string name="home_protected_pairing_code">Pairing code</string>
 
-    <!-- Protected pairing -->
-    <string name="pair_protected_title">Masukkan kode dari HP penjaga</string>
-    <string name="pair_protected_step">Minta anak Anda membuka RONDA dan membacakan kode 6 huruf yang muncul di HP mereka.</string>
-    <string name="pair_protected_field">Kode penghubung</string>
-    <string name="pair_protected_submit">Hubungkan</string>
-    <string name="pair_error_invalid">Kode harus 6 huruf atau angka.</string>
-    <string name="pair_error_notfound">Kode tidak ditemukan. Periksa lagi ketikan Anda.</string>
-    <string name="pair_error_used">Kode ini sudah dipakai. Minta kode baru.</string>
-    <string name="pair_error_expired">Kode sudah kedaluwarsa. Minta kode baru.</string>
-    <string name="pair_connecting">Menghubungkan…</string>
+    <string name="channel_guardian_request">Guardian requests</string>
+    <string name="channel_guardian_request_desc">When your guardian asks for something to be done on this phone.</string>
+    <string name="uninstall_request_notification_title">Your guardian asks you to remove an app</string>
+    <string name="uninstall_request_notification_body">Tap to remove %1$s.</string>
+    <string name="uninstall_prompt_title">Your guardian asks you to remove this app</string>
+    <string name="uninstall_prompt_body">This app is suspected of reading OTP codes from your SMS.</string>
+    <string name="uninstall_prompt_next">After you press the button below, the phone will ask once more. Choose \"OK\" or \"Uninstall\" there.</string>
+    <string name="uninstall_prompt_confirm">Remove this app</string>
+    <string name="uninstall_prompt_later">Not now</string>
 
-    <!-- Guardian: the persistent watch notification -->
-    <string name="guardian_watch_title">RONDA menjaga</string>
-    <string name="guardian_watch_body">Siap menerima peringatan dari HP orang tua Anda.</string>
+    <string name="overlay_brand_tagline">Family Guardian</string>
+    <string name="overlay_title">Do not open this app</string>
+    <string name="overlay_body">This app is suspected of reading OTP codes from your SMS and emptying your bank account.</string>
+    <string name="overlay_reason_label">Why it was flagged</string>
+    <string name="overlay_reason">This app was installed from outside the Play Store, and asks for permission to read your SMS.</string>
+    <string name="overlay_guardian_notified">Your guardian has been told. Wait until they contact you.</string>
+    <string name="overlay_exit_hint">Press the Home button to leave.</string>
 
-    <!-- Guardian: feedback once an uninstall request has gone out -->
-    <string name="alert_waiting_uninstall">Permintaan hapus sudah dikirim</string>
+    <string name="channel_monitoring">Protection active</string>
+    <string name="channel_monitoring_desc">Keeps RONDA running to check new apps.</string>
+    <string name="monitoring_notification_title">RONDA is protecting this phone</string>
+    <string name="monitoring_notification_body">Every new app is checked as it is installed.</string>
+    <string name="channel_blocking">App covered</string>
+    <string name="channel_blocking_desc">Active while a dangerous app is being covered.</string>
+    <string name="blocking_notification_title">A dangerous app is being covered</string>
+    <string name="blocking_notification_body">RONDA is covering this app until your guardian decides.</string>
+    <string name="channel_detection">RONDA alerts</string>
+    <string name="channel_detection_desc">When a dangerous app is detected on this phone.</string>
+    <string name="detected_notification_title">Dangerous app detected: %1$s</string>
 
-    <!-- Protected: guardian asked for an uninstall -->
-    <string name="channel_guardian_request">Permintaan penjaga</string>
-    <string name="channel_guardian_request_desc">Saat penjaga Anda meminta sesuatu dilakukan di HP ini.</string>
-    <string name="uninstall_request_notification_title">Penjaga Anda minta aplikasi dihapus</string>
-    <string name="uninstall_request_notification_body">Ketuk untuk menghapus %1$s.</string>
-    <string name="uninstall_prompt_title">Penjaga Anda minta aplikasi ini dihapus</string>
-    <string name="uninstall_prompt_body">Aplikasi ini diduga dapat membaca kode OTP dari SMS Anda.</string>
-    <string name="uninstall_prompt_next">Setelah Anda menekan tombol di bawah, HP akan menanyakan sekali lagi. Pilih "OK" atau "Hapus" pada pertanyaan itu.</string>
-    <string name="uninstall_prompt_confirm">Hapus aplikasi ini</string>
-    <string name="uninstall_prompt_later">Nanti saja</string>
-
-    <!-- Guardian notifications -->
-    <string name="channel_guardian_watch">Penjagaan RONDA</string>
-    <string name="channel_guardian_watch_desc">Menjaga koneksi agar peringatan sampai ke HP ini.</string>
-    <string name="channel_guardian_alerts">Peringatan bahaya</string>
-    <string name="channel_guardian_alerts_desc">Peringatan saat aplikasi berbahaya dipasang di HP yang dijaga.</string>
-    <string name="alert_notification_title">BAHAYA: aplikasi mencurigakan dipasang</string>
-    <string name="alert_notification_body">%1$s dipasang di HP orang tua Anda.</string>
-    <string name="channel_guardian_outcome">Hasil tindakan</string>
-    <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP orang tua.</string>
-    <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>
-    <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP orang tua Anda.</string>
+    <string name="guardian_watch_title">RONDA is on watch</string>
+    <string name="guardian_watch_body">Ready to receive alerts from your parent\'s phone.</string>
+    <string name="channel_guardian_watch">RONDA watch</string>
+    <string name="channel_guardian_watch_desc">Keeps the connection open so alerts reach this phone.</string>
+    <string name="channel_guardian_alerts">Danger alerts</string>
+    <string name="channel_guardian_alerts_desc">Alerts when a dangerous app is installed on the guarded phone.</string>
+    <string name="alert_notification_title">DANGER: suspicious app installed</string>
+    <string name="alert_notification_body">%1$s was installed on your parent\'s phone.</string>
+    <string name="channel_guardian_outcome">Outcomes</string>
+    <string name="channel_guardian_outcome_desc">News when your request has been carried out on your parent\'s phone.</string>
+    <string name="uninstalled_notification_title">Dangerous app removed</string>
+    <string name="uninstalled_notification_body">%1$s has been removed from your parent\'s phone.</string>
 </resources>

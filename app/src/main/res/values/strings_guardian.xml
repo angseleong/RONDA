@@ -1,55 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Guardian screen chrome. Second person for the guardian, third person for the
-    protected user: %1$s is the pairing nickname, never "kamu".
--->
+<!-- Guardian screen chrome, English. %1$s is the pairing nickname. -->
 <resources>
 
-    <string name="watch_title">RONDA</string>
-    <string name="watch_tab_review">Perlu Diperiksa</string>
-    <string name="watch_tab_monitored">Terpantau</string>
+    <string name="tab_alerts">Alerts</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
 
-    <string name="watch_connected">Terhubung dengan HP %1$s</string>
-    <string name="watch_disconnected">Tidak bisa terhubung ke HP %1$s. Pastikan HP-nya menyala dan terhubung internet.</string>
+    <string name="home_guardian_device">%1$s\'s phone</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_disconnected">Offline</string>
+    <string name="demo_mode">Demo mode</string>
+    <string name="watch_disconnected">Cannot reach %1$s\'s phone. Make sure it is on and connected to the internet.</string>
 
-    <string name="watch_empty_review">Belum ada aplikasi yang perlu diperiksa. RONDA sedang berjaga di HP %1$s.</string>
-    <string name="watch_empty_monitored">Belum ada aplikasi lain yang terpantau di HP %1$s.</string>
+    <string name="hero_loading_title">Connecting…</string>
+    <string name="hero_loading_body">Fetching data from %1$s\'s phone.</string>
+    <string name="hero_all_clear_title">All clear</string>
+    <string name="hero_all_clear_body">Nothing needs your attention. RONDA is on watch on %1$s\'s phone.</string>
+    <plurals name="hero_review_title">
+        <item quantity="one">%1$d app needs your decision</item>
+        <item quantity="other">%1$d apps need your decision</item>
+    </plurals>
+    <string name="hero_review_body">Open one to see why, then decide.</string>
 
-    <string name="watch_history_header">RIWAYAT</string>
+    <string name="section_review">Needs a decision</string>
+    <string name="section_review_empty">Nothing here. Good.</string>
+    <string name="section_monitored">Monitored</string>
+    <string name="watch_empty_monitored">No other apps are being monitored on %1$s\'s phone yet.</string>
 
-    <string name="watch_status_pending">Menunggu keputusanmu</string>
-    <string name="watch_status_passive">Tidak perlu tindakan</string>
-    <string name="watch_status_safe">Ditandai aman</string>
-    <string name="watch_status_unsafe">Ditandai berbahaya</string>
-    <string name="watch_override">%1$s tetap membuka aplikasi ini meski sudah diperingatkan</string>
+    <string name="history_title">History</string>
+    <string name="history_empty_title">No history yet</string>
+    <string name="history_empty_body">Decisions you have made will be recorded here.</string>
 
+    <string name="watch_status_pending">Waiting for your decision</string>
+    <string name="watch_status_passive">No action needed</string>
+    <string name="watch_status_safe">Marked safe</string>
+    <string name="watch_status_unsafe">Marked dangerous</string>
+    <string name="watch_status_removed">Removed</string>
+    <string name="watch_override">%1$s kept opening this app despite the warning</string>
+
+    <string name="level_aman">Safe</string>
+    <string name="level_rendah">Low</string>
+    <string name="level_peringatan">Warning</string>
+    <string name="level_darurat">Danger</string>
+    <string name="score_of">%1$d/100</string>
+    <string name="a11y_score">Risk %1$d out of 100, %2$s</string>
+
+    <string name="detail_title">Alert details</string>
+    <string name="detail_back">Back</string>
     <string name="detail_of_100">/100</string>
-    <string name="detail_back">Kembali</string>
-    <string name="detail_source_sideload">Dipasang dari luar Play Store</string>
-    <string name="detail_source_play">Dipasang dari Play Store</string>
-    <string name="detail_installed_at">Dipasang %1$s</string>
-    <string name="detail_technical">Detail teknis</string>
+    <string name="detail_score_label">Risk score</string>
+    <string name="detail_label_source">Install source</string>
+    <string name="detail_source_sideload">Not from the Play Store</string>
+    <string name="detail_source_play">From the Play Store</string>
+    <string name="detail_label_installed">Installed</string>
+    <string name="detail_why">Why it was flagged</string>
+    <string name="detail_technical">Technical details</string>
     <string name="detail_technical_vector">Vector</string>
     <string name="detail_technical_math">Impact %1$s × Trust %2$s = %3$d</string>
     <string name="detail_technical_attack">MITRE ATT&amp;CK</string>
 
-    <string name="action_mark_unsafe">Tandai berbahaya</string>
-    <string name="action_mark_safe">Tandai aman</string>
-    <string name="action_request_uninstall">Minta %1$s menghapus aplikasi ini</string>
-    <string name="action_undo">Batalkan</string>
+    <string name="action_uninstall">Remove this app</string>
+    <string name="action_uninstall_hint">%1$s will be asked to press \"Uninstall\" on their phone. RONDA cannot remove it on its own.</string>
+    <string name="action_mark_safe">Mark safe</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_request_again">Send the request again</string>
 
-    <string name="confirm_safe_body">Aplikasi ini akan bisa dibuka %1$s tanpa peringatan lagi. Lanjutkan?</string>
-    <string name="confirm_safe_yes">Ya, tandai aman</string>
-    <string name="confirm_safe_cancel">Batal</string>
+    <string name="confirm_safe_title">Mark as safe?</string>
+    <string name="confirm_safe_body">%1$s will be able to open this app without any warning.</string>
+    <string name="confirm_safe_yes">Yes, mark safe</string>
 
-    <string name="resolved_unsafe">Ditandai berbahaya. RONDA akan terus memperingatkan %1$s setiap aplikasi ini dibuka.</string>
-    <string name="resolved_safe">Ditandai aman. Peringatan dihentikan.</string>
+    <string name="resolved_unsafe_waiting">The removal request has been sent. Waiting for %1$s to press \"Uninstall\" on their phone.</string>
+    <string name="resolved_removed">The app has been removed from %1$s\'s phone.</string>
+    <string name="resolved_safe">Marked safe. Warnings stopped.</string>
 
-    <string name="a11y_score">Risiko %1$d dari 100, %2$s</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_device_section">Guarded phone</string>
+    <string name="settings_pairing_code">Pairing code</string>
+    <string name="settings_rename">Change nickname</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="theme_system">Follow the phone</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_disconnect">Disconnect</string>
+    <string name="settings_version">RONDA version %1$s</string>
+    <string name="rename_title">Nickname</string>
+    <string name="rename_body">Used on every screen, for example \"Mum\'s phone\".</string>
+    <string name="rename_save">Save</string>
+    <string name="disconnect_title">Disconnect from %1$s\'s phone?</string>
+    <string name="disconnect_body">This phone will stop receiving alerts. To reconnect, create a new code and enter it on %1$s\'s phone.</string>
+    <string name="disconnect_confirm">Yes, disconnect</string>
 
-    <string name="time_just_now">baru saja</string>
-    <string name="time_minutes">%1$d menit lalu</string>
-    <string name="time_hours">%1$d jam lalu</string>
-    <string name="time_days">%1$d hari lalu</string>
+    <string name="time_just_now">just now</string>
+    <string name="time_minutes">%1$d min ago</string>
+    <string name="time_hours">%1$d h ago</string>
+    <string name="time_days">%1$d d ago</string>
 
 </resources>

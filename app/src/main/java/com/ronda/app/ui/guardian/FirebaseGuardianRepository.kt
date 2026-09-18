@@ -71,7 +71,11 @@ class FirebaseGuardianRepository(
             activeKeys = alert.signals.toSet(),
             detectedAt = alert.timestamp
         )
-        return verdict.copy(state = stateOf(alert, verdict.state), overrodeAt = alert.overrodeAt)
+        return verdict.copy(
+            state = stateOf(alert, verdict.state),
+            overrodeAt = alert.overrodeAt,
+            removed = alert.status == Alert.STATUS_UNINSTALLED
+        )
     }
 
     private fun stateOf(alert: Alert, scored: VerdictState): VerdictState = when (alert.status) {

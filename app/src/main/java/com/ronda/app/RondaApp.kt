@@ -19,5 +19,9 @@ class RondaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         FirebaseDatabase.getInstance().setPersistenceEnabled(true)
+
+        // Before the first Activity is created, so the splash and the first
+        // frame already wear the theme the guardian chose.
+        SettingsStore(this).applyTheme()
     }
 }
