@@ -16,6 +16,8 @@ data class GuardianUiState(
     /** Already ruled on. Shown under both tabs, never inside either list. */
     val history: List<Verdict> = emptyList(),
     val connected: Boolean = true,
+    /** False until the first list arrives, so an empty screen can be told from a loading one. */
+    val loaded: Boolean = false,
     val protectedName: String = "Ibu",
     /** Package whose "mark safe" can still be taken back, or null. */
     val undoable: String? = null
@@ -42,7 +44,8 @@ class GuardianViewModel(private val repo: GuardianRepository) : ViewModel() {
                 _state.value = _state.value.copy(
                     needsReview = review.sortedByDescending { it.detectedAt },
                     monitored = monitored.sortedByDescending { it.detectedAt },
-                    history = decided.sortedByDescending { it.detectedAt }
+                    history = decided.sortedByDescending { it.detectedAt },
+                    loaded = true
                 )
             }
         }

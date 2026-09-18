@@ -87,7 +87,13 @@ data class Verdict(
      * pressing Home — so it makes the override socially visible instead. This
      * is the product's real mechanism, not a footnote.
      */
-    val overrodeAt: Long = 0L
+    val overrodeAt: Long = 0L,
+    /**
+     * True once the OS on the protected phone confirmed the package is gone.
+     * Only ever set from an alert's `uninstalled` status — never from a command
+     * being received, which means nothing about whether the person tapped OK.
+     */
+    val removed: Boolean = false
 ) {
     /**
      * Apply a guardian decision. Only meaningful from [VerdictState.PENDING_GUARDIAN];

@@ -1,105 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Single source of truth for the guardian's explanation sentences.
-
-    Second person for the guardian, third person for the protected user: these
-    read "HP %1$s", never "HP kamu". %1$s is the pairing nickname ("Ibu",
-    "Ayah", "Nenek"). The overlay on the protected device speaks in "kamu" and
-    uses ReasonBuilder instead — the two catalogues are deliberately separate
-    because they address different people.
-
-    Name the consequence, not the capability. No jargon: if the word would not
-    appear in a WhatsApp message to a friend, it does not belong here.
+    English explanation sentences. %1$s is the pairing nickname ("Mum", "Dad").
+    Name the consequence, not the capability; no jargon.
 -->
 <resources>
 
-    <!-- ===== Impact capabilities ===== -->
+    <string name="cap_accessibility_eyebrow">Screen control</string>
+    <string name="cap_accessibility_body">This app can see and control anything on %1$s\'s screen — typing by itself, pressing buttons by itself, and reading what other apps show, including mobile banking.</string>
 
-    <string name="cap_accessibility_eyebrow">KONTROL LAYAR</string>
-    <string name="cap_accessibility_body">Aplikasi ini bisa melihat dan mengendalikan apa pun yang ada di layar %1$s — termasuk mengetik sendiri, menekan tombol sendiri, dan membaca isi aplikasi lain seperti mobile banking.</string>
+    <string name="cap_device_admin_eyebrow">Admin rights</string>
+    <string name="cap_device_admin_body">This app asks for device administrator rights. That makes it very hard to remove, and lets it lock or wipe everything on %1$s\'s phone.</string>
 
-    <string name="cap_device_admin_eyebrow">HAK ADMIN</string>
-    <string name="cap_device_admin_body">Aplikasi ini meminta hak administrator perangkat. Artinya aplikasi ini sangat sulit dihapus, dan bisa mengunci atau menghapus seluruh isi HP %1$s.</string>
+    <string name="cap_sms_read_eyebrow">SMS access</string>
+    <string name="cap_sms_read_body">This app can read every SMS that arrives on %1$s\'s phone, including bank OTP codes. With those codes, someone else can get into %1$s\'s account without knowing the password.</string>
 
-    <string name="cap_sms_read_eyebrow">AKSES SMS</string>
-    <string name="cap_sms_read_body">Aplikasi ini bisa membaca semua SMS yang masuk ke HP %1$s, termasuk kode OTP dari bank. Dengan kode itu, orang lain bisa masuk ke rekening %1$s tanpa perlu tahu passwordnya.</string>
+    <string name="cap_install_pkg_eyebrow">Installs apps</string>
+    <string name="cap_install_pkg_body">This app can install other apps on %1$s\'s phone without being asked. What it installs later can be far more dangerous.</string>
 
-    <string name="cap_install_pkg_eyebrow">PASANG APLIKASI</string>
-    <string name="cap_install_pkg_body">Aplikasi ini bisa memasang aplikasi lain ke HP %1$s tanpa diminta. Aplikasi yang dipasang belakangan bisa jauh lebih berbahaya.</string>
+    <string name="cap_overlay_eyebrow">Fake screens</string>
+    <string name="cap_overlay_body">This app can draw fake screens over other apps — a copied bank login page, for example, to steal %1$s\'s password.</string>
 
-    <string name="cap_overlay_eyebrow">LAYAR PALSU</string>
-    <string name="cap_overlay_body">Aplikasi ini bisa menampilkan layar palsu di atas aplikasi lain — misalnya halaman login bank tiruan, untuk mencuri password %1$s.</string>
+    <string name="cap_notif_listener_eyebrow">Reads notifications</string>
+    <string name="cap_notif_listener_body">This app can read every notification that arrives, including SMS contents and OTP codes shown on the lock screen.</string>
 
-    <string name="cap_notif_listener_eyebrow">BACA NOTIFIKASI</string>
-    <string name="cap_notif_listener_body">Aplikasi ini bisa membaca semua notifikasi yang masuk, termasuk isi SMS dan kode OTP yang muncul di layar kunci.</string>
+    <string name="cap_audio_eyebrow">Records audio</string>
+    <string name="cap_audio_body">This app can switch on the microphone and record what is said around %1$s, even while it is not open.</string>
 
-    <string name="cap_audio_eyebrow">REKAM SUARA</string>
-    <string name="cap_audio_body">Aplikasi ini bisa menyalakan mikrofon dan merekam suara di sekitar %1$s, bahkan saat aplikasinya tidak sedang dibuka.</string>
+    <string name="cap_call_eyebrow">Controls calls</string>
+    <string name="cap_call_body">This app can place calls by itself without %1$s knowing, including to premium numbers.</string>
 
-    <string name="cap_call_eyebrow">KENDALI TELEPON</string>
-    <string name="cap_call_body">Aplikasi ini bisa menelepon sendiri tanpa sepengetahuan %1$s, termasuk ke nomor berbayar.</string>
+    <string name="cap_contacts_eyebrow">Reads contacts</string>
+    <string name="cap_contacts_body">This app can read %1$s\'s entire contact list. That data is often used to scam family and friends by pretending to be %1$s.</string>
 
-    <string name="cap_contacts_eyebrow">AKSES KONTAK</string>
-    <string name="cap_contacts_body">Aplikasi ini bisa membaca seluruh daftar kontak %1$s. Data ini sering dipakai untuk menipu keluarga dan teman dengan mengaku sebagai %1$s.</string>
+    <string name="cap_camera_eyebrow">Uses the camera</string>
+    <string name="cap_camera_body">This app can take photos and video with the camera, even while the screen is not in use.</string>
 
-    <string name="cap_camera_eyebrow">AKSES KAMERA</string>
-    <string name="cap_camera_body">Aplikasi ini bisa mengambil foto dan video lewat kamera, bahkan saat layar sedang tidak digunakan.</string>
+    <string name="cap_location_eyebrow">Tracks location</string>
+    <string name="cap_location_body">This app can know exactly where %1$s is, continuously.</string>
 
-    <string name="cap_location_eyebrow">LACAK LOKASI</string>
-    <string name="cap_location_body">Aplikasi ini bisa mengetahui lokasi %1$s secara persis dan terus-menerus.</string>
+    <string name="cap_phone_state_eyebrow">Device data</string>
+    <string name="cap_phone_state_body">This app can read %1$s\'s phone number and the phone\'s identity.</string>
 
-    <string name="cap_phone_state_eyebrow">DATA PERANGKAT</string>
-    <string name="cap_phone_state_body">Aplikasi ini bisa membaca nomor telepon dan identitas HP %1$s.</string>
+    <string name="cap_query_pkgs_eyebrow">Lists apps</string>
+    <string name="cap_query_pkgs_body">This app can see every other app installed, including which bank apps %1$s uses.</string>
 
-    <string name="cap_query_pkgs_eyebrow">DAFTAR APLIKASI</string>
-    <string name="cap_query_pkgs_body">Aplikasi ini bisa melihat semua aplikasi lain yang terpasang, termasuk aplikasi bank mana yang dipakai %1$s.</string>
+    <string name="cap_boot_eyebrow">Starts by itself</string>
+    <string name="cap_boot_body">This app starts on its own every time the phone is switched on, without %1$s opening it.</string>
 
-    <string name="cap_boot_eyebrow">JALAN OTOMATIS</string>
-    <string name="cap_boot_body">Aplikasi ini menyala sendiri setiap HP dihidupkan, tanpa perlu dibuka %1$s.</string>
+    <string name="cap_internet_eyebrow">Sends data</string>
+    <string name="cap_internet_body">This app can send data out over the internet. Once sent, that data cannot be taken back.</string>
 
-    <string name="cap_internet_eyebrow">KIRIM DATA</string>
-    <string name="cap_internet_body">Aplikasi ini bisa mengirim data keluar lewat internet. Setelah terkirim, data itu tidak bisa ditarik kembali.</string>
+    <string name="cap_fg_service_eyebrow">Keeps running</string>
+    <string name="cap_fg_service_body">This app can keep running in the background even after it is closed.</string>
 
-    <string name="cap_fg_service_eyebrow">JALAN TERUS</string>
-    <string name="cap_fg_service_body">Aplikasi ini bisa terus berjalan di latar belakang meskipun sudah ditutup.</string>
+    <string name="cap_src_sideload_eyebrow">Not from the Play Store</string>
+    <string name="cap_src_sideload_body">This app was not installed from the Play Store. Files like this usually arrive over WhatsApp or a link, and Google has never checked them.</string>
 
-    <!-- ===== Provenance signals ===== -->
+    <string name="cap_no_launcher_eyebrow">Hidden icon</string>
+    <string name="cap_no_launcher_body">This app hides its icon. %1$s will not realise it is on the phone.</string>
 
-    <string name="cap_src_sideload_eyebrow">BUKAN PLAY STORE</string>
-    <string name="cap_src_sideload_body">Aplikasi ini tidak dipasang dari Play Store. Biasanya file seperti ini dikirim lewat WhatsApp atau link, dan tidak pernah diperiksa keamanannya oleh Google.</string>
+    <string name="cap_name_mimic_eyebrow">Imitates a real app</string>
+    <string name="cap_name_mimic_body">This app\'s name imitates an official bank or e-wallet app. The real ones are never shared over WhatsApp.</string>
 
-    <string name="cap_no_launcher_eyebrow">IKON DISEMBUNYIKAN</string>
-    <string name="cap_no_launcher_body">Aplikasi ini menyembunyikan ikonnya. %1$s tidak akan sadar aplikasi ini ada di HP-nya.</string>
+    <string name="cap_cert_self_signed_eyebrow">Unofficial signature</string>
+    <string name="cap_cert_self_signed_body">This app is not signed by a registered developer, so nobody can be held responsible for it.</string>
 
-    <string name="cap_name_mimic_eyebrow">MENIRU APLIKASI RESMI</string>
-    <string name="cap_name_mimic_body">Nama aplikasi ini meniru aplikasi bank atau dompet digital resmi. Aplikasi asli tidak pernah dibagikan lewat WhatsApp.</string>
+    <string name="cap_legacy_sdk_eyebrow">Deliberately outdated</string>
+    <string name="cap_legacy_sdk_body">This app is built for an old version of Android, a common trick to avoid the permission prompts that should appear.</string>
 
-    <string name="cap_cert_self_signed_eyebrow">TANDA TANGAN TIDAK RESMI</string>
-    <string name="cap_cert_self_signed_body">Aplikasi ini tidak ditandatangani oleh pengembang terdaftar, jadi tidak ada yang bisa dimintai tanggung jawab.</string>
+    <string name="combo_sms_read_internet_eyebrow">OTP theft</string>
+    <string name="combo_sms_read_internet_body">This app can read %1$s\'s SMS and send it to the internet. This is the pattern used to steal bank OTP codes.</string>
 
-    <string name="cap_legacy_sdk_eyebrow">SENGAJA KETINGGALAN</string>
-    <string name="cap_legacy_sdk_body">Aplikasi ini dibuat untuk Android versi lama, cara umum untuk menghindari permintaan izin yang seharusnya muncul.</string>
+    <string name="combo_accessibility_overlay_eyebrow">Screen takeover</string>
+    <string name="combo_accessibility_overlay_body">This app can draw fake screens and press buttons by itself. This is the signature of an account-stealing app.</string>
 
-    <!--
-        ===== Combinations =====
-        A combo replaces the sentences of its member signals and moves to the top
-        of the stack: a capability pair describes intent, which is stronger
-        evidence than either capability on its own.
-    -->
+    <string name="combo_notif_listener_internet_eyebrow">OTP theft</string>
+    <string name="combo_notif_listener_internet_body">This app can read notifications containing OTP codes and send them out, without needing SMS permission at all.</string>
 
-    <string name="combo_sms_read_internet_eyebrow">PENCURIAN OTP</string>
-    <string name="combo_sms_read_internet_body">Aplikasi ini bisa membaca SMS %1$s dan mengirimnya ke internet. Ini pola yang dipakai untuk mencuri kode OTP bank.</string>
+    <string name="combo_install_pkg_src_sideload_eyebrow">Carries other apps</string>
+    <string name="combo_install_pkg_src_sideload_body">This app came from outside the Play Store and can install other apps on its own.</string>
 
-    <string name="combo_accessibility_overlay_eyebrow">PENGAMBILALIHAN LAYAR</string>
-    <string name="combo_accessibility_overlay_body">Aplikasi ini bisa menampilkan layar palsu sekaligus menekan tombol sendiri. Ini pola khas aplikasi pencuri rekening.</string>
-
-    <string name="combo_notif_listener_internet_eyebrow">PENCURIAN OTP</string>
-    <string name="combo_notif_listener_internet_body">Aplikasi ini bisa membaca notifikasi berisi kode OTP dan mengirimnya keluar, tanpa perlu izin SMS sama sekali.</string>
-
-    <string name="combo_install_pkg_src_sideload_eyebrow">PEMBAWA APLIKASI LAIN</string>
-    <string name="combo_install_pkg_src_sideload_body">Aplikasi ini datang dari luar Play Store dan bisa memasang aplikasi lain sendiri.</string>
-
-    <string name="combo_device_admin_no_launcher_eyebrow">SULIT DIHAPUS</string>
-    <string name="combo_device_admin_no_launcher_body">Aplikasi ini menyembunyikan diri sekaligus meminta hak admin, sehingga sangat sulit ditemukan dan dihapus.</string>
+    <string name="combo_device_admin_no_launcher_eyebrow">Hard to remove</string>
+    <string name="combo_device_admin_no_launcher_body">This app hides itself and asks for admin rights at the same time, making it very hard to find and remove.</string>
 
 </resources>

@@ -130,7 +130,7 @@ class GuardianAlertService : Service() {
         val body = getString(R.string.alert_notification_body, alert.appLabel)
         val notification =
             NotificationCompat.Builder(this, if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setSmallIcon(R.drawable.ic_triangle_warning)
             .setContentTitle(
                 getString(R.string.alert_notification_title) + " (${alert.score}/100)"
             )
@@ -191,7 +191,7 @@ class GuardianAlertService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, OUTCOME_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_delete)
+            .setSmallIcon(R.drawable.ic_trash)
             .setContentTitle(getString(R.string.uninstalled_notification_title))
             .setContentText(getString(R.string.uninstalled_notification_body, alert.appLabel))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -232,7 +232,7 @@ class GuardianAlertService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_view)
+            .setSmallIcon(R.drawable.ic_bell)
             .setContentTitle(getString(R.string.guardian_watch_title))
             .setContentText(getString(R.string.guardian_watch_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)

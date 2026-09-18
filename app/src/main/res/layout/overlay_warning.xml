@@ -7,11 +7,17 @@
        dialog — that is the technique used by overlay-based banking trojans.
     2. There is no "continue anyway" button. The only exits are the Home button
        or the guardian marking the app safe.
+
+    Drenched in the danger red from docs/DESIGN.md with the same card, border
+    and solid drop as every Compose screen, set in Nunito, so it reads as RONDA
+    and not as the phone. The variable font takes its weight from
+    fontVariationSettings rather than textStyle, which would fake it.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/overlay_background"
+    android:background="@color/overlay_bg"
     android:fillViewport="true">
 
     <LinearLayout
@@ -19,93 +25,133 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:paddingStart="28dp"
-        android:paddingEnd="28dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
         android:paddingTop="56dp"
-        android:paddingBottom="56dp">
+        android:paddingBottom="48dp">
 
-        <!-- Branding: the user must know this is RONDA, not the system -->
+        <!-- Wordmark: the user must know this is RONDA, not the system -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_shield_check"
+                android:tint="@color/overlay_text_primary"
+                tools:ignore="UseAppTint"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/overlay_brand"
+                android:textColor="@color/overlay_text_primary"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 900"
+                android:textSize="28sp"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/overlay_brand"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.15" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:text="@string/overlay_brand_tagline"
             android:textColor="@color/overlay_text_secondary"
-            android:textSize="16sp" />
+            android:fontFamily="@font/nunito"
+            android:fontVariationSettings="'wght' 800"
+            android:textSize="20sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="⚠"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="72sp"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/overlay_title"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:gravity="center" />
-
-        <!-- Filled in by OverlayService with the flagged app's label -->
-        <TextView
-            android:id="@+id/overlay_app_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="center" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/overlay_body"
-            android:textColor="@color/overlay_text_primary"
-            android:textSize="21sp"
-            android:lineSpacingMultiplier="1.25"
-            android:gravity="center" />
-
+        <!-- The card: white on red, thick border, solid drop — the system's own card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:orientation="vertical"
-            android:background="@color/overlay_panel"
-            android:padding="20dp">
+            android:gravity="center_horizontal"
+            android:background="@drawable/bg_overlay_card"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:padding="18dp"
+                android:src="@drawable/ic_triangle_warning"
+                android:tint="@color/overlay_danger"
+                tools:ignore="UseAppTint"
+                android:background="@drawable/bg_overlay_icon"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/overlay_title"
+                android:textColor="@color/overlay_danger"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 900"
+                android:textSize="28sp"
+                android:lineSpacingMultiplier="1.1"
+                android:breakStrategy="balanced"
+                android:gravity="center" />
+
+            <!-- Filled in by OverlayService with the flagged app's label -->
+            <TextView
+                android:id="@+id/overlay_app_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/overlay_ink"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 900"
+                android:textSize="24sp"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/overlay_body"
+                android:textColor="@color/overlay_ink"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 700"
+                android:textSize="20sp"
+                android:lineSpacingMultiplier="1.3"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1.5dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/overlay_card_border" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
                 android:text="@string/overlay_reason_label"
-                android:textColor="@color/overlay_text_secondary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textColor="@color/overlay_ink_secondary"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 800"
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="@string/overlay_reason"
-                android:textColor="@color/overlay_text_primary"
+                android:textColor="@color/overlay_ink"
+                android:fontFamily="@font/nunito"
+                android:fontVariationSettings="'wght' 700"
                 android:textSize="20sp"
-                android:lineSpacingMultiplier="1.2" />
+                android:lineSpacingMultiplier="1.3" />
         </LinearLayout>
 
         <TextView
@@ -114,18 +160,21 @@
             android:layout_marginTop="28dp"
             android:text="@string/overlay_guardian_notified"
             android:textColor="@color/overlay_text_primary"
-            android:textSize="21sp"
-            android:textStyle="bold"
-            android:lineSpacingMultiplier="1.2"
+            android:fontFamily="@font/nunito"
+            android:fontVariationSettings="'wght' 800"
+            android:textSize="20sp"
+            android:lineSpacingMultiplier="1.3"
             android:gravity="center" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
             android:text="@string/overlay_exit_hint"
             android:textColor="@color/overlay_text_secondary"
-            android:textSize="18sp"
+            android:fontFamily="@font/nunito"
+            android:fontVariationSettings="'wght' 700"
+            android:textSize="20sp"
             android:gravity="center" />
     </LinearLayout>
 </ScrollView>

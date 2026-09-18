@@ -1,0 +1,1157 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T10:59:47+07:00",
+  "title": "Design System: RONDA",
+  "extensions": {
+    "units": "Android dp and sp; component snippets translate both to CSS px 1:1. Nunito ships in the APK (res/font/nunito.ttf), so the snippets fall back to system-ui where it is not installed.",
+    "sources": [
+      "app/src/main/java/com/ronda/app/ui/theme/Color.kt",
+      "app/src/main/java/com/ronda/app/ui/theme/Type.kt",
+      "app/src/main/java/com/ronda/app/ui/theme/Shape.kt",
+      "app/src/main/java/com/ronda/app/ui/theme/Theme.kt",
+      "app/src/main/java/com/ronda/app/ui/components/",
+      "app/src/main/java/com/ronda/app/ui/guardian/GuardianHomeScreen.kt",
+      "app/src/main/java/com/ronda/app/ui/guardian/components/AlertRow.kt",
+      "app/src/main/res/drawable/ic_*.xml",
+      "app/src/main/res/layout/overlay_warning.xml",
+      "app/src/main/res/values/colors.xml"
+    ],
+    "brief": "docs/DESIGN.md (team-authored; the source brief this system implements)",
+    "colorMeta": {
+      "safe": {
+        "role": "primary",
+        "displayName": "Forest Green",
+        "canonical": "oklch(52.9% 0.117 156.1)",
+        "tonalRamp": [
+          "#001005",
+          "#002E17",
+          "#01502D",
+          "#077444",
+          "#3B9764",
+          "#61BB86",
+          "#86E0A9",
+          "#C5FFD9"
+        ],
+        "theme": "light"
+      },
+      "safe-shadow": {
+        "role": "primary",
+        "displayName": "Forest Green Shadow",
+        "canonical": "oklch(42.2% 0.090 156.9)",
+        "tonalRamp": [
+          "#001005",
+          "#002E18",
+          "#00502E",
+          "#2D704C",
+          "#51936C",
+          "#74B68E",
+          "#97DBB2",
+          "#C4FFDA"
+        ],
+        "theme": "light"
+      },
+      "safe-tint": {
+        "role": "primary",
+        "displayName": "Safe Tint",
+        "canonical": "oklch(98.2% 0.018 155.8)",
+        "tonalRamp": [
+          "#050D08",
+          "#1E2821",
+          "#3B453E",
+          "#59645D",
+          "#7A867E",
+          "#9DA9A0",
+          "#C0CDC4",
+          "#E5F2E9"
+        ],
+        "theme": "light"
+      },
+      "safe-border": {
+        "role": "primary",
+        "displayName": "Safe Border",
+        "canonical": "oklch(84.5% 0.130 165.0)",
+        "tonalRamp": [
+          "#001007",
+          "#002D1E",
+          "#004F37",
+          "#007352",
+          "#009A6F",
+          "#40BE91",
+          "#6BE4B4",
+          "#C0FFE2"
+        ],
+        "theme": "light"
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger Red",
+        "canonical": "oklch(57.7% 0.215 27.3)",
+        "tonalRamp": [
+          "#200000",
+          "#4D0002",
+          "#810007",
+          "#B80010",
+          "#E73430",
+          "#FF7367",
+          "#FEB3AA",
+          "#FEE9E6"
+        ],
+        "theme": "light"
+      },
+      "danger-shadow": {
+        "role": "tertiary",
+        "displayName": "Danger Shadow",
+        "canonical": "oklch(44.4% 0.161 26.9)",
+        "tonalRamp": [
+          "#200000",
+          "#4D0003",
+          "#810009",
+          "#AA2E2A",
+          "#D1534B",
+          "#FA786C",
+          "#FEB3AA",
+          "#FEE9E6"
+        ],
+        "theme": "light"
+      },
+      "danger-tint": {
+        "role": "tertiary",
+        "displayName": "Danger Tint",
+        "canonical": "oklch(96.9% 0.015 17.4)",
+        "tonalRamp": [
+          "#110909",
+          "#2C2222",
+          "#4A3F3F",
+          "#6A5E5E",
+          "#8B7F7F",
+          "#AEA1A1",
+          "#D3C5C5",
+          "#F9EBEB"
+        ],
+        "theme": "light"
+      },
+      "danger-border": {
+        "role": "tertiary",
+        "displayName": "Danger Border",
+        "canonical": "oklch(80.8% 0.103 19.6)",
+        "tonalRamp": [
+          "#200002",
+          "#4B020F",
+          "#6F262B",
+          "#934649",
+          "#B86869",
+          "#DE8A8B",
+          "#FEB2B2",
+          "#FEE9E8"
+        ],
+        "theme": "light"
+      },
+      "trust": {
+        "role": "secondary",
+        "displayName": "Trust Blue",
+        "canonical": "oklch(42.4% 0.181 265.6)",
+        "tonalRamp": [
+          "#010037",
+          "#05007B",
+          "#1431A0",
+          "#2F56C6",
+          "#4E7AED",
+          "#7AA1FE",
+          "#B0C9FF",
+          "#E7EFFE"
+        ],
+        "theme": "light"
+      },
+      "trust-shadow": {
+        "role": "secondary",
+        "displayName": "Trust Shadow",
+        "canonical": "oklch(37.9% 0.138 265.5)",
+        "tonalRamp": [
+          "#010037",
+          "#061766",
+          "#1E3A8A",
+          "#3B5CAF",
+          "#5A7ED4",
+          "#7BA2FB",
+          "#B0C9FE",
+          "#E7EFFE"
+        ],
+        "theme": "light"
+      },
+      "trust-tint": {
+        "role": "secondary",
+        "displayName": "Trust Tint",
+        "canonical": "oklch(97.0% 0.014 254.6)",
+        "tonalRamp": [
+          "#070B11",
+          "#20262C",
+          "#3D434A",
+          "#5C6269",
+          "#7D838B",
+          "#9FA6AE",
+          "#C3CAD2",
+          "#E8EFF8"
+        ],
+        "theme": "light"
+      },
+      "trust-border": {
+        "role": "secondary",
+        "displayName": "Trust Border",
+        "canonical": "oklch(88.2% 0.057 254.1)",
+        "tonalRamp": [
+          "#000A22",
+          "#102640",
+          "#2C4360",
+          "#4B6381",
+          "#6B85A4",
+          "#8DA7C9",
+          "#B0CCEE",
+          "#E4F0FE"
+        ],
+        "theme": "light"
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Amber",
+        "canonical": "oklch(55.5% 0.146 49.0)",
+        "tonalRamp": [
+          "#1B0400",
+          "#401700",
+          "#6B2D00",
+          "#9A4501",
+          "#C56323",
+          "#ED864B",
+          "#FFB68F",
+          "#FFEADF"
+        ],
+        "theme": "light"
+      },
+      "warn-shadow": {
+        "role": "tertiary",
+        "displayName": "Amber Shadow",
+        "canonical": "oklch(47.3% 0.125 46.2)",
+        "tonalRamp": [
+          "#1B0300",
+          "#421500",
+          "#6E2B00",
+          "#984616",
+          "#BE683C",
+          "#E58B5F",
+          "#FEB694",
+          "#FFEAE0"
+        ],
+        "theme": "light"
+      },
+      "warn-tint": {
+        "role": "tertiary",
+        "displayName": "Amber Tint",
+        "canonical": "oklch(98.7% 0.021 95.3)",
+        "tonalRamp": [
+          "#0E0B03",
+          "#282519",
+          "#454235",
+          "#656154",
+          "#868274",
+          "#A9A596",
+          "#CDC9BA",
+          "#F3EFDF"
+        ],
+        "theme": "light"
+      },
+      "warn-border": {
+        "role": "tertiary",
+        "displayName": "Amber Border",
+        "canonical": "oklch(87.9% 0.153 91.6)",
+        "tonalRamp": [
+          "#110A00",
+          "#2F2400",
+          "#514000",
+          "#765E04",
+          "#9D7F03",
+          "#C7A101",
+          "#EEC53B",
+          "#FFEEBB"
+        ],
+        "theme": "light"
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(20.8% 0.040 265.8)",
+        "tonalRamp": [
+          "#040A1C",
+          "#1C2539",
+          "#384258",
+          "#566178",
+          "#77829B",
+          "#99A5BF",
+          "#BDC9E4",
+          "#E7EFFE"
+        ],
+        "theme": "light"
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(55.4% 0.041 257.4)",
+        "tonalRamp": [
+          "#020B1C",
+          "#182639",
+          "#344358",
+          "#536279",
+          "#73849B",
+          "#95A6BF",
+          "#B9CBE4",
+          "#E5EFFE"
+        ],
+        "theme": "light"
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "oklch(71.1% 0.035 256.8)",
+        "tonalRamp": [
+          "#030B1A",
+          "#1A2636",
+          "#364355",
+          "#556275",
+          "#758498",
+          "#97A6BB",
+          "#BBCBE0",
+          "#E5EFFE"
+        ],
+        "theme": "light"
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(100.0% 0 0)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ],
+        "theme": "light"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Smoke",
+        "canonical": "oklch(96.8% 0.007 247.9)",
+        "tonalRamp": [
+          "#090B0E",
+          "#222528",
+          "#3F4246",
+          "#5E6265",
+          "#7F8386",
+          "#A2A5A9",
+          "#C6CACD",
+          "#EBEFF3"
+        ],
+        "theme": "light"
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card (Paper White)",
+        "canonical": "oklch(100.0% 0 0)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ],
+        "theme": "light"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border Default",
+        "canonical": "oklch(92.9% 0.013 255.5)",
+        "tonalRamp": [
+          "#080B10",
+          "#21252B",
+          "#3E4249",
+          "#5D6268",
+          "#7D838A",
+          "#A0A6AD",
+          "#C4CAD1",
+          "#E9EFF7"
+        ],
+        "theme": "light"
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "canonical": "oklch(86.9% 0.020 252.9)",
+        "tonalRamp": [
+          "#060C13",
+          "#1E262F",
+          "#3B434D",
+          "#59626D",
+          "#7A838E",
+          "#9DA6B2",
+          "#C0CAD6",
+          "#E5F0FC"
+        ],
+        "theme": "light"
+      },
+      "on-fill": {
+        "role": "neutral",
+        "displayName": "On-fill White",
+        "canonical": "oklch(100.0% 0 0)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ],
+        "theme": "light"
+      },
+      "dark-safe": {
+        "role": "primary",
+        "displayName": "Vivid Green",
+        "canonical": "oklch(72.3% 0.192 149.6)",
+        "tonalRamp": [
+          "#001002",
+          "#002E0F",
+          "#005120",
+          "#037533",
+          "#049D46",
+          "#21C55E",
+          "#57EB81",
+          "#C8FFD1"
+        ],
+        "theme": "dark"
+      },
+      "dark-safe-shadow": {
+        "role": "primary",
+        "displayName": "Vivid Green Shadow",
+        "canonical": "oklch(62.7% 0.170 149.2)",
+        "tonalRamp": [
+          "#001002",
+          "#002F0E",
+          "#01511F",
+          "#017631",
+          "#029D44",
+          "#44C167",
+          "#6DE78A",
+          "#C8FFD0"
+        ],
+        "theme": "dark"
+      },
+      "dark-safe-tint": {
+        "role": "primary",
+        "displayName": "Safe Tint Dark",
+        "canonical": "oklch(26.6% 0.063 152.9)",
+        "tonalRamp": [
+          "#001004",
+          "#042D16",
+          "#254C32",
+          "#456C50",
+          "#658E70",
+          "#87B193",
+          "#ABD6B6",
+          "#D0FBDB"
+        ],
+        "theme": "dark"
+      },
+      "dark-safe-border": {
+        "role": "primary",
+        "displayName": "Safe Border Dark",
+        "canonical": "oklch(44.8% 0.108 151.3)",
+        "tonalRamp": [
+          "#001003",
+          "#002E11",
+          "#015024",
+          "#277240",
+          "#4B9561",
+          "#6FB982",
+          "#93DEA5",
+          "#C6FFD3"
+        ],
+        "theme": "dark"
+      },
+      "dark-danger": {
+        "role": "tertiary",
+        "displayName": "Danger Red Dark",
+        "canonical": "oklch(63.7% 0.208 25.3)",
+        "tonalRamp": [
+          "#210000",
+          "#4D0005",
+          "#80000F",
+          "#B8001B",
+          "#E4393B",
+          "#FE736C",
+          "#FFB3AB",
+          "#FEE9E6"
+        ],
+        "theme": "dark",
+        "note": "Button fill only. A dark-theme badge uses dark-danger-shadow (#B91C1C, 6.4:1 with white) because its label is 10sp."
+      },
+      "dark-danger-shadow": {
+        "role": "tertiary",
+        "displayName": "Danger Shadow Dark",
+        "canonical": "oklch(50.5% 0.190 27.5)",
+        "tonalRamp": [
+          "#210000",
+          "#4D0002",
+          "#810007",
+          "#B51517",
+          "#DD453C",
+          "#FF7366",
+          "#FFB3A9",
+          "#FFE9E6"
+        ],
+        "theme": "dark",
+        "note": "Doubles as the dark-theme badge fill — see badgeFill(tone) in Color.kt."
+      },
+      "dark-danger-tint": {
+        "role": "tertiary",
+        "displayName": "Danger Tint Dark",
+        "canonical": "oklch(15.9% 0.043 23.2)",
+        "tonalRamp": [
+          "#1A0404",
+          "#371C1B",
+          "#573937",
+          "#785856",
+          "#9B7976",
+          "#BF9B98",
+          "#E4BFBC",
+          "#FFE9E7"
+        ],
+        "theme": "dark"
+      },
+      "dark-danger-border": {
+        "role": "tertiary",
+        "displayName": "Danger Border Dark",
+        "canonical": "oklch(39.6% 0.133 25.7)",
+        "tonalRamp": [
+          "#200000",
+          "#4D0004",
+          "#791718",
+          "#9F3C37",
+          "#C55E57",
+          "#ED8279",
+          "#FEB3AB",
+          "#FEE9E7"
+        ],
+        "theme": "dark"
+      },
+      "dark-trust": {
+        "role": "secondary",
+        "displayName": "Trust Blue Dark",
+        "canonical": "oklch(62.3% 0.188 259.8)",
+        "tonalRamp": [
+          "#00062B",
+          "#002059",
+          "#003A92",
+          "#0E59C9",
+          "#367DF0",
+          "#6EA5FE",
+          "#ABCBFE",
+          "#E6EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-trust-shadow": {
+        "role": "secondary",
+        "displayName": "Trust Shadow Dark",
+        "canonical": "oklch(48.8% 0.217 264.4)",
+        "tonalRamp": [
+          "#000038",
+          "#01007C",
+          "#0326B2",
+          "#1E50DA",
+          "#3F76FE",
+          "#77A2FF",
+          "#AFC9FF",
+          "#E7EFFF"
+        ],
+        "theme": "dark"
+      },
+      "dark-trust-tint": {
+        "role": "secondary",
+        "displayName": "Trust Tint Dark",
+        "canonical": "oklch(23.6% 0.066 265.5)",
+        "tonalRamp": [
+          "#020726",
+          "#152345",
+          "#314165",
+          "#4F6187",
+          "#6F82AB",
+          "#91A5CF",
+          "#B5C9F5",
+          "#E7EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-trust-border": {
+        "role": "secondary",
+        "displayName": "Trust Border Dark",
+        "canonical": "oklch(37.9% 0.138 265.5)",
+        "tonalRamp": [
+          "#010037",
+          "#061766",
+          "#1E3A8A",
+          "#3B5CAF",
+          "#5A7ED4",
+          "#7BA2FB",
+          "#B0C9FE",
+          "#E7EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-warn": {
+        "role": "tertiary",
+        "displayName": "Amber Dark",
+        "canonical": "oklch(76.9% 0.165 70.1)",
+        "tonalRamp": [
+          "#150800",
+          "#371F00",
+          "#5D3900",
+          "#875500",
+          "#B37203",
+          "#E19109",
+          "#FEBA65",
+          "#FFEBD5"
+        ],
+        "theme": "dark",
+        "note": "Badge ink here is the deep-brown dark-warn-tint (~10:1), not white; buttons keep white on this fill."
+      },
+      "dark-warn-shadow": {
+        "role": "tertiary",
+        "displayName": "Amber Shadow Dark",
+        "canonical": "oklch(55.5% 0.146 49.0)",
+        "tonalRamp": [
+          "#1B0400",
+          "#401700",
+          "#6B2D00",
+          "#9A4501",
+          "#C56323",
+          "#ED864B",
+          "#FFB68F",
+          "#FFEADF"
+        ],
+        "theme": "dark"
+      },
+      "dark-warn-tint": {
+        "role": "tertiary",
+        "displayName": "Amber Tint Dark",
+        "canonical": "oklch(23.4% 0.042 71.3)",
+        "tonalRamp": [
+          "#150800",
+          "#32210C",
+          "#503E29",
+          "#715E47",
+          "#937F67",
+          "#B6A189",
+          "#DBC5AC",
+          "#FEEBD5"
+        ],
+        "theme": "dark",
+        "note": "Doubles as the ink on a dark-theme amber fill — see onFill(tone) in Color.kt."
+      },
+      "dark-warn-border": {
+        "role": "tertiary",
+        "displayName": "Amber Border Dark",
+        "canonical": "oklch(47.3% 0.125 46.2)",
+        "tonalRamp": [
+          "#1B0300",
+          "#421500",
+          "#6E2B00",
+          "#984616",
+          "#BE683C",
+          "#E58B5F",
+          "#FEB694",
+          "#FFEAE0"
+        ],
+        "theme": "dark"
+      },
+      "dark-text-primary": {
+        "role": "neutral",
+        "displayName": "Ghost White",
+        "canonical": "oklch(96.8% 0.007 247.9)",
+        "tonalRamp": [
+          "#090B0E",
+          "#222528",
+          "#3F4246",
+          "#5E6265",
+          "#7F8386",
+          "#A2A5A9",
+          "#C6CACD",
+          "#EBEFF3"
+        ],
+        "theme": "dark"
+      },
+      "dark-text-secondary": {
+        "role": "neutral",
+        "displayName": "Slate Light",
+        "canonical": "oklch(81.3% 0.029 248.2)",
+        "tonalRamp": [
+          "#030C17",
+          "#1A2632",
+          "#364451",
+          "#556371",
+          "#758493",
+          "#98A7B7",
+          "#BBCBDB",
+          "#E2F0FF"
+        ],
+        "theme": "dark"
+      },
+      "dark-text-muted": {
+        "role": "neutral",
+        "displayName": "Muted Dark",
+        "canonical": "oklch(71.1% 0.035 256.8)",
+        "tonalRamp": [
+          "#030B1A",
+          "#1A2636",
+          "#364355",
+          "#556275",
+          "#758498",
+          "#97A6BB",
+          "#BBCBE0",
+          "#E5EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Deep Navy",
+        "canonical": "oklch(17.2% 0.032 268.9)",
+        "tonalRamp": [
+          "#060A19",
+          "#1E2435",
+          "#3B4254",
+          "#596174",
+          "#7A8296",
+          "#9DA5BA",
+          "#C0C9DF",
+          "#E8EEFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Surface Dark",
+        "canonical": "oklch(21.0% 0.032 264.7)",
+        "tonalRamp": [
+          "#050B18",
+          "#1D2535",
+          "#3A4253",
+          "#586174",
+          "#798296",
+          "#9BA5BA",
+          "#BFC9DF",
+          "#E7EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Card Dark",
+        "canonical": "oklch(27.9% 0.037 260.0)",
+        "tonalRamp": [
+          "#030B1A",
+          "#1A2537",
+          "#374256",
+          "#556277",
+          "#768399",
+          "#98A6BD",
+          "#BBCAE2",
+          "#E6EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Card Border Dark",
+        "canonical": "oklch(37.2% 0.039 257.3)",
+        "tonalRamp": [
+          "#020B1B",
+          "#192638",
+          "#354357",
+          "#536278",
+          "#74849A",
+          "#96A6BE",
+          "#B9CBE3",
+          "#E5EFFE"
+        ],
+        "theme": "dark"
+      },
+      "dark-border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong Dark",
+        "canonical": "oklch(44.6% 0.037 257.3)",
+        "tonalRamp": [
+          "#030B1B",
+          "#192637",
+          "#354356",
+          "#546277",
+          "#748499",
+          "#97A6BD",
+          "#BACBE2",
+          "#E5EFFF"
+        ],
+        "theme": "dark"
+      },
+      "overlay-bg": {
+        "role": "tertiary",
+        "displayName": "Overlay Red",
+        "canonical": "oklch(50.5% 0.190 27.5)",
+        "tonalRamp": [
+          "#210000",
+          "#4D0002",
+          "#810007",
+          "#B51517",
+          "#DD453C",
+          "#FF7366",
+          "#FFB3A9",
+          "#FFE9E6"
+        ],
+        "theme": "overlay"
+      },
+      "overlay-text-secondary": {
+        "role": "tertiary",
+        "displayName": "Overlay Rose",
+        "canonical": "oklch(88.5% 0.059 18.3)",
+        "tonalRamp": [
+          "#1E0003",
+          "#3D171A",
+          "#5E3536",
+          "#805354",
+          "#A37475",
+          "#C89797",
+          "#EEBABA",
+          "#FEE9E8"
+        ],
+        "theme": "overlay"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Screen greetings and onboarding titles (Material displayMedium)."
+      },
+      "display-sm": {
+        "displayName": "Display Small",
+        "purpose": "Titles of large-tier sheets (displaySmall)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Hero card title and the app name in the alert detail header (headlineLarge)."
+      },
+      "headline-md": {
+        "displayName": "Headline Medium",
+        "purpose": "Wordmark (with 0.06em tracking), sheet titles, large-tier choice-card titles (headlineMedium)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "App names in list rows and choice-card titles (titleLarge; headlineSmall is the same value)."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "The workhorse: secondary-button and text-action labels, field text, chips, option rows (titleMedium)."
+      },
+      "title-xs": {
+        "displayName": "Title Extra Small",
+        "purpose": "Info-row values (titleSmall)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Card body, explanation sentences, sheet bodies (bodyLarge)."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "First consequence sentence in a list row, option subtitles, meta lines with tnum (bodyMedium)."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Hints; rare (bodySmall)."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "The tactile button's upper-case label (labelLarge)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Upper-case badges, nav labels, section labels, info-row and explanation labels (labelSmall)."
+      },
+      "large-print": {
+        "displayName": "LargePrint",
+        "purpose": "Every sentence the protected person reads; components switch to it with large = true."
+      },
+      "large-print-title": {
+        "displayName": "LargePrint Title",
+        "purpose": "The one sentence on the protected status card."
+      },
+      "large-print-label": {
+        "displayName": "LargePrint Label",
+        "purpose": "Button labels on protected-person screens."
+      },
+      "pairing-code": {
+        "displayName": "Pairing Code",
+        "purpose": "The six-character code on both phones; wide tracking, tabular figures."
+      },
+      "score-numeral": {
+        "displayName": "Score Numeral",
+        "purpose": "The risk score in the alert header, in the band's fill colour."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-drop",
+        "value": "0 4px 0 <edge colour>",
+        "purpose": "Under every card, in the card's border colour (border for neutral, the tone's border for a state card). RondaDepth.card = 4dp."
+      },
+      {
+        "name": "button-drop",
+        "value": "0 5px 0 <shadow colour>",
+        "purpose": "Under tactile buttons in the tone's shadow colour (#155C39 safe, #991B1B danger, #1E3A8A trust, #92400E warn; dark: #16A34A, #B91C1C, #1D4ED8, #B45309). RondaDepth.button = 5dp."
+      },
+      {
+        "name": "secondary-drop",
+        "value": "0 5px 0 #E2E8F0",
+        "purpose": "Under secondary buttons in the edge colour; #FCA5A5 for the danger-text variant; dark #334155 / #7F1D1D."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press-travel",
+        "value": "90ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Face travels onto its drop (buttons 5dp, tappable cards 4dp) and back; no ripple."
+      },
+      {
+        "name": "tone-crossfade",
+        "value": "260ms",
+        "purpose": "Card face/edge and icon-box colours animate between tones (a permission landing turns the status card green)."
+      },
+      {
+        "name": "select",
+        "value": "160ms",
+        "purpose": "Nav pill fill/border/ink and radio ring colour."
+      },
+      {
+        "name": "segment-fill",
+        "value": "320ms",
+        "purpose": "A progress segment filling green."
+      },
+      {
+        "name": "tab-crossfade",
+        "value": "fade in 200ms after 40ms; fade out 80ms",
+        "purpose": "Switching guardian tabs."
+      },
+      {
+        "name": "skeleton-pulse",
+        "value": "900ms, reverse repeat, alpha 0.45 to 1",
+        "purpose": "Placeholder bars while the first alerts arrive."
+      },
+      {
+        "name": "press-haptic",
+        "value": "HapticFeedbackType.Confirm",
+        "purpose": "One tick on release of a tactile button — the felt half of the press the visual travel shows."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Tactile Button (Safe)",
+      "kind": "button",
+      "refersTo": "button-tactile",
+      "description": "The primary action: a forest-green face resting 5px above a solid shadow; pressing pushes it onto the shadow. Touch-only in the build (no hover state exists); :active is the real state. Units: Android dp/sp translated to px 1:1.",
+      "html": "<button class=\"ds-btn-tactile\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg>Lanjutkan</button>",
+      "css": ".ds-btn-tactile{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin:0 0 5px;padding:14px 20px;border:0;border-radius:16px;background:#1D7F4E;color:#FFFFFF;font-family:Nunito, system-ui, sans-serif;font-size:16px;line-height:20px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 5px 0 #155C39;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 90ms cubic-bezier(.4,0,.2,1),box-shadow 90ms cubic-bezier(.4,0,.2,1)}.ds-btn-tactile svg{width:22px;height:22px;flex:none}.ds-btn-tactile:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}.ds-btn-tactile:active{transform:translateY(5px);box-shadow:0 0 0 #155C39}.ds-btn-tactile:disabled{background:#CBD5E1;box-shadow:0 5px 0 #E2E8F0;cursor:default}"
+    },
+    {
+      "name": "Tactile Button (Danger)",
+      "kind": "button",
+      "refersTo": "button-tactile-danger",
+      "description": "The uninstall action and the only red button in the system (\"Hapus aplikasi ini\"), with the trash glyph. Same geometry and travel as the safe button; danger fill over danger shadow.",
+      "html": "<button class=\"ds-btn-tactile-danger\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18\"/><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\"/><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\"/><path d=\"M10 11v6\"/><path d=\"M14 11v6\"/></svg>Hapus aplikasi ini</button>",
+      "css": ".ds-btn-tactile-danger{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin:0 0 5px;padding:14px 20px;border:0;border-radius:16px;background:#DC2626;color:#FFFFFF;font-family:Nunito, system-ui, sans-serif;font-size:16px;line-height:20px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 5px 0 #991B1B;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 90ms cubic-bezier(.4,0,.2,1),box-shadow 90ms cubic-bezier(.4,0,.2,1)}.ds-btn-tactile-danger svg{width:22px;height:22px;flex:none}.ds-btn-tactile-danger:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}.ds-btn-tactile-danger:active{transform:translateY(5px);box-shadow:0 0 0 #991B1B}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The outline button (\"Tandai aman\", cancel): card face, 2.5px border and 5px drop in the border colour, trust-blue sentence-case label. Carries its tone in the text only, so it never competes with the one filled button.",
+      "html": "<button class=\"ds-btn-secondary\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Tandai aman</button>",
+      "css": ".ds-btn-secondary{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin:0 0 5px;padding:12px 20px;border:2.5px solid #E2E8F0;border-radius:16px;background:#FFFFFF;color:#1E40AF;font-family:Nunito, system-ui, sans-serif;font-size:16px;line-height:22px;font-weight:800;box-shadow:0 5px 0 #E2E8F0;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 90ms cubic-bezier(.4,0,.2,1),box-shadow 90ms cubic-bezier(.4,0,.2,1)}.ds-btn-secondary svg{width:20px;height:20px;flex:none}.ds-btn-secondary:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}.ds-btn-secondary:active{transform:translateY(5px);box-shadow:0 0 0 #E2E8F0}.ds-btn-secondary:disabled{color:#94A3B8;cursor:default}"
+    },
+    {
+      "name": "Card with Icon Box",
+      "kind": "card",
+      "refersTo": "card-row",
+      "description": "The neutral card as used for an explanation row: 2.5px border, 4px solid drop in the same colour, 20px radius, 16px padding; a 40px tinted icon box, an upper-case label in the signal's tone, and a body sentence in Ink.",
+      "html": "<article class=\"ds-card\"><span class=\"ds-icon-box ds-icon-box-danger\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.268 21a2 2 0 0 0 3.464 0\"/><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\"/></svg></span><div class=\"ds-card-text\"><span class=\"ds-card-label ds-card-label-danger\">Pencurian OTP</span><p class=\"ds-card-body\">Aplikasi ini bisa membaca notifikasi berisi kode OTP dan mengirimnya keluar, tanpa perlu izin SMS sama sekali.</p></div></article>",
+      "css": ".ds-card{display:flex;align-items:flex-start;gap:14px;border:2.5px solid #E2E8F0;border-radius:20px;background:#FFFFFF;box-shadow:0 4px 0 #E2E8F0;margin:0 0 4px;padding:16px;color:#0F172A;font-family:Nunito, system-ui, sans-serif}.ds-icon-box{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border-radius:16px;background:#F1F5F9;border:2px solid #E2E8F0;color:#64748B;box-sizing:border-box;transition:background 260ms,border-color 260ms,color 260ms}.ds-icon-box-danger{background:#FFF1F1;border-color:#FCA5A5;color:#DC2626}.ds-card-text{flex:1;min-width:0}.ds-card-label{display:block;font-size:10px;line-height:14px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;color:#64748B}.ds-card-label-danger{color:#DC2626}.ds-card-body{margin:3px 0 0;font-size:15px;line-height:22px;font-weight:700}"
+    },
+    {
+      "name": "Alert Row",
+      "kind": "custom",
+      "refersTo": "card-danger",
+      "description": "One app in the guardian list: band icon box, app name at full width, the band badge on its own line beneath it, one complete consequence sentence, and a tabular meta line. The card takes the band tone while the app is still a question.",
+      "html": "<article class=\"ds-alert-row\" role=\"button\" tabindex=\"0\"><span class=\"ds-alert-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg></span><div class=\"ds-alert-text\"><h3 class=\"ds-alert-title\">Info BCA Mobile</h3><span class=\"ds-alert-badge\">Darurat</span><p class=\"ds-alert-sentence\">Aplikasi ini bisa membaca SMS Ibu dan mengirimnya ke internet.</p><p class=\"ds-alert-meta\">100/100 · 40 menit lalu · Menunggu keputusan Anda</p></div></article>",
+      "css": ".ds-alert-row{display:flex;align-items:flex-start;gap:14px;border:2.5px solid #FCA5A5;border-radius:20px;background:#FFF1F1;box-shadow:0 4px 0 #FCA5A5;margin:0 0 4px;padding:16px;color:#0F172A;font-family:Nunito, system-ui, sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 90ms cubic-bezier(.4,0,.2,1),box-shadow 90ms cubic-bezier(.4,0,.2,1),background 260ms,border-color 260ms}.ds-alert-row:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}.ds-alert-row:active{transform:translateY(4px);box-shadow:0 0 0 #FCA5A5}.ds-alert-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border-radius:16px;background:#FFF1F1;border:2px solid #FCA5A5;color:#DC2626;box-sizing:border-box}.ds-alert-text{flex:1;min-width:0}.ds-alert-head{display:flex;align-items:center;gap:8px}.ds-alert-title{flex:1;margin:0;font-size:19px;line-height:24px;font-weight:800;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ds-alert-badge{flex:none;display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#DC2626;color:#FFFFFF;font-size:10px;line-height:14px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase}.ds-alert-sentence{margin:6px 0 0;font-size:13px;line-height:18px;font-weight:700;color:#64748B;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ds-alert-meta{margin:8px 0 0;font-size:13px;line-height:18px;font-weight:700;color:#64748B;font-variant-numeric:tabular-nums}.ds-alert-badge{display:inline-flex;margin-top:6px}"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-danger",
+      "description": "Filled for the loud bands and outlined for quiet states. In the dark theme the amber badge takes brown ink and the danger badge sits on #B91C1C — a 10sp label owes 4.5:1, which the vivid dark fills do not give.",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-badge-danger\">Darurat</span><span class=\"ds-badge ds-badge-warn\">Peringatan</span><span class=\"ds-badge ds-badge-quiet-safe\"><svg viewBox=\"0 0 24 24\" width=\"12\" height=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"/><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"/></svg>Terhubung</span></div>",
+      "css": ".ds-badges{display:flex;flex-wrap:wrap;gap:8px;font-family:Nunito, system-ui, sans-serif}.ds-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;font-size:10px;line-height:14px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;box-sizing:border-box}.ds-badge svg{width:12px;height:12px}.ds-badge-danger{background:#DC2626;color:#FFFFFF}@media (prefers-color-scheme:dark){.ds-badge-danger{background:#B91C1C}.ds-badge-warn{background:#F59E0B;color:#2A1A05}}.ds-badge-warn{background:#B45309;color:#FFFFFF}.ds-badge-quiet-safe{background:#F0FDF4;border:1.5px solid #6EE7B7;color:#1D7F4E}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A bordered box in the button's shape: card face, 2.5px Border Strong edge that turns trust blue with the caret while focused, Muted placeholder. No floating label, no indicator line, no glow.",
+      "html": "<label class=\"ds-field\"><input class=\"ds-field-input\" type=\"text\" placeholder=\"Nama panggilan, mis. Ibu\"></label>",
+      "css": ".ds-field{display:block;font-family:Nunito, system-ui, sans-serif}.ds-field-input{width:100%;min-height:56px;padding:14px 16px;border:2.5px solid #CBD5E1;border-radius:16px;background:#FFFFFF;color:#0F172A;font:800 16px/22px Nunito, system-ui, sans-serif;caret-color:#1E40AF;box-sizing:border-box;outline:none;transition:border-color 120ms}.ds-field-input::placeholder{color:#94A3B8;font-weight:800}.ds-field-input:focus{border-color:#1E40AF}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "One nickname among several: a bordered pill with radio semantics that turns trust blue (tint face, trust border, trust text) when chosen. 12px radius, 48px minimum height, no shadow.",
+      "html": "<div class=\"ds-chips\" role=\"radiogroup\"><button class=\"ds-chip\" role=\"radio\" aria-checked=\"true\">Ibu</button><button class=\"ds-chip\" role=\"radio\" aria-checked=\"false\">Bapak</button><button class=\"ds-chip\" role=\"radio\" aria-checked=\"false\">Nenek</button></div>",
+      "css": ".ds-chips{display:flex;flex-wrap:wrap;gap:10px;font-family:Nunito, system-ui, sans-serif}.ds-chip{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 18px;border:2.5px solid #E2E8F0;border-radius:12px;background:#FFFFFF;color:#0F172A;font-family:inherit;font-size:16px;line-height:22px;font-weight:800;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 160ms,border-color 160ms,color 160ms}.ds-chip[aria-checked=\"true\"]{background:#EFF6FF;border-color:#1E40AF;color:#1E40AF}.ds-chip:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "The guardian's three destinations on a card-coloured bar with a 2.5px top rule: the active tab sits in a trust-tint pill (12px radius, 2px trust border), the others in Muted; an 18px red count with a 2px card ring sits on the bell.",
+      "html": "<nav class=\"ds-bottom-nav\"><button class=\"ds-nav-item\" aria-selected=\"true\"><span class=\"ds-nav-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.268 21a2 2 0 0 0 3.464 0\"/><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\"/></svg><span class=\"ds-nav-count\">3</span></span>Peringatan</button><button class=\"ds-nav-item\"><span class=\"ds-nav-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/><path d=\"M12 7v5l4 2\"/></svg></span>Riwayat</button><button class=\"ds-nav-item\"><span class=\"ds-nav-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"/><path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/></svg></span>Setelan</button></nav>",
+      "css": ".ds-bottom-nav{display:flex;align-items:center;justify-content:space-evenly;min-height:64px;padding:6px 12px;background:#FFFFFF;border-top:2.5px solid #E2E8F0;font-family:Nunito, system-ui, sans-serif;box-sizing:border-box}.ds-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:52px;padding:6px 0;border:2px solid #FFFFFF;border-radius:12px;background:#FFFFFF;color:#94A3B8;font-family:inherit;font-size:10px;line-height:14px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 160ms,border-color 160ms,color 160ms}.ds-nav-item[aria-selected=\"true\"]{background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF}.ds-nav-item:focus-visible{outline:2.5px solid #1E40AF;outline-offset:3px}.ds-nav-icon{position:relative;display:inline-flex}.ds-nav-icon svg{width:22px;height:22px}.ds-nav-count{position:absolute;top:-7px;left:14px;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#DC2626;border:2px solid #FFFFFF;color:#FFFFFF;font-size:10px;line-height:1;font-weight:900;letter-spacing:0;box-sizing:border-box}"
+    },
+    {
+      "name": "Protected Status Card",
+      "kind": "custom",
+      "refersTo": "card-safe",
+      "description": "The whole protected-person home: one card, zero decisions. Below the divider it says what is happening and who is doing it as 20sp sentences — no 10sp label over a value, which is a guardian-screen device.",
+      "html": "<article class=\"ds-status-card\"><div class=\"ds-status-hero\"><svg viewBox=\"0 0 24 24\" width=\"40\" height=\"40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg></div><h2 class=\"ds-status-title\">HP ini sedang dilindungi</h2><p class=\"ds-status-body\">Penjaga Anda ikut mengawasi HP ini. Kalau ada aplikasi berbahaya dipasang, RONDA menutupnya dan langsung memberi tahu mereka.</p><hr class=\"ds-status-divider\"><div class=\"ds-status-line\"><span class=\"ds-status-chip\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/></svg></span><p>Pengawasan aktif</p></div><div class=\"ds-status-line\"><span class=\"ds-status-chip\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/><path d=\"M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66\"/><path d=\"m18 15-2-2\"/><path d=\"m15 18-2-2\"/></svg></span><p>Dijaga oleh Rina</p></div></article>",
+      "css": ".ds-status-card{border:2.5px solid #6EE7B7;border-radius:20px;background:#F0FDF4;box-shadow:0 4px 0 #6EE7B7;margin:0 0 4px;padding:20px;color:#0F172A;font-family:Nunito, system-ui, sans-serif;text-align:center;transition:background 260ms,border-color 260ms}.ds-status-hero{display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:24px;background:#1D7F4E;border:2px solid #1D7F4E;color:#FFFFFF;box-sizing:border-box}.ds-status-hero svg{width:40px;height:40px}.ds-status-title{margin:20px 0 0;font-size:30px;line-height:36px;font-weight:900;letter-spacing:-0.02em}.ds-status-body{margin:10px 0 0;font-size:20px;line-height:30px;font-weight:700}.ds-status-divider{height:1.5px;border:0;background:#6EE7B7;margin:20px 0 16px}.ds-status-line{display:flex;align-items:center;gap:12px;text-align:left;margin-top:12px}.ds-status-chip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border-radius:16px;background:#F0FDF4;border:2px solid #6EE7B7;color:#1D7F4E}.ds-status-line p{margin:0;font-size:20px;line-height:30px;font-weight:700;color:#0F172A}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trusted Guardian",
+    "overview": "RONDA borrows the structure of a learning app — chunky buttons that physically press, cards with thick borders, heavy rounded type — and drains the classroom out of it. Nothing is neon, nothing is a mascot, nothing is a gradient. The green is a forest green, the type is Nunito at bold weights and heavier, the icons are a single 2.2dp round stroke, and every surface is flat: depth is a solid drop in the border colour, never a blur. The result is meant to feel warm enough for an elderly parent and serious enough for a security tool — the two things a scam-defence app has to be at once.\n\nThe system is built for two hands *(direction contract)*. The guardian's screens are a dense, blue-chromed control room: a status hero, lists of flagged apps with badges and consequence sentences, a bottom bar with an active trust-tint pill. The protected person's screens are one green card that asks nothing: 30sp title, 20sp body, a filled shield, two status rows, and a privacy card below — never a destructive button, never a technical string. The same components serve both; they switch tiers with a single `large = true` flag rather than becoming different components.\n\nColour is spent, not decorated. Green means guarded, red means flagged, blue means the guardian's own chrome, and amber (the build's one addition to the brief) means \"not yet\" — a permission still off, a warning-band score. Quiet rows read quiet so loud rows stay credible. The build refuses the antivirus dashboard (threat meters, red everywhere, \"scan now\") and the wellness-app softness that would make a security tool look like a habit tracker; both rejections are confirmed in the direction contract.",
+    "keyCharacteristics": [
+      "Flat faces on solid drops: a 2.5dp border and a 4dp drop under every card, a 5dp drop under every primary button; no blur shadows, no tonal elevation, no gradients, no glass.",
+      "Tactile press as the signature motion: the face travels 5dp (cards 4dp) onto its drop in 90ms and springs back.",
+      "One typeface at heavy weights: Nunito 700 is the *body* weight; 800 for titles and buttons; 900 for headlines, badges and numerals.",
+      "Semantic colour families of four (fill / shadow / tint / border) — components take a `Tone`, never a colour.",
+      "Two type tiers: a Material-mapped guardian scale (15sp body) and a LargePrint tier for the protected person (20sp body, 30sp title, 18sp button labels).",
+      "Custom stroke icons only — 24dp grid, 2.2dp round stroke, tinted at use; no emoji anywhere.",
+      "Light and dark, where dark is deep navy (`#0A0F1E`), never black; semantic colours keep their meaning in both.",
+      "Nothing square: minimum 8dp radius on any container."
+    ],
+    "rules": [
+      {
+        "name": "The Family-of-Four Rule",
+        "body": "Every semantic hue ships as fill, shadow, tint and border, and a component asks for a `Tone` (SAFE, DANGER, TRUST, WARN, NEUTRAL), never a colour. A tactile button is fill over shadow; a state card is tint inside border; a quiet badge is tint, border and fill-coloured text. If a new colour cannot be expressed as this family it does not belong in the system.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Red Rule",
+        "body": "Red is spent only on a flagged app and on the uninstall action. \"Not yet\" states — a permission still off, a PERINGATAN score, a lost connection — take amber, so the one red that matters stays alarming. Below the guardian threshold (score < 60) a row is a plain card with a quiet badge and no consequence sentence: quiet must read quiet.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never-Black Rule",
+        "body": "Dark mode sits on deep navy (`#0A0F1E`), cards on `#1E293B`; `#000000` is never used as a ground. Fills brighten and tints darken so meaning survives the switch; dynamic (wallpaper-derived) colour is off because it would repaint green and red.",
+        "section": "colors"
+      },
+      {
+        "name": "The White-on-Fill Rule",
+        "body": "Text and icons on a filled semantic colour are white — in both themes on a *button*, whose label is 16sp or larger and clears the large-text bar. Known trade-off carried from the brief (§9.5), not a target: on the dark fills white measures 2.3:1 on green (`#22C55E`) and 3.7:1 on blue; the light fills all clear 4.8:1. Flagged for the team in the direction contract.",
+        "section": "colors"
+      },
+      {
+        "name": "The Bold-Is-Body Rule",
+        "body": "700 is the lightest weight in the system. Nothing is set regular or medium; hierarchy comes from size, weight steps of 700 → 800 → 900, and colour (Ink vs Slate), not from thin type.",
+        "section": "typography"
+      },
+      {
+        "name": "The Upper-Case-Is-Label Rule",
+        "body": "Upper case with +0.18em tracking belongs to labels, badges, nav and section headings only (the tactile button is upper case at +0.05em). Everything else is sentence case. Components apply `.uppercase()` at render time; strings are authored in sentence case so translations stay clean.",
+        "section": "typography"
+      },
+      {
+        "name": "The Large-Print Rule",
+        "body": "Any screen the protected person reads is set in the LargePrint tier — 20sp body minimum, 30sp title, 18sp button labels — by passing `large = true` to the shared components, never by building a second component.",
+        "section": "typography"
+      },
+      {
+        "name": "The Large-Print Floor Rule",
+        "body": "No text on a screen the protected person reads falls below 20sp — including field labels, step counters and the warning overlay. The 10sp `label` step, and the label/value info row built on it, are guardian-only devices; a protected screen states the same fact as a whole sentence at 20sp (\"Pengawasan aktif\", \"Dijaga oleh Rina\") rather than as a label over a value.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Anything numeric that sits in a column or is compared — scores, times, the pairing code — is set with `tnum` so 96 and 100 share a column and a ticking time does not jitter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Solid-Drop Rule",
+        "body": "If something needs to look raised, it gets a solid offset drop in its own edge colour and a matching border. Never a blurred shadow, never Material elevation, never a gradient edge.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Press-Travels Rule",
+        "body": "Anything pressable travels onto its drop: buttons 5dp, tappable cards 4dp, in 90ms with fast-out-slow-in easing, no ripple (`indication = null`). A disabled button keeps its shape and drop and loses only its colour, so layouts never jump when a field becomes valid.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Nothing-Square Rule",
+        "body": "Minimum radius on any container is 8dp; there is no 0dp corner in the system, and no \"sharp\" variant of anything.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Radius-Follows-Size Rule",
+        "body": "An icon box picks its own radius from its size (≥48dp → 24dp, ≥40dp → 16dp, smaller → 12dp). Do not pass a radius; pass a size.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do give every action a Tone and let the family follow: SAFE for progress and confirmation, DANGER only for uninstall, TRUST for guardian confirmations and anything \"chosen\", WARN for \"not yet\", NEUTRAL for information.",
+      "Do put one filled tactile button on a screen and make every other action a secondary button or a text action; the filled one is the decision.",
+      "Do build every raised surface as a face with a 2.5dp border on a solid 4dp (card) or 5dp (button) drop in the edge colour, and let it travel onto the drop when pressed.",
+      "Do set protected-person screens in the LargePrint tier by passing large = true — 20sp body, 30sp title, 18sp button labels — and keep them to one status card, one privacy card, and at most one action that keeps protection.",
+      "Do keep quiet rows quiet: below the guardian threshold a row is a plain card with a quiet badge and no consequence sentence.",
+      "Do use RondaIcons only — 24dp grid, 2.2dp round stroke, tinted from context (white on a fill, the tone's colour on a tint, Ink on Smoke) — at 22dp by default, inside an icon box whose radius follows its size.",
+      "Do upper-case labels, badges, nav and button text in the component (.uppercase()), and author strings in sentence case in values/ (English) and values-in/ (Indonesian) so translations and TalkBack stay clean.",
+      "Do put friction (a ConfirmSheet) on actions that reduce safety — mark safe, unpair — and none on actions that keep it.",
+      "Do keep every word on a protected-person screen at 20sp or larger, the warning overlay included, and state facts there as whole sentences rather than as a 10sp label over a value.",
+      "Do set figures that get compared or tick — scores, times, the pairing code — in tabular numerals.",
+      "Do brand the overlay as RONDA (wordmark, tagline, the system card) and keep it theme-independent and exit-less."
+    ],
+    "donts": [
+      "Don't use Duolingo's neon green (#58CC02) or any colour outside the semantic families; a colour that cannot be expressed as fill/shadow/tint/border does not belong.",
+      "Don't spend red on anything but a flagged app and the uninstall action; \"not yet\" is amber.",
+      "Don't add gradients, blur, glass, Material elevation or blurred shadows — depth is a solid drop, surfaces are flat.",
+      "Don't use emoji, glyph fonts or Material's default icons; every pictogram is a RondaIcons stroke drawable.",
+      "Don't set any container below an 8dp radius, or any text below weight 700.",
+      "Don't put white on a dark-theme *badge* fill: ask badgeFill(tone) and onFill(tone), which give the amber badge brown ink and the danger badge the deeper #B91C1C. Buttons keep the brief's vivid fills.",
+      "Don't use Muted (#94A3B8) for a sentence or a label the reader must read — it is for inactive nav items and placeholders only.",
+      "Don't use #000000 as a ground, and don't enable dynamic colour; dark mode is deep navy and the semantic hues keep their meaning.",
+      "Don't reach for Material's TextField, RadioButton, Button or Card — the system's own field, radio dot, tactile button and card exist so nothing on screen arrives in Roboto or baseline purple.",
+      "Don't show a protected person a technical string (package name, permission name), a destructive button, a pairing change, or more than two cards on one screen.",
+      "Don't let the overlay mimic a system dialog or offer a \"continue anyway\" — the only exits are the Home button and the guardian marking the app safe."
+    ]
+  }
+}

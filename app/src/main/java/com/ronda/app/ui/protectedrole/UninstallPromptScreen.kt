@@ -1,5 +1,6 @@
 package com.ronda.app.ui.protectedrole
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,22 +9,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ronda.app.R
+import com.ronda.app.ui.components.IconBox
+import com.ronda.app.ui.components.RondaCard
+import com.ronda.app.ui.components.RondaIcons
+import com.ronda.app.ui.components.RondaTopBar
+import com.ronda.app.ui.components.TactileButton
+import com.ronda.app.ui.components.TextAction
+import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.screenInsets
+import com.ronda.app.ui.theme.LargePrint
+import com.ronda.app.ui.theme.LargePrintTitle
+import com.ronda.app.ui.theme.RondaTheme
+import com.ronda.app.ui.theme.Tone
 
 /**
  * What the protected phone shows once the guardian asks for an app to be removed.
@@ -35,7 +41,8 @@ import com.ronda.app.R
  * app?" with no idea where it came from, which is exactly the confusion scammers
  * rely on.
  *
- * Type is large and the contrast is high for the same reason the overlay is.
+ * Red is spent once, on the card that names the app and on the button that
+ * removes it — the one irreversible action DESIGN.md allows a red button for.
  */
 @Composable
 fun UninstallPromptScreen(
@@ -44,83 +51,84 @@ fun UninstallPromptScreen(
     onLater: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = RondaTheme.colors
+
+    // System Back means the same as "Nanti saja": the prompt comes back later
+    // and the app underneath stays blocked either way.
+    BackHandler(onBack = onLater)
+
     Column(
-        modifier = modifier
+        modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .screenInsets()
     ) {
-        Text(
-            text = stringResource(R.string.uninstall_prompt_title),
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
-        )
+        RondaTopBar(leading = { Wordmark() })
 
-        Spacer(Modifier.height(24.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = appLabel,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.uninstall_prompt_body),
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-
-        Spacer(Modifier.height(28.dp))
-
-        Text(
-            text = stringResource(R.string.uninstall_prompt_next),
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(Modifier.height(28.dp))
-
-        Button(
-            onClick = onConfirm,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.uninstall_prompt_confirm),
-                fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 6.dp)
+                text = stringResource(R.string.uninstall_prompt_title),
+                style = LargePrintTitle,
+                color = colors.textPrimary,
+                textAlign = TextAlign.Center
             )
-        }
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(24.dp))
+            RondaCard(tone = Tone.DANGER) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconBox(icon = RondaIcons.triangleWarning, tone = Tone.DANGER, size = 72.dp)
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = appLabel,
+                        style = MaterialTheme.typography.displayMedium,
+                        color = colors.textPrimary,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.uninstall_prompt_body),
+                        style = LargePrint,
+                        color = colors.textPrimary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
 
-        // The app underneath stays blocked either way, so deferring is safe.
-        TextButton(onClick = onLater) {
-            Text(stringResource(R.string.uninstall_prompt_later), fontSize = 17.sp)
+            Spacer(Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.uninstall_prompt_next),
+                style = LargePrint,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(28.dp))
+            TactileButton(
+                text = stringResource(R.string.uninstall_prompt_confirm),
+                onClick = onConfirm,
+                tone = Tone.DANGER,
+                icon = RondaIcons.trash,
+                large = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(8.dp))
+            // The app underneath stays blocked either way, so deferring is safe.
+            TextAction(
+                text = stringResource(R.string.uninstall_prompt_later),
+                onClick = onLater,
+                large = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

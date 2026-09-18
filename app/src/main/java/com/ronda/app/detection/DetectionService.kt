@@ -7,10 +7,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.ronda.app.R
 import com.ronda.app.alert.CommandHandler
 import com.ronda.app.pairing.RoleStore
 import kotlinx.coroutines.CoroutineScope
@@ -111,24 +111,26 @@ class DetectionService : Service() {
         }
     }
 
+    /**
+     * The visible price of a foreground service, and also the consent indicator
+     * the PRD asks for: the protected person can always see RONDA is watching.
+     */
     private fun createPersistentNotification(): Notification {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "RONDA Monitoring",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Keeps RONDA active in the background to detect threats"
-            }
-            notificationManager.createNotificationChannel(channel)
+
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.channel_monitoring),
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = getString(R.string.channel_monitoring_desc)
         }
+        notificationManager.createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_secure) // using standard icon for now
-            .setContentTitle("RONDA is active")
-            .setContentText("Monitoring device for malicious installations.")
+            .setSmallIcon(R.drawable.ic_shield_check)
+            .setContentTitle(getString(R.string.monitoring_notification_title))
+            .setContentText(getString(R.string.monitoring_notification_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()

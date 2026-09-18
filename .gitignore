@@ -56,3 +56,6 @@ captures/
 .cxx
 local.properties
 **/.DS_Store
+
+# Impeccable inspection screenshots (regenerated on every review round)
+.impeccable/review/

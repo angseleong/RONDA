@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icon box, danger tint: the same 24dp-radius container the Compose hero cards use. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="24dp" />
+    <solid android:color="@color/overlay_danger_tint" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/overlay_card_border" />
+</shape>

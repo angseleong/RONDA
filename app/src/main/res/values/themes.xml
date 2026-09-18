@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.RONDA" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        AppCompat DayNight so the theme toggle (AppCompatDelegate.setDefaultNightMode)
+        and per-app language both apply to the Activity. The window paints the page
+        colour before the first frame, so launch never flashes the wrong theme.
+    -->
+    <style name="Theme.RONDA" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/window_bg</item>
+    </style>
+
+    <!--
+        Splash (USERFLOW §1): the RONDA shield on brand green, drawn by the
+        system on Android 12+ and by core-splashscreen on API 30–31. Swapped
+        for Theme.RONDA by installSplashScreen() before the first frame.
+    -->
+    <style name="Theme.RONDA.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_green</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.RONDA</item>
+    </style>
 </resources>

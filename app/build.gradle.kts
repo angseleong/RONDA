@@ -44,6 +44,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    // Per-app language (AppCompatDelegate.setApplicationLocales) and the theme toggle
+    // (setDefaultNightMode); both are AndroidX, neither exists in ComponentActivity.
+    implementation(libs.androidx.appcompat)
+    // Android 12 splash on every supported API, showing the RONDA icon on brand green.
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.coroutines.android)

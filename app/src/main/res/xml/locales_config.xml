@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The two languages RONDA ships. Lets Android 13+ list them under
+    Settings > App languages.
+
+    Indonesian is declared as "in", Java's legacy code, because that is what
+    the resource folder is named (values-in) and what the platform resolves
+    `LocaleListCompat.forLanguageTags("id")` to internally. Declaring "id"
+    here leaves the folder undeclared and the system list short one language.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="in" />
+    <locale android:name="en" />
+</locale-config>
