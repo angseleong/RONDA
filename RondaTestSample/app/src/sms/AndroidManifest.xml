@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        FLAVOR: sms  (applicationId com.ronda.testsample — baseline "Undangan Pernikahan")
+
+        Sinyal RONDA: SMS_READ (40) + INTERNET (10) + kombo SMS_READ+INTERNET (+15).
+        Skor ~85 -> PERINGATAN. Ini APK umpan yang dipakai di demo.
+
+        Permission ini HANYA dideklarasikan. Aplikasi tidak pernah memintanya saat
+        runtime, tidak pernah membaca SMS, dan tidak punya satu baris pun kode
+        jaringan — jadi INTERNET pun mati total. Yang menjaga APK ini tetap aman
+        adalah ketiadaan kode, bukan ketiadaan baris permission ini.
+
+        Untuk menguji cabang RECEIVE_SMS, ganti READ_SMS di bawah dengan
+        android.permission.RECEIVE_SMS (keduanya dipetakan ke sinyal SMS_READ).
+    -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

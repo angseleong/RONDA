@@ -121,8 +121,8 @@ they may decline.
 - [ ] Update `RiskResult` enum KDoc.
 - [ ] Update user-facing strings di `strings.xml` agar mencakup izin baru.
 - [ ] Update `AlertDetailScreen` untuk menggunakan human-readable permission.
-- [ ] Tambahkan 4 product flavors di `RondaTestSample/app/build.gradle.kts` (`sms`, `accessibility`, `notification`, `overlay`).
-- [ ] Buat manifest dan strings terpisah untuk setiap flavor.
+- [x] Tambahkan product flavors di `RondaTestSample/app/build.gradle.kts` (`sms`, `accessibility`, `notification`, `overlay`, + `deviceadmin`, `dropper`).
+- [x] Buat manifest dan strings terpisah untuk setiap flavor.
 
 ## ACTIVE — Block 4D: Resilience - Battery Optimization (Pre-Demo)
 
@@ -170,5 +170,5 @@ they may decline.
 - [ ] Pre-fill kode pairing di `ProtectedPairingScreen` jika dibuka lewat deep link.
 
 ### Block 4E: Strategy Document
-- [ ] Buat file `docs/STRATEGY.md`.
-- [ ] Tulis poin-poin kemitraan (OJK, Kominfo, Bank) dan roadmap monetisasi.
+- [x] Buat file `docs/STRATEGY.md`.
+- [x] Tulis poin-poin kemitraan (OJK, Kominfo, Bank) dan roadmap monetisasi.

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        FLAVOR: notification  (com.ronda.testsample.notification — "Cek Resi Kilat")
+
+        Sinyal RONDA:
+          - NOTIF_LISTENER (30)  dari <service> ber-permission
+            BIND_NOTIFICATION_LISTENER_SERVICE
+          - INTERNET (10)
+          - kombo NOTIF_LISTENER+INTERNET (+15)  <- jalur curi OTP dari notifikasi
+        Skor ~70 -> PERINGATAN.
+
+        NotifStubService kosong dan tanpa intent-filter listener, jadi tidak
+        pernah aktif membaca notifikasi apa pun. Hanya ada untuk dibaca RONDA.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".NotifStubService"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="false" />
+    </application>
+
+</manifest>

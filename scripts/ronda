@@ -188,8 +188,8 @@ cmd_pair() {
 cmd_attack() {
   local installer="${1:-}" p apk
   p="$(protected)"
-  apk="$ROOT/RondaTestSample/app/build/outputs/apk/debug/app-debug.apk"
-  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q :app:assembleDebug)
+  apk="$ROOT/RondaTestSample/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
+  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q :app:assembleSmsDebug)
   "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
   if [ -n "$installer" ]; then
     say "Pasang APK umpan seolah-olah dari $installer"
@@ -200,6 +200,34 @@ cmd_attack() {
   fi
   sleep 3
   "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -6
+}
+
+# Pasang satu flavor APK umpan untuk menguji parameter di luar READ_SMS.
+#   scripts/ronda sample accessibility                     → sideload → DARURAT
+#   scripts/ronda sample overlay                           → sideload → RENDAH (tidak alert)
+#   scripts/ronda sample notification com.android.vending  → seolah Play Store
+# Flavor: sms | accessibility | notification | overlay | deviceadmin | dropper
+cmd_sample() {
+  local flavor="${1:-}" installer="${2:-}" p apk pkg cap
+  [ -n "$flavor" ] || die "Sebutkan flavor: sms|accessibility|notification|overlay|deviceadmin|dropper"
+  p="$(protected)"
+  # Nama task Gradle memakai huruf kapital di awal: assembleAccessibilityDebug.
+  cap="$(printf '%s' "${flavor%"${flavor#?}"}" | tr '[:lower:]' '[:upper:]')${flavor#?}"
+  apk="$ROOT/RondaTestSample/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q ":app:assemble${cap}Debug")
+  [ -f "$apk" ] || die "APK tidak ditemukan / gagal build: $apk"
+  # sms memakai applicationId dasar; flavor lain memakai suffix.
+  if [ "$flavor" = "sms" ]; then pkg="$SAMPLE_PKG"; else pkg="$SAMPLE_PKG.$flavor"; fi
+  "$ADB" -s "$p" uninstall "$pkg" >/dev/null 2>&1 || true
+  if [ -n "$installer" ]; then
+    say "Pasang flavor '$flavor' seolah-olah dari $installer"
+    "$ADB" -s "$p" install -r -t -i "$installer" "$apk" >/dev/null
+  else
+    say "Sideload flavor '$flavor' (bukan dari Play Store)"
+    "$ADB" -s "$p" install -r -t "$apk" >/dev/null
+  fi
+  sleep 3
+  "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -8
 }
 
 # Open the flagged app so the soft-block overlay has something to cover.
@@ -301,6 +329,11 @@ scripts/ronda <perintah>
             Tanpa argumen = sideload → HIGH RISK → alert ke penjaga.
             `attack com.android.vending` = seolah dari Play Store → tidak
             memicu alert (membuktikan aturan dua sinyal).
+  sample <flavor> [installer]
+            Pasang salah satu APK umpan untuk menguji parameter selain READ_SMS.
+            flavor: sms | accessibility | notification | overlay | deviceadmin |
+            dropper. Tanpa installer = sideload. Lihat RondaTestSample/README.md
+            untuk skor tiap flavor.
   victim    Buka APK umpan di HP orang tua → overlay RONDA menutupinya
   status    Peran + pairing tiap HP
   logs      Logcat gabungan kedua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
@@ -314,7 +347,7 @@ cmd="${1:-help}"
 if [ $# -gt 0 ]; then shift; fi
 
 case "$cmd" in
-  demo|up|install|reset|perms|open|role|pair|attack|victim|status|logs|shot|help)
+  demo|up|install|reset|perms|open|role|pair|attack|sample|victim|status|logs|shot|help)
     "cmd_$cmd" "$@" ;;
   *) die "Perintah tidak dikenal: $cmd (lihat: scripts/ronda help)" ;;
 esac
