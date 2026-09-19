@@ -91,6 +91,7 @@
     <string name="settings_language">Bahasa</string>
     <string name="settings_privacy">Privasi</string>
     <string name="settings_disconnect">Putuskan hubungan</string>
+    <string name="settings_scan">Periksa HP ini sekarang</string>
     <string name="settings_version">RONDA versi %1$s</string>
     <string name="rename_title">Nama panggilan</string>
     <string name="rename_body">Dipakai di seluruh layar Anda, misalnya \"HP Ibu\".</string>

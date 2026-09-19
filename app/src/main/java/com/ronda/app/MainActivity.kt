@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,10 +26,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.ronda.app.ui.protectedrole.ProtectedTab
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -51,9 +59,11 @@ import com.ronda.app.ui.guardian.GuardianHomeScreen
 import com.ronda.app.ui.guardian.GuardianPairingScreen
 import com.ronda.app.ui.guardian.GuardianTab
 import com.ronda.app.ui.guardian.GuardianViewModel
+import com.ronda.app.ui.guardian.PairingInfo
 import com.ronda.app.ui.onboarding.IntroScreen
 import com.ronda.app.ui.onboarding.LanguageScreen
 import com.ronda.app.ui.onboarding.RoleSelectionScreen
+import com.ronda.app.ui.protectedrole.InitialScanScreen
 import com.ronda.app.ui.protectedrole.ProtectedHomeScreen
 import com.ronda.app.ui.protectedrole.ProtectedPairingScreen
 import com.ronda.app.ui.protectedrole.UninstallPromptScreen
@@ -78,15 +88,20 @@ class MainActivity : AppCompatActivity() {
     private var status by mutableStateOf(SetupStatus(false, false, false, false))
     private var role by mutableStateOf<Role?>(null)
     private var pairingId by mutableStateOf<String?>(null)
+    private var pairingIds by mutableStateOf<Set<String>>(emptySet())
+    private var addingDevice by mutableStateOf(false)
     private var protectedName by mutableStateOf("")
     private var guardianName by mutableStateOf("")
     private var languageChosen by mutableStateOf(false)
     private var introSeen by mutableStateOf(false)
     private var themeMode by mutableStateOf(ThemeMode.SYSTEM)
+    private var initialScanDone by mutableStateOf(false)
 
     /** Guardian: which app's detail screen is open, addressed by package. */
     private var selectedPackage by mutableStateOf<String?>(null)
+    private var selectedPairingId by mutableStateOf<String?>(null)
     private var guardianTab by mutableStateOf(GuardianTab.ALERTS)
+    private var protectedTab by mutableStateOf(ProtectedTab.ALERTS)
 
     /** Protected: the uninstall request to show, and whether it was deferred. */
     private var pendingUninstall by mutableStateOf<PendingUninstall?>(null)
@@ -104,14 +119,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        savedInstanceState?.getString("guardian_tab")?.let {
+            runCatching { guardianTab = GuardianTab.valueOf(it) }
+        }
+        savedInstanceState?.getString("protected_tab")?.let {
+            runCatching { protectedTab = ProtectedTab.valueOf(it) }
+        }
+
         role = roleStore.role
         pairingId = roleStore.pairingId
+        pairingIds = roleStore.pairingIds
         protectedName = roleStore.protectedName
         guardianName = roleStore.guardianName
         languageChosen = settings.languageChosen
         introSeen = settings.introSeen
         themeMode = settings.themeMode
+        initialScanDone = settings.initialScanDone
         selectedPackage = intent.getStringExtra(EXTRA_PACKAGE)
+        selectedPairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
 
         // Only on a genuinely new launch, so a rotation does not re-prompt. On a
         // protected phone the wizard asks instead, one permission at a time.
@@ -124,11 +149,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("guardian_tab", guardianTab.name)
+        outState.putString("protected_tab", protectedTab.name)
+    }
+
     /** The guardian taps an alert notification while RONDA is already open. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent.getStringExtra(EXTRA_PACKAGE)?.let { selectedPackage = it }
+        selectedPackage = intent.getStringExtra(EXTRA_PACKAGE)
+        selectedPairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
     }
 
     override fun onResume() {
@@ -139,7 +171,7 @@ class MainActivity : AppCompatActivity() {
     private enum class Screen {
         LANGUAGE, INTRO, ROLE,
         GUARDIAN_PAIRING, GUARDIAN_HOME, ALERT_DETAIL,
-        PROTECTED_PAIRING, UNINSTALL_PROMPT, PROTECTED_SETUP, PROTECTED_HOME
+        PROTECTED_PAIRING, INITIAL_SCAN, UNINSTALL_PROMPT, PROTECTED_SETUP, PROTECTED_HOME
     }
 
     private fun currentScreen(): Screen = when {
@@ -147,13 +179,14 @@ class MainActivity : AppCompatActivity() {
         !introSeen -> Screen.INTRO
         role == null -> Screen.ROLE
         role == Role.GUARDIAN -> when {
-            pairingId == null -> Screen.GUARDIAN_PAIRING
+            addingDevice || pairingIds.isEmpty() -> Screen.GUARDIAN_PAIRING
             selectedPackage != null -> Screen.ALERT_DETAIL
             else -> Screen.GUARDIAN_HOME
         }
 
         else -> when {
             pairingId == null -> Screen.PROTECTED_PAIRING
+            !initialScanDone -> Screen.INITIAL_SCAN
             pendingUninstall != null && !uninstallDeferred -> Screen.UNINSTALL_PROMPT
             !status.isFullyProtected && !setupDismissed -> Screen.PROTECTED_SETUP
             else -> Screen.PROTECTED_HOME
@@ -175,6 +208,46 @@ class MainActivity : AppCompatActivity() {
                     }
                     pendingUninstall = request
                 }
+            }
+        }
+
+        if (role == Role.PROTECTED && pairingId != null) {
+            val currentId = pairingId!!
+            LaunchedEffect(currentId) {
+                com.google.firebase.database.FirebaseDatabase.getInstance().reference
+                    .child("pairings").child(currentId).child("status").valueEvents().collect { snapshot ->
+                        val st = snapshot.getValue(String::class.java)
+                        if (st == com.ronda.app.pairing.Pairing.STATUS_REVOKED) {
+                            Log.d(TAG, "Pairing was revoked remotely")
+                            disconnectProtected()
+                        }
+                    }
+            }
+        }
+        if (role == Role.GUARDIAN && pairingIds.isNotEmpty()) {
+            LaunchedEffect(pairingIds) {
+                val flows = pairingIds.map { id ->
+                    com.google.firebase.database.FirebaseDatabase.getInstance().reference
+                        .child("pairings").child(id).child("status").valueEvents().map { id to it.getValue(String::class.java) }
+                }
+                combine(flows) { it.toList() }.collect { list ->
+                    for ((id, st) in list) {
+                        if (st == com.ronda.app.pairing.Pairing.STATUS_REVOKED) {
+                            Log.d(TAG, "Pairing $id revoked remotely by Rondee")
+                            disconnectDevice(id)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (addingDevice) {
+            BackHandler { addingDevice = false }
+        }
+        if (selectedPackage != null) {
+            BackHandler {
+                selectedPackage = null
+                selectedPairingId = null
             }
         }
 
@@ -200,63 +273,84 @@ class MainActivity : AppCompatActivity() {
                     Screen.GUARDIAN_PAIRING -> GuardianPairingScreen(
                         guardianDeviceId = roleStore.deviceId,
                         initialGuardianName = guardianName,
-                        initialNickname = protectedName,
+                        initialNickname = if (addingDevice) "" else protectedName,
                         onIdentityChosen = { name, nickname ->
                             roleStore.guardianName = name
                             guardianName = name
-                            rename(nickname)
+                            protectedName = nickname
                         },
-                        onPaired = { code -> onPaired(code, guardianName) }
+                        onPaired = { code -> onPaired(code, guardianName) },
+                        onCancel = if (addingDevice) ({ addingDevice = false }) else null
                     )
 
-                    Screen.GUARDIAN_HOME -> pairingId?.let { pairing ->
-                        val viewModel = guardianViewModel(pairing)
-                        val state by viewModel.state.collectAsState()
-                        GuardianHomeScreen(
-                            state = state,
-                            protectedName = protectedName,
-                            pairingCode = pairing,
-                            demo = pairing == DEMO_PAIRING,
-                            tab = guardianTab,
-                            onTabChange = { guardianTab = it },
-                            onVerdictClick = { selectedPackage = it.packageName },
-                            themeMode = themeMode,
-                            onThemeChange = ::changeTheme,
-                            language = AppLanguage.current(),
-                            onLanguageChange = { settings.setLanguage(it) },
-                            onRename = ::rename,
-                            onDisconnect = ::disconnect
-                        )
+                    Screen.GUARDIAN_HOME -> {
+                        if (pairingIds.isNotEmpty()) {
+                            val viewModel = guardianViewModel(pairingIds)
+                            val state by viewModel.state.collectAsState()
+                            val devices = pairingIds.map { id ->
+                                PairingInfo(id, roleStore.getProtectedName(id))
+                            }
+                            GuardianHomeScreen(
+                                state = state,
+                                devices = devices,
+                                demo = pairingIds.contains(DEMO_PAIRING),
+                                tab = guardianTab,
+                                onTabChange = { guardianTab = it },
+                                onVerdictClick = {
+                                    selectedPairingId = it.pairingId
+                                    selectedPackage = it.packageName
+                                },
+                                themeMode = themeMode,
+                                onThemeChange = ::changeTheme,
+                                language = AppLanguage.current(),
+                                onLanguageChange = { settings.setLanguage(it) },
+                                onRename = ::renameDevice,
+                                onDisconnect = ::disconnectDevice,
+                                onAddDevice = ::addDevice,
+                                onScan = { id -> viewModel.requestScan(id) }
+                            )
+                        }
                     }
 
                     Screen.ALERT_DETAIL -> {
-                        val pairing = pairingId
-                        val packageName = selectedPackage
-                        if (pairing != null && packageName != null) {
-                            val viewModel = guardianViewModel(pairing)
-                            val state by viewModel.state.collectAsState()
-                            val selected = viewModel.find(packageName)
-                            if (selected != null) {
-                                AlertDetailScreen(
-                                    verdict = selected,
-                                    protectedName = protectedName,
-                                    undoable = state.undoable == selected.packageName,
-                                    onMarkUnsafe = { viewModel.markUnsafe(selected.packageName) },
-                                    onMarkSafe = { viewModel.markSafe(selected.packageName) },
-                                    onUndo = { viewModel.undoMarkSafe(selected.packageName) },
-                                    onRequestUninstall = { viewModel.requestUninstall(selected.packageName) },
-                                    onBack = { selectedPackage = null }
-                                )
-                            } else {
-                                // Opened from a notification before the list arrived.
-                                LoadingDetail(onBack = { selectedPackage = null })
-                            }
+                        val viewModel = guardianViewModel(pairingIds)
+                        val state by viewModel.state.collectAsState()
+                        
+                        val verdict = viewModel.find(selectedPairingId, selectedPackage)
+                        if (verdict != null) {
+                            AlertDetailScreen(
+                                verdict = verdict,
+                                protectedName = roleStore.getProtectedName(verdict.pairingId),
+                                onMarkSafe = { viewModel.markSafe(verdict.pairingId, it) },
+                                onMarkUnsafe = { viewModel.markUnsafe(verdict.pairingId, it) },
+                                onUndoSafe = { viewModel.undoMarkSafe(verdict.pairingId, it) },
+                                onRequestUninstall = { viewModel.requestUninstall(verdict.pairingId, it) },
+                                onClose = {
+                                    selectedPairingId = null
+                                    selectedPackage = null
+                                }
+                            )
+                        } else {
+                            selectedPairingId = null
+                            selectedPackage = null
                         }
                     }
 
                     Screen.PROTECTED_PAIRING -> ProtectedPairingScreen(
                         protectedDeviceId = roleStore.deviceId,
                         onPaired = ::onPaired
+                    )
+
+                    Screen.INITIAL_SCAN -> InitialScanScreen(
+                        onScan = {
+                            val serviceIntent = Intent(this@MainActivity, DetectionService::class.java)
+                            serviceIntent.action = ACTION_SCAN_EXISTING
+                            startForegroundService(serviceIntent)
+                        },
+                        onComplete = {
+                            settings.initialScanDone = true
+                            initialScanDone = true
+                        }
                     )
 
                     Screen.UNINSTALL_PROMPT -> pendingUninstall?.let { request ->
@@ -279,12 +373,39 @@ class MainActivity : AppCompatActivity() {
                         onBack = { setupDismissed = true }
                     )
 
-                    Screen.PROTECTED_HOME -> ProtectedHomeScreen(
-                        status = status,
-                        pairingCode = pairingId.orEmpty(),
-                        guardianName = guardianName,
-                        onContinueSetup = { setupDismissed = false }
-                    )
+                    Screen.PROTECTED_HOME -> {
+                        val flaggedStore = remember { FlaggedAppStore(this@MainActivity) }
+                        var flaggedPackages by remember { mutableStateOf(flaggedStore.flaggedPackages()) }
+                        val historyStore = remember { com.ronda.app.detection.ProtectedHistoryStore(this@MainActivity) }
+                        var historyItems by remember { mutableStateOf(historyStore.history()) }
+
+                        LaunchedEffect(protectedTab) {
+                            flaggedPackages = flaggedStore.flaggedPackages()
+                            historyItems = historyStore.history()
+                        }
+
+                        ProtectedHomeScreen(
+                            status = status,
+                            pairingCode = pairingId.orEmpty(),
+                            guardianName = guardianName,
+                            tab = protectedTab,
+                            onTabChange = { protectedTab = it },
+                            flaggedPackages = flaggedPackages,
+                            historyItems = historyItems,
+                            themeMode = themeMode,
+                            onThemeChange = ::changeTheme,
+                            language = AppLanguage.current(),
+                            onLanguageChange = { settings.setLanguage(it) },
+                            onContinueSetup = { setupDismissed = false },
+                            onManualScan = {
+                                val serviceIntent = Intent(this@MainActivity, DetectionService::class.java)
+                                serviceIntent.action = ACTION_SCAN_EXISTING
+                                startForegroundService(serviceIntent)
+                            },
+                            onUninstall = ::startUninstall,
+                            onDisconnect = ::disconnectProtected
+                        )
+                    }
                 }
             }
         }
@@ -307,15 +428,15 @@ class MainActivity : AppCompatActivity() {
      * is keyed on the pairing so unpairing and re-pairing starts clean.
      */
     @Composable
-    private fun guardianViewModel(pairing: String): GuardianViewModel = viewModel(
-        key = pairing,
+    private fun guardianViewModel(pairingIds: Set<String>): GuardianViewModel = viewModel(
+        key = pairingIds.joinToString(),
         factory = viewModelFactory {
             initializer {
                 GuardianViewModel(
-                    if (pairing == DEMO_PAIRING) {
+                    if (pairingIds.contains(DEMO_PAIRING)) {
                         FakeGuardianRepository(protectedName)
                     } else {
-                        FirebaseGuardianRepository(pairing, protectedName)
+                        FirebaseGuardianRepository(pairingIds, protectedName)
                     }
                 )
             }
@@ -340,9 +461,15 @@ class MainActivity : AppCompatActivity() {
         refreshStatus()
     }
 
-    private fun rename(name: String) {
-        roleStore.protectedName = name
-        protectedName = name
+    private fun renameDevice(id: String, name: String) {
+        roleStore.setProtectedName(id, name)
+        if (id == roleStore.pairingId) {
+            roleStore.protectedName = name
+            protectedName = name
+        }
+        // New set instance so the settings list re-reads nicknames.
+        pairingIds = roleStore.pairingIds.toSet()
+        protectedName = protectedName
     }
 
     private fun changeTheme(mode: ThemeMode) {
@@ -357,12 +484,19 @@ class MainActivity : AppCompatActivity() {
      * the claim and keeps it so the home screen can say who is guarding.
      */
     private fun onPaired(code: String, pairedGuardianName: String) {
-        roleStore.pairingId = code
+        if (role == Role.GUARDIAN) {
+            roleStore.addPairing(code, protectedName)
+            pairingIds = roleStore.pairingIds
+            addingDevice = false
+        } else {
+            roleStore.pairingId = code
+        }
         roleStore.guardianName = pairedGuardianName
-        pairingId = code
+        pairingId = roleStore.pairingId
         guardianName = pairedGuardianName
         setupDismissed = false
         refreshStatus()
+        if (role == Role.GUARDIAN) restartGuardianWatch()
     }
 
     /**
@@ -370,12 +504,76 @@ class MainActivity : AppCompatActivity() {
      * `revoked`, so the pairing node stays as it is and this phone simply stops
      * listening. A new code can be made straight away.
      */
-    private fun disconnect() {
-        stopService(Intent(this, GuardianAlertService::class.java))
+    private fun disconnectDevice(id: String) {
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            runCatching {
+                com.ronda.app.alert.CommandRepository().send(
+                    id,
+                    alertId = "",
+                    action = com.ronda.app.alert.Command.ACTION_DISCONNECT,
+                    packageName = ""
+                )
+            }
+            runCatching {
+                com.google.firebase.database.FirebaseDatabase.getInstance().reference
+                    .child("pairings").child(id).child("status")
+                    .setValue(com.ronda.app.pairing.Pairing.STATUS_REVOKED)
+            }
+        }
+
+        roleStore.removePairing(id)
+        pairingIds = roleStore.pairingIds
+        pairingId = roleStore.pairingId
+        if (selectedPairingId == id) {
+            selectedPackage = null
+            selectedPairingId = null
+        }
+        if (pairingIds.isEmpty()) {
+            stopService(Intent(this, GuardianAlertService::class.java))
+            guardianTab = GuardianTab.ALERTS
+            status = SetupStatus(false, false, false, false)
+        } else {
+            restartGuardianWatch()
+        }
+    }
+
+    private fun disconnectProtected() {
+        val currentPairingId = pairingId
+        if (currentPairingId != null) {
+            val scope = CoroutineScope(Dispatchers.IO)
+            scope.launch {
+                runCatching {
+                    com.ronda.app.alert.CommandRepository().send(
+                        currentPairingId,
+                        alertId = "",
+                        action = com.ronda.app.alert.Command.ACTION_DISCONNECT,
+                        packageName = ""
+                    )
+                }
+                runCatching {
+                    com.google.firebase.database.FirebaseDatabase.getInstance().reference
+                        .child("pairings").child(currentPairingId).child("status")
+                        .setValue(com.ronda.app.pairing.Pairing.STATUS_REVOKED)
+                }
+            }
+        }
+
         roleStore.unpair()
         pairingId = null
-        selectedPackage = null
-        guardianTab = GuardianTab.ALERTS
+        stopService(Intent(this, DetectionService::class.java))
+        OverlayService.stop(this)
+        protectedTab = ProtectedTab.ALERTS
+        refreshStatus()
+    }
+
+    private fun addDevice() {
+        addingDevice = true
+    }
+
+    private fun restartGuardianWatch() {
+        stopService(Intent(this, GuardianAlertService::class.java))
+        if (roleStore.pairingIds.isNotEmpty()) GuardianAlertService.start(this)
     }
 
     /**
@@ -427,7 +625,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            Role.GUARDIAN -> if (pairingId != null) GuardianAlertService.start(this)
+            Role.GUARDIAN -> if (roleStore.pairingIds.isNotEmpty()) GuardianAlertService.start(this)
 
             null -> Unit
         }
@@ -445,7 +643,9 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
 
         /** Set by [GuardianAlertService] so a tapped notification opens its alert. */
-        const val EXTRA_PACKAGE = "extra_package"
+        const val EXTRA_PACKAGE = "package"
+        /** Carries the pairing ID that issued the alert when launched from a notification. */
+        const val EXTRA_PAIRING_ID = "pairing_id"
 
         /**
          * Pair with this code to serve the guardian UI from
@@ -459,5 +659,7 @@ class MainActivity : AppCompatActivity() {
          * accident makes that failure impossible.
          */
         const val DEMO_PAIRING = "DEMO01"
+        /** Key for the action to start an existing apps scan manually. */
+        const val ACTION_SCAN_EXISTING = "com.ronda.app.action.SCAN_EXISTING"
     }
 }

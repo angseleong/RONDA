@@ -25,12 +25,15 @@ interface GuardianRepository {
     fun observeConnected(): Flow<Boolean>
 
     /** Records the guardian's judgement. Safe stops the overlay; unsafe keeps it. */
-    suspend fun decide(packageName: String, safe: Boolean)
+    suspend fun decide(pairingId: String, packageName: String, safe: Boolean)
 
     /**
      * Asks the protected phone to open the system uninstall dialog. Android has
      * no way to remove an app silently without Device Owner, so the last tap
      * belongs to the person holding that phone.
      */
-    suspend fun requestUninstall(packageName: String)
+    suspend fun requestUninstall(pairingId: String, packageName: String)
+
+    /** Asks the protected phone to scan apps that are already installed. */
+    suspend fun requestScan(pairingId: String)
 }

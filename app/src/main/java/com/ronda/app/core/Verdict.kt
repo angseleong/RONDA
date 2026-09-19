@@ -70,6 +70,7 @@ enum class VerdictState {
 
 data class Verdict(
     val packageName: String,
+    val pairingId: String = "",
     val appLabel: String,
     val score: Int,
     val level: RiskLevel,

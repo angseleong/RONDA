@@ -32,6 +32,9 @@ data class Alert(
     @get:Exclude
     var alertId: String = ""
 
+    @get:Exclude
+    var pairingId: String = ""
+
     companion object {
         const val STATUS_PENDING = "pending"
         const val STATUS_UNINSTALLED = "uninstalled"

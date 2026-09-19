@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.ronda.app.R
 import com.ronda.app.pairing.PairingRepository
 import com.ronda.app.pairing.QrCodeUtils
+import com.ronda.app.ui.components.BackTopBar
 import com.ronda.app.ui.components.Chip
 import com.ronda.app.ui.components.IconBox
 import com.ronda.app.ui.components.RondaCard
@@ -85,6 +86,7 @@ fun GuardianPairingScreen(
     /** The guardian's own name and what they call the protected person. */
     onIdentityChosen: (guardianName: String, nickname: String) -> Unit,
     onPaired: (String) -> Unit,
+    onCancel: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
@@ -98,8 +100,16 @@ fun GuardianPairingScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Wordmark()
-        Spacer(Modifier.height(36.dp))
+        if (onCancel != null) {
+            BackTopBar(
+                onBack = onCancel,
+                title = stringResource(R.string.settings_add_device)
+            )
+            Spacer(Modifier.height(12.dp))
+        } else {
+            Wordmark()
+            Spacer(Modifier.height(36.dp))
+        }
 
         AnimatedContent(
             targetState = step,

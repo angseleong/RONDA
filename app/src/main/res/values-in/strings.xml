@@ -19,32 +19,31 @@
     <string name="lang_continue">Lanjutkan</string>
 
     <!-- Intro -->
-    <string name="intro_title">RONDA menjaga HP orang tua Anda dari penipuan</string>
+    <string name="intro_title">RONDA menjaga HP dari penipuan rekayasa sosial</string>
     <string name="intro_body">Penipu mengirim file aplikasi lewat WhatsApp — undangan, resi, tagihan. Sekali dipasang, aplikasi itu bisa membaca kode OTP bank.</string>
     <string name="intro_point_1_title">Terdeteksi saat dipasang</string>
     <string name="intro_point_1_body">RONDA memeriksa setiap aplikasi baru yang datang dari luar Play Store.</string>
     <string name="intro_point_2_title">Penjaga yang diberi tahu</string>
-    <string name="intro_point_2_body">Peringatan dikirim ke HP anak atau kerabat — bukan ke orang yang sedang ditipu.</string>
+    <string name="intro_point_2_body">Peringatan dikirim ke HP Rondor (pendamping) — bukan ke orang yang sedang ditipu.</string>
     <string name="intro_point_3_title">Aplikasinya ditutup</string>
     <string name="intro_point_3_body">Aplikasi berbahaya ditutupi peringatan RONDA sampai penjaga memutuskan.</string>
     <string name="intro_privacy">RONDA tidak membaca pesan Anda, tidak meminta izin SMS, dan tidak memakai layanan Aksesibilitas.</string>
     <string name="intro_start">Mulai</string>
 
-    <!-- Role selection. Written for the person holding the phone, not for a
-         security engineer: "HP saya" / "HP orang tua saya", never "node role". -->
-    <string name="role_title">Siapa yang pakai HP ini?</string>
-    <string name="role_subtitle">Pilihan ini menentukan tugas RONDA di HP ini.</string>
-    <string name="role_protected_title">HP orang tua saya</string>
-    <string name="role_protected_body">RONDA mengawasi HP ini. Kalau ada aplikasi berbahaya dipasang, RONDA menutupnya dan memberi tahu penjaga.</string>
-    <string name="role_guardian_title">HP saya sebagai penjaga</string>
-    <string name="role_guardian_body">RONDA mengirim peringatan ke HP ini kalau ada yang mencurigakan di HP orang tua Anda.</string>
+    <!-- Role selection: Rondee vs Rondor -->
+    <string name="role_title">Peran aplikasi ini</string>
+    <string name="role_subtitle">Pilih bagaimana RONDA akan digunakan di HP ini.</string>
+    <string name="role_protected_title">Rondee (Perangkat yang Dijaga)</string>
+    <string name="role_protected_body">RONDA mengawasi HP ini. Jika ada aplikasi berbahaya dipasang, RONDA menutupnya dan memberi tahu Rondor.</string>
+    <string name="role_guardian_title">Rondor (Perangkat Penjaga)</string>
+    <string name="role_guardian_body">RONDA mengirim peringatan ke HP ini kalau ada yang mencurigakan di HP Rondee yang Anda jaga.</string>
     <string name="role_note">Setelah dipilih, peran tidak bisa diubah kecuali aplikasi dipasang ulang.</string>
     <string name="role_continue">Lanjutkan</string>
 
     <!-- Guardian pairing -->
     <string name="pair_nickname_title">Siapa yang akan Anda jaga?</string>
     <string name="pair_guardian_name_title">Siapa nama Anda?</string>
-    <string name="pair_guardian_name_body">Nama ini muncul di HP orang tua Anda: \"Dijaga oleh …\".</string>
+    <string name="pair_guardian_name_body">Nama ini muncul di HP Rondee: \"Dijaga oleh …\".</string>
     <string name="pair_guardian_name_placeholder">Misalnya: Rina</string>
     <string name="pair_nickname_body">Nama panggilan ini dipakai di seluruh layar Anda — misalnya \"HP Ibu\".</string>
     <string name="pair_nickname_field">Nama panggilan lain</string>
@@ -60,20 +59,20 @@
     </string-array>
     <string name="pair_guardian_for">Untuk HP %1$s</string>
     <string name="pair_guardian_change_name">Ubah nama</string>
-    <string name="pair_guardian_title">Hubungkan ke HP orang tua</string>
-    <string name="pair_guardian_step">Buka RONDA di HP %1$s, pilih \"HP orang tua saya\", lalu masukkan kode di bawah ini.</string>
+    <string name="pair_guardian_title">Hubungkan ke HP Rondee</string>
+    <string name="pair_guardian_step">Buka RONDA di HP %1$s, pilih \"Rondee (Perangkat yang Dijaga)\", lalu masukkan kode di bawah ini.</string>
     <string name="pair_guardian_code_label">Kode penghubung</string>
     <string name="pair_guardian_or_scan_label">Atau pindai</string>
-    <string name="pair_guardian_or_scan">Kalau kedua HP ada di satu tempat, pindai kode QR ini dengan kamera HP orang tua.</string>
-    <string name="pair_guardian_waiting">Menunggu HP orang tua memasukkan kode…</string>
+    <string name="pair_guardian_or_scan">Kalau kedua HP ada di satu tempat, pindai kode QR ini dengan kamera HP Rondor.</string>
+    <string name="pair_guardian_waiting">Menunggu HP Rondor memasukkan kode…</string>
     <string name="pair_guardian_expiry">Kode berlaku 10 menit.</string>
     <string name="pair_qr_desc">Kode QR berisi kode penghubung</string>
     <string name="pair_creating">Membuat kode…</string>
     <string name="pair_retry">Coba lagi</string>
 
     <!-- Protected pairing -->
-    <string name="pair_protected_title">Masukkan kode dari HP penjaga</string>
-    <string name="pair_protected_step">Minta anak atau kerabat Anda membuka RONDA dan membacakan kode 6 huruf yang muncul di HP mereka.</string>
+    <string name="pair_protected_title">Masukkan kode dari HP Rondor</string>
+    <string name="pair_protected_step">Minta pemilik HP Rondor membuka RONDA dan membacakan kode 6 huruf yang muncul di HP mereka.</string>
     <string name="pair_protected_field">Kode penghubung</string>
     <string name="pair_protected_submit">Hubungkan</string>
     <string name="pair_error_invalid">Kode harus 6 huruf atau angka.</string>
@@ -120,6 +119,12 @@
     <string name="home_protected_profile">Tentang penjagaan</string>
     <string name="home_protected_profile_body">HP ini dijaga dengan persetujuan Anda. RONDA hanya melihat aplikasi apa yang dipasang — bukan isi pesan, bukan isi layar.</string>
     <string name="home_protected_pairing_code">Kode penghubung</string>
+    <string name="home_protected_manual_scan">Scan ulang</string>
+
+    <string name="initial_scan_title">Periksa aplikasi lama</string>
+    <string name="initial_scan_body">RONDA bisa memeriksa aplikasi yang sudah ada di HP ini untuk berjaga-jaga.</string>
+    <string name="initial_scan_action">Periksa sekarang</string>
+    <string name="initial_scan_scanning">Memeriksa aplikasi…</string>
 
     <!-- Protected: guardian asked for an uninstall -->
     <string name="channel_guardian_request">Permintaan penjaga</string>
@@ -156,15 +161,35 @@
 
     <!-- Guardian notifications -->
     <string name="guardian_watch_title">RONDA menjaga</string>
-    <string name="guardian_watch_body">Siap menerima peringatan dari HP orang tua Anda.</string>
+    <string name="guardian_watch_body">Siap menerima peringatan dari HP Rondee Anda.</string>
     <string name="channel_guardian_watch">Penjagaan RONDA</string>
     <string name="channel_guardian_watch_desc">Menjaga koneksi agar peringatan sampai ke HP ini.</string>
     <string name="channel_guardian_alerts">Peringatan bahaya</string>
     <string name="channel_guardian_alerts_desc">Peringatan saat aplikasi berbahaya dipasang di HP yang dijaga.</string>
     <string name="alert_notification_title">BAHAYA: aplikasi mencurigakan dipasang</string>
-    <string name="alert_notification_body">%1$s dipasang di HP orang tua Anda.</string>
+    <string name="alert_notification_body">%1$s dipasang di HP Rondee Anda.</string>
     <string name="channel_guardian_outcome">Hasil tindakan</string>
-    <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP orang tua.</string>
+    <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP Rondee.</string>
     <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>
-    <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP orang tua Anda.</string>
+    <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP Rondee Anda.</string>
+
+    <string name="settings_add_device">Tambah HP lain</string>
+
+    <!-- Protected Tabs & Features -->
+    <string name="protected_tab_alerts">Peringatan</string>
+    <string name="protected_tab_history">Riwayat</string>
+    <string name="protected_tab_settings">Setelan</string>
+    <string name="protected_threats_title">Aplikasi Berbahaya Terdeteksi</string>
+    <string name="protected_threats_body">Aplikasi berikut dinilai berbahaya dan telah diblokir. Segera hapus untuk keamanan Anda.</string>
+    <string name="protected_action_uninstall">Hapus Aplikasi Sekarang</string>
+    <string name="protected_action_uninstall_desc">Ketuk untuk mencopot pemasangan aplikasi berbahaya ini.</string>
+    <string name="protected_empty_threats_title">HP Anda Aman</string>
+    <string name="protected_empty_threats_body">Tidak ada aplikasi berbahaya yang terpasang saat ini.</string>
+    <string name="protected_permissions_title">Status Perlindungan</string>
+    <string name="protected_permissions_body">Semua izin penting harus aktif agar RONDA dapat melindungi HP ini secara optimal.</string>
+    <string name="protected_guardian_info_title">Rondor Pendamping</string>
+    <string name="protected_disconnect_title">Putuskan Hubungan</string>
+    <string name="protected_disconnect_confirm">Putuskan hubungan dengan Rondor (%1$s)? HP ini tidak akan lagi dipantau jika terpasang aplikasi berbahaya.</string>
+    <string name="disconnect_notification_title">Hubungan Terputus</string>
+    <string name="disconnect_notification_body">Hubungan antara Rondor dan Rondee telah diputuskan.</string>
 </resources>

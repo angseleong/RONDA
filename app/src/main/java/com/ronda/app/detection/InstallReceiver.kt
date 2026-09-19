@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
 import com.ronda.app.R
+import com.ronda.app.localized
 import com.ronda.app.alert.Alert
 import com.ronda.app.alert.AlertRepository
 import com.ronda.app.core.RiskEvaluator
@@ -130,6 +131,7 @@ class InstallReceiver : BroadcastReceiver() {
             Log.d(TAG, "Flagged package uninstalled, clearing block: $packageName")
             // OverlayService stops itself once no flagged packages remain.
             store.unflag(packageName)
+            ProtectedHistoryStore(context).record(packageName, packageName, "uninstalled")
         }
 
         // Only now is it true that the app is gone — report it to the guardian.
@@ -159,20 +161,21 @@ class InstallReceiver : BroadcastReceiver() {
      * says, in the same plain words, so the shade and the screen never disagree.
      */
     private fun showRiskNotification(context: Context, verdict: Verdict) {
+        val localizedContext = context.localized()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(R.string.channel_detection),
+            localizedContext.getString(R.string.channel_detection),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = context.getString(R.string.channel_detection_desc)
+            description = localizedContext.getString(R.string.channel_detection_desc)
         }
         notificationManager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_shield_alert)
-            .setContentTitle(context.getString(R.string.detected_notification_title, verdict.appLabel))
+            .setContentTitle(localizedContext.getString(R.string.detected_notification_title, verdict.appLabel))
             .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText(verdict.reasons.joinToString("\n\n").replace("**", "")))

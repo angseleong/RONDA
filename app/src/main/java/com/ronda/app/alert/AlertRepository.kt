@@ -59,7 +59,10 @@ class AlertRepository {
     fun observeAlerts(pairingId: String): Flow<List<Alert>> =
         alerts.child(pairingId).valueEvents().map { snapshot ->
             snapshot.children.mapNotNull { child ->
-                child.getValue(Alert::class.java)?.apply { alertId = child.key.orEmpty() }
+                child.getValue(Alert::class.java)?.apply { 
+                    alertId = child.key.orEmpty()
+                    this.pairingId = pairingId
+                }
             }.sortedByDescending { it.timestamp }
         }
 }

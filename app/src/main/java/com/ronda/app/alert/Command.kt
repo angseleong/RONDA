@@ -27,5 +27,7 @@ data class Command(
     companion object {
         const val ACTION_UNINSTALL = "uninstall"
         const val ACTION_MARK_SAFE = "mark_safe"
+        const val ACTION_SCAN = "scan"
+        const val ACTION_DISCONNECT = "disconnect"
     }
 }

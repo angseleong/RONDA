@@ -153,16 +153,16 @@ they may decline.
 ## BACKLOG — Post-Demo
 
 ### Block 4B: Initial Scan
-- [ ] Panggil `scanExistingApps()` sekali saat `onCreate()` di `DetectionService`.
-- [ ] Pindahkan/ekstrak `publishAlert()` dari `InstallReceiver` agar bisa digunakan di `DetectionService`.
+- [x] Panggil `scanExistingApps()` sekali saat `onCreate()` di `DetectionService`.
+- [x] Pindahkan/ekstrak `publishAlert()` dari `InstallReceiver` agar bisa digunakan di `DetectionService`.
 
 ### Block 4C: Multi-Ortu
-- [ ] Ubah `pairingId` menjadi multiple (`pairingIds`) di `RoleStore.kt` untuk sisi Guardian.
-- [ ] Tambah `protectedLabel` ke data `Pairing` di Firebase.
-- [ ] Update `GuardianAlertService` agar collect alert dari semua `pairingIds`.
-- [ ] Update `GuardianPairingScreen` untuk memasukkan label HP (misal: "HP Ibu").
-- [ ] Rombak `GuardianHomeScreen` untuk menampilkan daftar HP dan tombol tambah perangkat.
-- [ ] Tangani flow tambah perangkat baru di `MainActivity`.
+- [x] Ubah `pairingId` menjadi multiple (`pairingIds`) di `RoleStore.kt` untuk sisi Guardian.
+- [x] Tambah `protectedLabel` ke data `Pairing` di Firebase.
+- [x] Update `GuardianAlertService` agar collect alert dari semua `pairingIds`.
+- [x] Update `GuardianPairingScreen` untuk memasukkan label HP (misal: "HP Ibu").
+- [x] Rombak `GuardianHomeScreen` untuk menampilkan daftar HP dan tombol tambah perangkat.
+- [x] Tangani flow tambah perangkat baru di `MainActivity`.
 
 ### Block 4D: Resilience - QR Deep Link
 - [ ] Tambah intent filter `ronda://pair` di `AndroidManifest.xml`.

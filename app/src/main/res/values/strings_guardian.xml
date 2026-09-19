@@ -84,6 +84,7 @@
     <string name="settings_language">Language</string>
     <string name="settings_privacy">Privacy</string>
     <string name="settings_disconnect">Disconnect</string>
+    <string name="settings_scan">Scan this phone now</string>
     <string name="settings_version">RONDA version %1$s</string>
     <string name="rename_title">Nickname</string>
     <string name="rename_body">Used on every screen, for example \"Mum\'s phone\".</string>

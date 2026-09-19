@@ -10,6 +10,8 @@ import com.ronda.app.core.Verdict
 import com.ronda.app.core.VerdictState
 import com.ronda.app.valueEvents
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /**
@@ -20,22 +22,25 @@ import kotlinx.coroutines.flow.map
  * than trusted.
  */
 class FirebaseGuardianRepository(
-    private val pairingId: String,
+    private val pairingIds: Set<String>,
     override val protectedName: String
 ) : GuardianRepository {
 
     private val alerts = AlertRepository()
     private val commands = CommandRepository()
 
-    /** packageName -> RTDB alert key, so the UI never has to hold one. */
+    /** "pairingId:packageName" -> RTDB alert key. */
     @Volatile
     private var alertIds: Map<String, String> = emptyMap()
 
-    override fun observeVerdicts(): Flow<List<Verdict>> =
-        alerts.observeAlerts(pairingId).map { list ->
-            alertIds = list.associate { it.packageName to it.alertId }
+    override fun observeVerdicts(): Flow<List<Verdict>> {
+        if (pairingIds.isEmpty()) return flowOf(emptyList())
+        val flows = pairingIds.map { alerts.observeAlerts(it) }
+        return combine(flows) { lists -> lists.flatMap { it.toList() } }.map { list ->
+            alertIds = list.associate { "${it.pairingId}:${it.packageName}" to it.alertId }
             list.map(::toVerdict)
         }
+    }
 
     /**
      * Firebase's own connection flag. An empty watch list means something very
@@ -46,8 +51,8 @@ class FirebaseGuardianRepository(
             .valueEvents()
             .map { it.getValue(Boolean::class.java) == true }
 
-    override suspend fun decide(packageName: String, safe: Boolean) {
-        val alertId = alertIds[packageName] ?: return
+    override suspend fun decide(pairingId: String, packageName: String, safe: Boolean) {
+        val alertId = alertIds["$pairingId:$packageName"] ?: return
         if (safe) {
             // Only "safe" reaches the protected phone: it is the one that lifts
             // the overlay. Unsafe changes nothing there — the overlay is already
@@ -59,9 +64,13 @@ class FirebaseGuardianRepository(
         }
     }
 
-    override suspend fun requestUninstall(packageName: String) {
-        val alertId = alertIds[packageName] ?: return
+    override suspend fun requestUninstall(pairingId: String, packageName: String) {
+        val alertId = alertIds["$pairingId:$packageName"] ?: return
         commands.send(pairingId, alertId, Command.ACTION_UNINSTALL, packageName)
+    }
+
+    override suspend fun requestScan(pairingId: String) {
+        commands.send(pairingId, alertId = "", action = Command.ACTION_SCAN, packageName = "")
     }
 
     private fun toVerdict(alert: Alert): Verdict {
@@ -72,6 +81,7 @@ class FirebaseGuardianRepository(
             detectedAt = alert.timestamp
         )
         return verdict.copy(
+            pairingId = alert.pairingId,
             state = stateOf(alert, verdict.state),
             overrodeAt = alert.overrodeAt,
             removed = alert.status == Alert.STATUS_UNINSTALLED
