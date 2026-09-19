@@ -27,7 +27,12 @@ object QrCodeUtils {
     private const val ALPHABET = "ACDEFGHJKLMNPQRTUVWXYZ2346789"
 
     private const val CODE_LENGTH = 6
-    private const val URI_PREFIX = "ronda://pair/"
+
+    /** Scheme and host of the pairing deep link, mirrored by the manifest filter. */
+    const val URI_SCHEME = "ronda"
+    const val URI_HOST = "pair"
+
+    private const val URI_PREFIX = "$URI_SCHEME://$URI_HOST/"
 
     private val random = SecureRandom()
 
@@ -50,6 +55,32 @@ object QrCodeUtils {
     fun isValidCode(input: String): Boolean {
         val code = normalizeCode(input)
         return code.length == CODE_LENGTH && code.all { it in ALPHABET }
+    }
+
+    /**
+     * Reads the pairing code out of a `ronda://pair/XXXXXX` deep link — what a
+     * camera or QR app hands to RONDA after scanning the guardian's screen.
+     *
+     * Returns null for anything that is not a well-formed pairing link, so a
+     * malformed or hand-crafted URI can never pre-fill a code that then fails
+     * against the server with a confusing message. The code still has to be
+     * claimed by an explicit tap: a link pre-fills the field, it never pairs.
+     *
+     * `java.net.URI` rather than `android.net.Uri` so the parsing is covered by
+     * a plain JVM unit test. Accepts the `?code=` query form too, since QR
+     * generators and chat apps rewrite paths more often than query strings.
+     */
+    fun codeFromLink(link: String?): String? {
+        val uri = runCatching { java.net.URI(link?.trim() ?: return null) }.getOrNull() ?: return null
+        if (!URI_SCHEME.equals(uri.scheme, ignoreCase = true)) return null
+        if (!URI_HOST.equals(uri.host, ignoreCase = true)) return null
+
+        val raw = uri.path?.trim('/')?.takeIf { it.isNotEmpty() }
+            ?: uri.query?.substringAfter("code=", "")?.substringBefore('&')
+            ?: return null
+
+        val code = normalizeCode(raw)
+        return if (isValidCode(code)) code else null
     }
 
     /**

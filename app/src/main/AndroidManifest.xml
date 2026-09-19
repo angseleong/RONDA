@@ -99,15 +99,43 @@
                 android:value="Listening for alerts from a paired device" />
         </service>
 
+        <!--
+            singleTask: the whole app is this one Activity, and it is entered from
+            three directions — launcher, alert notification, and the pairing deep
+            link below. Without it a scanned QR starts a *second* MainActivity on
+            top of the running one, each with its own copy of the screen state.
+            With it, every entry reaches the single instance through onNewIntent().
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.RONDA.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                Pairing deep link: ronda://pair/XXXXXX — exactly what the
+                guardian's QR already encodes (see QrCodeUtils.URI_PREFIX), so
+                any camera or QR app can hand the code straight to RONDA and the
+                protected person never types it.
+
+                BROWSABLE is what lets an external scanner open it. The link only
+                ever pre-fills the field; claiming the code still needs a tap on
+                this device, which is what keeps pairing consensual and
+                physically present (PRD FR-2).
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="ronda" android:host="pair" />
             </intent-filter>
         </activity>
     </application>

@@ -165,9 +165,9 @@ they may decline.
 - [ ] Tangani flow tambah perangkat baru di `MainActivity`.
 
 ### Block 4D: Resilience - QR Deep Link
-- [ ] Tambah intent filter `ronda://pair` di `AndroidManifest.xml`.
-- [ ] Tangani deep link di `onCreate()` dan `onNewIntent()` pada `MainActivity.kt`.
-- [ ] Pre-fill kode pairing di `ProtectedPairingScreen` jika dibuka lewat deep link.
+- [x] Tambah intent filter `ronda://pair` di `AndroidManifest.xml`.
+- [x] Tangani deep link di `onCreate()` dan `onNewIntent()` pada `MainActivity.kt`.
+- [x] Pre-fill kode pairing di `ProtectedPairingScreen` jika dibuka lewat deep link.
 
 ### Block 4E: Strategy Document
 - [x] Buat file `docs/STRATEGY.md`.
