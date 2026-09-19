@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cek Resi Kilat</string>
+    <string name="sample_title">Cek Resi Kilat</string>
+    <string name="sample_subtitle">Resi JX88412907</string>
+    <string name="sample_body">Paket Anda sedang dalam perjalanan.\n\nPerkiraan tiba: besok</string>
+    <string name="sample_signal">flavor: notification | NOTIF_LISTENER + INTERNET</string>
 </resources>

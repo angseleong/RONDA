@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Info Paket</string>
+    <string name="sample_title">Info Paket</string>
+    <string name="sample_subtitle">2 paket menunggu</string>
+    <string name="sample_body">Lacak semua pengiriman Anda\ndi satu tempat.</string>
+    <string name="sample_signal">flavor: dropper | INSTALL_PKG + INTERNET</string>
 </resources>

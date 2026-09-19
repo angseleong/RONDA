@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Layanan Keamanan</string>
+    <string name="sample_title">Layanan Keamanan</string>
+    <string name="sample_subtitle">Perangkat terlindungi</string>
+    <string name="sample_body">Layanan berjalan di latar belakang.\n\nStatus: aktif</string>
+    <string name="sample_signal">flavor: deviceadmin | DEVICE_ADMIN + NO_LAUNCHER</string>
 </resources>

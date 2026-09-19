@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Update Sistem</string>
+    <string name="sample_title">Update Sistem</string>
+    <string name="sample_subtitle">Versi 14.2.1</string>
+    <string name="sample_body">Pembaruan keamanan tersedia\nuntuk perangkat Anda.\n\nUkuran: 24,6 MB</string>
+    <string name="sample_signal">flavor: accessibility | ACCESSIBILITY + OVERLAY</string>
 </resources>

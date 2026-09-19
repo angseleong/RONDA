@@ -21,6 +21,29 @@ supaya bisa dipasang berdampingan di satu HP.
 | `deviceadmin` | `…​.deviceadmin` | Layanan Keamanan | `BIND_DEVICE_ADMIN` + tanpa ikon launcher | DEVICE_ADMIN+NO_LAUNCHER | ~88 | PERINGATAN |
 | `dropper` | `…​.dropper` | Info Paket | `REQUEST_INSTALL_PACKAGES` + `INTERNET` | INSTALL_PKG+SRC_SIDELOAD | ~63 | PERINGATAN |
 
+## Cara membedakan keenamnya
+
+Keenam APK sengaja dibuat **tidak mirip satu sama lain**, karena penguji yang
+memasang semuanya berturut-turut mudah tertukar. Tiap flavor punya ikon, warna,
+judul, dan isi layar sendiri:
+
+| Flavor | Ikon | Warna | Isi layar |
+|---|---|---|---|
+| `sms` | hati | merah mawar | undangan pernikahan Andi & Sari |
+| `accessibility` | panah unduh | biru | "Versi 14.2.1 — pembaruan keamanan" |
+| `notification` | petir | jingga | "Resi JX88412907 — paket dalam perjalanan" |
+| `overlay` | senter | ungu | "Mode terang — ketuk untuk menyalakan" |
+| `deviceadmin` | perisai | hijau tua | "Perangkat terlindungi — status aktif" |
+| `dropper` | kardus | cokelat | "2 paket menunggu" |
+
+Paling penting: **baris terakhir di tiap layar mencetak flavor dan sinyalnya**,
+misalnya `flavor: accessibility | ACCESSIBILITY + OVERLAY`. Kalau ragu APK mana
+yang sedang dibuka, baca baris itu — bukan menebak dari nama aplikasi.
+
+Isi layar semuanya tetap statis dan tidak melakukan apa pun; yang berubah hanya
+teks, warna, dan ikon. Peringatan "SAMPEL UJI RONDA — bukan malware" tetap
+tercetak di setiap flavor dan tidak boleh dihapus.
+
 \* Skor mengasumsikan APK **di-sideload** (dipasang lewat adb → sinyal
 `SRC_SIDELOAD` ×1.25) dan ditandatangani sertifikat debug **self-signed**
 (`CERT_SELF_SIGNED` ×1.15). Kalau dipasang seolah dari Play Store
