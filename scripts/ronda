@@ -132,7 +132,12 @@ cmd_reset() {
     "$ADB" -s "$s" shell am force-stop "$PKG" || true
     "$ADB" -s "$s" shell pm clear "$PKG" >/dev/null
   done
-  "$ADB" -s "$(protected)" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  local p flavor
+  p="$(protected)"
+  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  for flavor in accessibility notification overlay deviceadmin dropper; do
+    "$ADB" -s "$p" uninstall "$SAMPLE_PKG.$flavor" >/dev/null 2>&1 || true
+  done
   say "Dua HP kembali ke kondisi baru pasang (peran & pairing terhapus)"
 }
 
@@ -182,34 +187,24 @@ cmd_pair() {
   cmd_status
 }
 
-# Install the READ_SMS sample. Optional arg fakes the installing app:
-#   scripts/ronda attack                    → sideload  → HIGH RISK, alert
-#   scripts/ronda attack com.android.vending → Play Store → hanya dicatat
-cmd_attack() {
-  local installer="${1:-}" p apk
-  p="$(protected)"
-  apk="$ROOT/RondaTestSample/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
-  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q :app:assembleSmsDebug)
-  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
-  if [ -n "$installer" ]; then
-    say "Pasang APK umpan seolah-olah dari $installer"
-    "$ADB" -s "$p" install -r -t -i "$installer" "$apk" >/dev/null
-  else
-    say "Sideload APK umpan (deklarasi READ_SMS, bukan dari Play Store)"
-    "$ADB" -s "$p" install -r -t "$apk" >/dev/null
-  fi
-  sleep 3
-  "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -6
-}
-
-# Pasang satu flavor APK umpan untuk menguji parameter di luar READ_SMS.
-#   scripts/ronda sample accessibility                     → sideload → DARURAT
-#   scripts/ronda sample overlay                           → sideload → RENDAH (tidak alert)
-#   scripts/ronda sample notification com.android.vending  → seolah Play Store
+# Pasang satu flavor APK umpan. Argumen kedua memilih sumber pemasangan:
+#   scripts/ronda attack                          → sideload SMS → HIGH RISK
+#   scripts/ronda attack accessibility            → sideload → DARURAT
+#   scripts/ronda attack overlay                  → sideload → RENDAH (tidak alert)
+#   scripts/ronda attack sms playstore            → seolah Play Store → tidak alert
 # Flavor: sms | accessibility | notification | overlay | deviceadmin | dropper
-cmd_sample() {
-  local flavor="${1:-}" installer="${2:-}" p apk pkg cap
-  [ -n "$flavor" ] || die "Sebutkan flavor: sms|accessibility|notification|overlay|deviceadmin|dropper"
+# Sumber: not_playstore (default) | playstore
+cmd_attack() {
+  local flavor="${1:-sms}" source="${2:-not_playstore}" p apk pkg cap installer
+  case "$flavor" in
+    sms|accessibility|notification|overlay|deviceadmin|dropper) ;;
+    *) die "Flavor tidak dikenal: $flavor (sms|accessibility|notification|overlay|deviceadmin|dropper)" ;;
+  esac
+  case "$source" in
+    not_playstore) installer="" ;;
+    playstore)     installer="com.android.vending" ;;
+    *) die "Sumber tidak dikenal: $source (playstore|not_playstore)" ;;
+  esac
   p="$(protected)"
   # Nama task Gradle memakai huruf kapital di awal: assembleAccessibilityDebug.
   cap="$(printf '%s' "${flavor%"${flavor#?}"}" | tr '[:lower:]' '[:upper:]')${flavor#?}"
@@ -220,7 +215,7 @@ cmd_sample() {
   if [ "$flavor" = "sms" ]; then pkg="$SAMPLE_PKG"; else pkg="$SAMPLE_PKG.$flavor"; fi
   "$ADB" -s "$p" uninstall "$pkg" >/dev/null 2>&1 || true
   if [ -n "$installer" ]; then
-    say "Pasang flavor '$flavor' seolah-olah dari $installer"
+    say "Pasang flavor '$flavor' seolah-olah dari Play Store"
     "$ADB" -s "$p" install -r -t -i "$installer" "$apk" >/dev/null
   else
     say "Sideload flavor '$flavor' (bukan dari Play Store)"
@@ -324,16 +319,23 @@ scripts/ronda <perintah>
   open      Buka RONDA di kedua HP
   role      Pilih peran otomatis: HP-1 = orang tua, HP-2 = penjaga
   pair      Baca kode di HP penjaga, ketikkan di HP orang tua
-  attack [installer]
-            Pasang APK umpan yang mendeklarasikan READ_SMS.
-            Tanpa argumen = sideload → HIGH RISK → alert ke penjaga.
-            `attack com.android.vending` = seolah dari Play Store → tidak
-            memicu alert (membuktikan aturan dua sinyal).
-  sample <flavor> [installer]
-            Pasang salah satu APK umpan untuk menguji parameter selain READ_SMS.
-            flavor: sms | accessibility | notification | overlay | deviceadmin |
-            dropper. Tanpa installer = sideload. Lihat RondaTestSample/README.md
-            untuk skor tiap flavor.
+  attack [flavor] [sumber]
+            Pasang satu APK umpan di HP orang tua.
+
+            flavor = jenis izin bahaya yang diminta APK:
+              sms (default) | accessibility | notification | overlay
+              | deviceadmin | dropper
+            sumber = seolah dipasang dari mana:
+              not_playstore (default) → sideload, kayak download APK dari luar
+              playstore              → seolah dari Play Store
+
+            Contoh:
+              attack                    → sideload SMS → RONDA alert
+              attack accessibility      → sideload accessibility → RONDA alert
+              attack sms playstore      → seolah dari Play Store → RONDA diam
+                                          (bukti: butuh 2 sinyal buat alert)
+
+            Skor tiap flavor ada di RondaTestSample/README.md.
   victim    Buka APK umpan di HP orang tua → overlay RONDA menutupinya
   status    Peran + pairing tiap HP
   logs      Logcat gabungan kedua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
@@ -347,7 +349,7 @@ cmd="${1:-help}"
 if [ $# -gt 0 ]; then shift; fi
 
 case "$cmd" in
-  demo|up|install|reset|perms|open|role|pair|attack|sample|victim|status|logs|shot|help)
+  demo|up|install|reset|perms|open|role|pair|attack|victim|status|logs|shot|help)
     "cmd_$cmd" "$@" ;;
   *) die "Perintah tidak dikenal: $cmd (lihat: scripts/ronda help)" ;;
 esac
