@@ -132,7 +132,7 @@
     <string name="uninstall_request_notification_title">Penjaga Anda minta aplikasi dihapus</string>
     <string name="uninstall_request_notification_body">Ketuk untuk menghapus %1$s.</string>
     <string name="uninstall_prompt_title">Penjaga Anda minta aplikasi ini dihapus</string>
-    <string name="uninstall_prompt_body">Aplikasi ini diduga bisa membaca kode OTP dari SMS Anda.</string>
+    <string name="uninstall_prompt_body">Aplikasi ini ditandai berbahaya dan dapat mengancam keamanan HP Anda.</string>
     <string name="uninstall_prompt_next">Setelah Anda menekan tombol di bawah, HP akan bertanya sekali lagi. Pilih \"OK\" atau \"Hapus\" pada pertanyaan itu.</string>
     <string name="uninstall_prompt_confirm">Hapus aplikasi ini</string>
     <string name="uninstall_prompt_later">Nanti saja</string>
@@ -140,9 +140,9 @@
     <!-- Warning overlay. Plain Indonesian, no security jargon. -->
     <string name="overlay_brand_tagline">Pelindung Keluarga</string>
     <string name="overlay_title">Jangan buka aplikasi ini</string>
-    <string name="overlay_body">Aplikasi ini diduga bisa membaca kode OTP dari SMS Anda dan menguras rekening bank Anda.</string>
+    <string name="overlay_body">Aplikasi ini terdeteksi berisiko tinggi dan telah diblokir demi keamanan Anda.</string>
     <string name="overlay_reason_label">Kenapa ditandai bahaya</string>
-    <string name="overlay_reason">Aplikasi ini dipasang dari luar Play Store, dan meminta izin untuk membaca SMS Anda.</string>
+    <string name="overlay_reason">Aplikasi ini dipasang dari luar Play Store dan telah ditandai sebagai berpotensi berbahaya.</string>
     <string name="overlay_guardian_notified">Penjaga Anda sudah diberi tahu. Tunggu sampai mereka menghubungi Anda.</string>
     <string name="overlay_exit_hint">Tekan tombol Home untuk keluar.</string>
 

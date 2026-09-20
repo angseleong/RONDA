@@ -129,9 +129,15 @@ class MainActivity : AppCompatActivity() {
             runCatching { protectedTab = ProtectedTab.valueOf(it) }
         }
 
+        if (intent.getBooleanExtra(EXTRA_DISCONNECTED, false)) {
+            roleStore.unpair()
+            pairingId = null
+            pairingIds = emptySet()
+        } else {
+            pairingId = roleStore.pairingId
+            pairingIds = roleStore.pairingIds.toSet()
+        }
         role = roleStore.role
-        pairingId = roleStore.pairingId
-        pairingIds = roleStore.pairingIds
         protectedName = roleStore.protectedName
         guardianName = roleStore.guardianName
         languageChosen = settings.languageChosen
@@ -162,12 +168,34 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_DISCONNECTED, false)) {
+            roleStore.unpair()
+            pairingId = null
+            pairingIds = emptySet()
+        } else {
+            pairingId = roleStore.pairingId
+            pairingIds = roleStore.pairingIds.toSet()
+        }
+        role = roleStore.role
+        protectedName = roleStore.protectedName
+        guardianName = roleStore.guardianName
         selectedPackage = intent.getStringExtra(EXTRA_PACKAGE)
         selectedPairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
     }
 
     override fun onResume() {
         super.onResume()
+        if (intent.getBooleanExtra(EXTRA_DISCONNECTED, false)) {
+            roleStore.unpair()
+            pairingId = null
+            pairingIds = emptySet()
+        } else {
+            pairingId = roleStore.pairingId
+            pairingIds = roleStore.pairingIds.toSet()
+        }
+        role = roleStore.role
+        protectedName = roleStore.protectedName
+        guardianName = roleStore.guardianName
         refreshStatus()
     }
 
@@ -217,27 +245,25 @@ class MainActivity : AppCompatActivity() {
         if (role == Role.PROTECTED && pairingId != null) {
             val currentId = pairingId!!
             LaunchedEffect(currentId) {
-                com.google.firebase.database.FirebaseDatabase.getInstance().reference
-                    .child("pairings").child(currentId).child("status").valueEvents().collect { snapshot ->
-                        val st = snapshot.getValue(String::class.java)
-                        if (st == com.ronda.app.pairing.Pairing.STATUS_REVOKED) {
-                            Log.d(TAG, "Pairing was revoked remotely")
-                            disconnectProtected()
-                        }
+                com.ronda.app.alert.CommandRepository().observeCommands(currentId).collect { cmds ->
+                    if (cmds.any { it.action == com.ronda.app.alert.Command.ACTION_DISCONNECT }) {
+                        Log.d(TAG, "Pairing $currentId disconnected remotely by Rondor")
+                        disconnectProtected(notify = true)
                     }
+                }
             }
         }
         if (role == Role.GUARDIAN && pairingIds.isNotEmpty()) {
             LaunchedEffect(pairingIds) {
                 val flows = pairingIds.map { id ->
-                    com.google.firebase.database.FirebaseDatabase.getInstance().reference
-                        .child("pairings").child(id).child("status").valueEvents().map { id to it.getValue(String::class.java) }
+                    com.ronda.app.alert.CommandRepository().observeCommands(id)
+                        .map { cmds -> id to cmds.any { it.action == com.ronda.app.alert.Command.ACTION_DISCONNECT } }
                 }
                 combine(flows) { it.toList() }.collect { list ->
-                    for ((id, st) in list) {
-                        if (st == com.ronda.app.pairing.Pairing.STATUS_REVOKED) {
-                            Log.d(TAG, "Pairing $id revoked remotely by Rondee")
-                            disconnectDevice(id)
+                    for ((id, hasDisconnect) in list) {
+                        if (hasDisconnect) {
+                            Log.d(TAG, "Pairing $id disconnected remotely by Rondee")
+                            disconnectDevice(id, notify = true)
                         }
                     }
                 }
@@ -490,7 +516,7 @@ class MainActivity : AppCompatActivity() {
     private fun onPaired(code: String, pairedGuardianName: String) {
         if (role == Role.GUARDIAN) {
             roleStore.addPairing(code, protectedName)
-            pairingIds = roleStore.pairingIds
+            pairingIds = roleStore.pairingIds.toSet()
             addingDevice = false
         } else {
             roleStore.pairingId = code
@@ -504,11 +530,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Guardian side. Local only: the database rules never let a client write
-     * `revoked`, so the pairing node stays as it is and this phone simply stops
-     * listening. A new code can be made straight away.
+     * Guardian side: disconnects a protected device by removing the pairing
+     * and sending ACTION_DISCONNECT to the commands channel.
      */
-    private fun disconnectDevice(id: String) {
+    private fun disconnectDevice(id: String, notify: Boolean = false) {
+        val rondeeName = roleStore.getProtectedName(id)
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             runCatching {
@@ -519,15 +545,10 @@ class MainActivity : AppCompatActivity() {
                     packageName = ""
                 )
             }
-            runCatching {
-                com.google.firebase.database.FirebaseDatabase.getInstance().reference
-                    .child("pairings").child(id).child("status")
-                    .setValue(com.ronda.app.pairing.Pairing.STATUS_REVOKED)
-            }
         }
 
         roleStore.removePairing(id)
-        pairingIds = roleStore.pairingIds
+        pairingIds = roleStore.pairingIds.toSet()
         pairingId = roleStore.pairingId
         if (selectedPairingId == id) {
             selectedPackage = null
@@ -540,12 +561,12 @@ class MainActivity : AppCompatActivity() {
         } else {
             restartGuardianWatch()
         }
-        // Show a local notification so the Rondor knows the Rondee ended the link,
-        // even if the app was in background when the revoke arrived.
-        notifyRondeeDisconnected(roleStore.getProtectedName(id))
+        if (notify) {
+            notifyRondeeDisconnected(rondeeName)
+        }
     }
 
-    private fun disconnectProtected() {
+    private fun disconnectProtected(notify: Boolean = false) {
         val currentPairingId = pairingId
         if (currentPairingId != null) {
             val scope = CoroutineScope(Dispatchers.IO)
@@ -558,20 +579,19 @@ class MainActivity : AppCompatActivity() {
                         packageName = ""
                     )
                 }
-                runCatching {
-                    com.google.firebase.database.FirebaseDatabase.getInstance().reference
-                        .child("pairings").child(currentPairingId).child("status")
-                        .setValue(com.ronda.app.pairing.Pairing.STATUS_REVOKED)
-                }
             }
         }
 
         roleStore.unpair()
         pairingId = null
+        pairingIds = emptySet()
         stopService(Intent(this, DetectionService::class.java))
         OverlayService.stop(this)
         protectedTab = ProtectedTab.ALERTS
         refreshStatus()
+        if (notify) {
+            notifyProtectedDisconnected()
+        }
     }
 
     private fun addDevice() {
@@ -608,6 +628,27 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true)
             .build()
         manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
+    }
+
+    private fun notifyProtectedDisconnected() {
+        val loc = localized()
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "ronda_disconnect_channel"
+        manager.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                loc.getString(R.string.disconnect_notification_title),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_log_out)
+            .setContentTitle(loc.getString(R.string.disconnect_notification_title))
+            .setContentText(loc.getString(R.string.disconnect_notification_body))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(9999, notification)
     }
 
     /**
@@ -697,5 +738,7 @@ class MainActivity : AppCompatActivity() {
         const val ACTION_SCAN_EXISTING = "com.ronda.app.action.SCAN_EXISTING"
         /** Notification ID for the "Rondee disconnected" alert shown on the Rondor's phone. */
         private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
+        /** Key indicating that the pairing was disconnected remotely. */
+        const val EXTRA_DISCONNECTED = "disconnected"
     }
 }

@@ -124,16 +124,16 @@
     <string name="uninstall_request_notification_title">Your guardian asks you to remove an app</string>
     <string name="uninstall_request_notification_body">Tap to remove %1$s.</string>
     <string name="uninstall_prompt_title">Your guardian asks you to remove this app</string>
-    <string name="uninstall_prompt_body">This app is suspected of reading OTP codes from your SMS.</string>
+    <string name="uninstall_prompt_body">This app was flagged as dangerous and may compromise your device.</string>
     <string name="uninstall_prompt_next">After you press the button below, the phone will ask once more. Choose \"OK\" or \"Uninstall\" there.</string>
     <string name="uninstall_prompt_confirm">Remove this app</string>
     <string name="uninstall_prompt_later">Not now</string>
 
     <string name="overlay_brand_tagline">Family Guardian</string>
     <string name="overlay_title">Do not open this app</string>
-    <string name="overlay_body">This app is suspected of reading OTP codes from your SMS and emptying your bank account.</string>
+    <string name="overlay_body">This app has been identified as a security risk and was blocked for your safety.</string>
     <string name="overlay_reason_label">Why it was flagged</string>
-    <string name="overlay_reason">This app was installed from outside the Play Store, and asks for permission to read your SMS.</string>
+    <string name="overlay_reason">This app was installed from outside the Play Store and has been flagged as potentially dangerous.</string>
     <string name="overlay_guardian_notified">Your guardian has been told. Wait until they contact you.</string>
     <string name="overlay_exit_hint">Press the Home button to leave.</string>
 

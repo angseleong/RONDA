@@ -63,6 +63,7 @@ class GuardianAlertService : Service() {
 
         startForeground(NOTIFICATION_ID, createPersistentNotification())
         watchAlerts(pairingIds)
+        watchCommands(pairingIds)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -247,7 +248,55 @@ class GuardianAlertService : Service() {
             .build()
     }
 
+    private fun watchCommands(pairingIds: Set<String>) {
+        if (pairingIds.isEmpty()) return
+
+        scope.launch {
+            val flows = pairingIds.map { id ->
+                CommandRepository().observeCommands(id).map { cmds -> id to cmds }
+            }
+            combine(flows) { it.toList() }
+                .catch { Log.e(TAG, "Command stream failed", it) }
+                .collect { list ->
+                    val roleStore = RoleStore(this@GuardianAlertService)
+                    for ((id, cmds) in list) {
+                        if (cmds.any { it.action == Command.ACTION_DISCONNECT }) {
+                            Log.d(TAG, "Pairing $id disconnected by Rondee in background")
+                            val name = roleStore.getProtectedName(id)
+                            roleStore.removePairing(id)
+                            notifyRondeeDisconnected(name)
+                            if (roleStore.pairingIds.isEmpty()) {
+                                stopSelf()
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun notifyRondeeDisconnected(rondeeName: String) {
+        val loc = localized()
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "ronda_rondee_disconnected_channel"
+        manager.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                loc.getString(R.string.rondee_disconnected_notification_title),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_log_out)
+            .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
+            .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, rondeeName))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
+    }
+
     companion object {
+        private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
         private const val TAG = "GuardianAlertService"
         private const val NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID_BASE = 2000
