@@ -171,6 +171,7 @@
     <string name="channel_guardian_outcome">Hasil tindakan</string>
     <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP Rondee.</string>
     <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>
+    <string name="outcome_safe">Ditandai aman oleh Rondor Anda</string>
     <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP Rondee Anda.</string>
 
     <string name="settings_add_device">Tambah HP lain</string>
@@ -179,6 +180,9 @@
     <string name="protected_tab_alerts">Peringatan</string>
     <string name="protected_tab_history">Riwayat</string>
     <string name="protected_tab_settings">Setelan</string>
+    <string name="status_active">Aktif</string>
+    <string name="status_inactive">Mati</string>
+    <string name="guardian_unknown_name">keluarga Anda</string>
     <string name="protected_threats_title">Aplikasi Berbahaya Terdeteksi</string>
     <string name="protected_threats_body">Aplikasi berikut dinilai berbahaya dan telah diblokir. Segera hapus untuk keamanan Anda.</string>
     <string name="protected_action_uninstall">Hapus Aplikasi Sekarang</string>

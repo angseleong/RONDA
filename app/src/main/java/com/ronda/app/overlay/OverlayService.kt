@@ -195,5 +195,10 @@ class OverlayService : Service() {
         fun start(context: Context) {
             context.startForegroundService(Intent(context, OverlayService::class.java))
         }
+
+        /** Mirror of [start]. Stopping a service that is not running is a no-op. */
+        fun stop(context: Context) {
+            context.stopService(Intent(context, OverlayService::class.java))
+        }
     }
 }

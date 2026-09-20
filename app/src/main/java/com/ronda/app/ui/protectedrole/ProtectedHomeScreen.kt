@@ -3,11 +3,13 @@ package com.ronda.app.ui.protectedrole
 import android.content.pm.PackageManager
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,15 +23,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -41,11 +43,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -468,13 +470,25 @@ private fun ProtectedSettingsTab(
                 )
                 Spacer(Modifier.height(16.dp))
 
-                PermissionStatusRow("Tampilkan di Atas Aplikasi", status.hasOverlay)
+                PermissionStatusRow(
+                    stringResource(R.string.permission_overlay_title),
+                    status.overlay
+                )
                 Spacer(Modifier.height(8.dp))
-                PermissionStatusRow("Akses Penggunaan", status.hasUsageStats)
+                PermissionStatusRow(
+                    stringResource(R.string.permission_usage_title),
+                    status.usageStats
+                )
                 Spacer(Modifier.height(8.dp))
-                PermissionStatusRow("Optimasi Baterai Bebas", status.isBatteryOptimized)
+                PermissionStatusRow(
+                    stringResource(R.string.permission_battery_title),
+                    status.batteryExemption
+                )
                 Spacer(Modifier.height(8.dp))
-                PermissionStatusRow("Izin Notifikasi", status.hasNotification)
+                PermissionStatusRow(
+                    stringResource(R.string.permission_notifications_title),
+                    status.notifications
+                )
 
                 if (!status.isFullyProtected) {
                     Spacer(Modifier.height(16.dp))
@@ -570,13 +584,13 @@ private fun ProtectedSettingsTab(
                 modifier = Modifier.padding(horizontal = 20.dp)
             ) {
                 RadioRow(
-                    title = stringResource(R.string.language_indonesian),
+                    title = stringResource(R.string.lang_indonesian),
                     selected = language == AppLanguage.INDONESIAN,
                     onClick = { onLanguageChange(AppLanguage.INDONESIAN) },
                     icon = RondaIcons.globe
                 )
                 RadioRow(
-                    title = stringResource(R.string.language_english),
+                    title = stringResource(R.string.lang_english),
                     selected = language == AppLanguage.ENGLISH,
                     onClick = { onLanguageChange(AppLanguage.ENGLISH) },
                     icon = RondaIcons.globe
@@ -602,7 +616,7 @@ private fun ProtectedSettingsTab(
     if (confirmDisconnectOpen) {
         ConfirmSheet(
             title = stringResource(R.string.protected_disconnect_title),
-            body = stringResource(R.string.protected_disconnect_confirm, guardianName.ifBlank { "Rondor" }),
+            body = stringResource(R.string.protected_disconnect_confirm, guardianName.ifBlank { stringResource(R.string.guardian_unknown_name) }),
             confirmText = stringResource(R.string.disconnect_confirm),
             confirmTone = Tone.DANGER,
             confirmIcon = RondaIcons.logOut,
@@ -637,7 +651,9 @@ private fun PermissionStatusRow(title: String, active: Boolean) {
             modifier = Modifier.weight(1f)
         )
         StatusBadge(
-            text = if (active) "Aktif" else "Mati",
+            text = stringResource(
+                if (active) R.string.status_active else R.string.status_inactive
+            ),
             tone = if (active) Tone.SAFE else Tone.WARN,
             filled = false
         )
@@ -744,52 +760,59 @@ private fun RowScope.ProtectedNavItem(
     badge: Int = 0
 ) {
     val colors = RondaTheme.colors
-    val contentColor = if (selected) colors.safe else colors.textSecondary
-    val bg = if (selected) colors.safeTint else colors.card
+    val shape = RoundedCornerShape(RondaRadius.iconBoxSmall)
+    val fill by animateColorAsState(
+        targetValue = if (selected) colors.trustTint else colors.card,
+        animationSpec = tween(160),
+        label = "navFill"
+    )
+    val edge by animateColorAsState(
+        targetValue = if (selected) colors.trustBorder else colors.card,
+        animationSpec = tween(160),
+        label = "navEdge"
+    )
+    val ink = if (selected) colors.trust else colors.textMuted
 
-    Box(
+    Column(
         modifier = Modifier
             .weight(1f)
+            .clip(shape)
+            .background(fill)
+            .border(2.dp, edge, shape)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .heightIn(min = 52.dp)
-            .background(bg, shape = RoundedCornerShape(RondaRadius.pill))
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
+            .padding(vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .selectable(selected = selected, onClick = onClick, role = Role.Tab)
-        ) {
-            BadgedBox(
-                badge = {
-                    if (badge > 0) {
-                        Badge(
-                            containerColor = colors.danger,
-                            contentColor = colors.paper
-                        ) {
-                            Text(text = badge.toString(), fontWeight = FontWeight.Bold)
-                        }
-                    }
+        Box {
+            RondaIcon(id = icon, contentDescription = null, tint = ink, size = 22.dp)
+            if (badge > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(start = 14.dp)
+                        .size(18.dp)
+                        .background(colors.danger, CircleShape)
+                        .border(2.dp, colors.card, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (badge > 9) "9+" else "$badge",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            letterSpacing = androidx.compose.ui.unit.TextUnit.Unspecified
+                        ),
+                        color = colors.onFill
+                    )
                 }
-            ) {
-                RondaIcon(
-                    id = icon,
-                    contentDescription = label,
-                    tint = contentColor,
-                    size = 24.dp
-                )
-            }
-            if (selected) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = contentColor
-                )
             }
         }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = ink
+        )
     }
 }
 

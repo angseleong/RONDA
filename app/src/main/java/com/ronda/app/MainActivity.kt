@@ -321,11 +321,12 @@ class MainActivity : AppCompatActivity() {
                             AlertDetailScreen(
                                 verdict = verdict,
                                 protectedName = roleStore.getProtectedName(verdict.pairingId),
-                                onMarkSafe = { viewModel.markSafe(verdict.pairingId, it) },
-                                onMarkUnsafe = { viewModel.markUnsafe(verdict.pairingId, it) },
-                                onUndoSafe = { viewModel.undoMarkSafe(verdict.pairingId, it) },
-                                onRequestUninstall = { viewModel.requestUninstall(verdict.pairingId, it) },
-                                onClose = {
+                                undoable = state.undoable == verdict.packageName,
+                                onMarkSafe = { viewModel.markSafe(verdict.pairingId, verdict.packageName) },
+                                onMarkUnsafe = { viewModel.markUnsafe(verdict.pairingId, verdict.packageName) },
+                                onUndo = { viewModel.undoMarkSafe(verdict.pairingId, verdict.packageName) },
+                                onRequestUninstall = { viewModel.requestUninstall(verdict.pairingId, verdict.packageName) },
+                                onBack = {
                                     selectedPairingId = null
                                     selectedPackage = null
                                 }
