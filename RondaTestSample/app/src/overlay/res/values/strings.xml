@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Senter Super</string>
+    <string name="sample_title">Senter Super</string>
+    <string name="sample_subtitle">Mode terang</string>
+    <string name="sample_body">Ketuk tombol untuk menyalakan senter.\n\nHemat baterai.</string>
+    <string name="sample_signal">flavor: overlay | OVERLAY saja - tidak memicu alert</string>
+</resources>

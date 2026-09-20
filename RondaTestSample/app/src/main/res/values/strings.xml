@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Undangan Pernikahan</string>
-    <string name="heart_desc">Ikon hati</string>
-    <string name="invitation_title">Undangan Pernikahan</string>
-    <string name="invitation_names">Andi &amp; Sari</string>
-    <string name="invitation_body">Dengan hormat kami mengundang\nBapak/Ibu/Saudara/i untuk hadir\npada acara pernikahan kami.\n\nSabtu, 12 September 2026\nPukul 10.00 WIB</string>
+    <!--
+        Nilai bawaan. Setiap flavor menimpa semuanya di
+        src/<flavor>/res/values/strings.xml, jadi teks di sini hanya muncul
+        kalau ada flavor baru yang lupa mengisinya — sengaja dibiarkan netral
+        supaya kelupaan itu kelihatan, bukan menyamar jadi undangan.
+    -->
+    <string name="app_name">Sampel Uji RONDA</string>
+    <string name="sample_icon_desc">Ikon aplikasi</string>
+    <string name="sample_title">Sampel Uji</string>
+    <string name="sample_subtitle">RONDA</string>
+    <string name="sample_body">Aplikasi ini tidak melakukan apa pun.</string>
+    <string name="sample_signal">flavor: belum diisi</string>
     <string name="test_sample_notice">SAMPEL UJI RONDA — aplikasi ini tidak melakukan apa pun.\nBukan malware. Dibuat untuk pengujian mesin deteksi.</string>
 </resources>

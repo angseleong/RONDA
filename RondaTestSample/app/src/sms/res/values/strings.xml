@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Undangan Pernikahan</string>
+    <string name="sample_title">Undangan Pernikahan</string>
+    <string name="sample_subtitle">Andi &amp; Sari</string>
+    <string name="sample_body">Dengan hormat kami mengundang\nBapak/Ibu/Saudara/i untuk hadir\npada acara pernikahan kami.\n\nSabtu, 12 September 2026\nPukul 10.00 WIB</string>
+    <string name="sample_signal">flavor: sms | SMS_READ + INTERNET</string>
+</resources>

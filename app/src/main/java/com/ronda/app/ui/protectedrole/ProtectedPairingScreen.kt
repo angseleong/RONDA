@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +77,9 @@ fun ProtectedPairingScreen(
     protectedDeviceId: String,
     /** The claimed code and the guardian's name, read from the pairing record. */
     onPaired: (code: String, guardianName: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Code read from a scanned `ronda://pair/…` QR, already validated. */
+    scannedCode: String? = null
 ) {
     val colors = RondaTheme.colors
     val repository = remember { PairingRepository() }
@@ -85,6 +88,18 @@ fun ProtectedPairingScreen(
     var input by remember { mutableStateOf("") }
     var errorRes by remember { mutableStateOf<Int?>(null) }
     var connecting by remember { mutableStateOf(false) }
+
+    // A scan fills the field and stops there. Pairing still needs the button,
+    // so the person holding the phone is the one who agrees to be watched —
+    // a link arriving on its own must never be able to pair a device (PRD FR-2).
+    // Keyed on the code so a second scan of a *different* QR replaces a stale
+    // one, while retyping over the same code is left alone.
+    LaunchedEffect(scannedCode) {
+        if (!scannedCode.isNullOrBlank()) {
+            input = scannedCode
+            errorRes = null
+        }
+    }
 
     fun submit() {
         val code = QrCodeUtils.normalizeCode(input)
@@ -157,6 +172,28 @@ fun ProtectedPairingScreen(
             enabled = !connecting,
             onDone = { submit() }
         )
+
+        // Says what just happened, in the plainest terms available: the code is
+        // in, nothing has been connected yet, press the button. Without it the
+        // field simply fills itself and an older user has no idea why.
+        if (errorRes == null && scannedCode != null && input == scannedCode) {
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.Top) {
+                RondaIcon(
+                    id = RondaIcons.circleCheck,
+                    contentDescription = null,
+                    tint = colors.trust,
+                    size = 22.dp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.pair_protected_scanned),
+                    style = LargePrint,
+                    color = colors.trust
+                )
+            }
+        }
 
         val currentError = errorRes
         if (currentError != null) {

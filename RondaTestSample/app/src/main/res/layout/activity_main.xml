@@ -4,48 +4,48 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/invitation_bg"
+    android:background="@color/sample_bg"
     android:padding="32dp">
 
     <ImageView
         android:layout_width="96dp"
         android:layout_height="96dp"
-        android:src="@drawable/ic_heart"
-        android:contentDescription="@string/heart_desc" />
+        android:src="@drawable/ic_sample"
+        android:contentDescription="@string/sample_icon_desc" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="@string/invitation_title"
+        android:text="@string/sample_title"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="@color/invitation_text"
+        android:textColor="@color/sample_text"
         android:gravity="center" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/invitation_names"
+        android:text="@string/sample_subtitle"
         android:textSize="20sp"
-        android:textColor="@color/invitation_text"
+        android:textColor="@color/sample_text"
         android:gravity="center" />
 
     <View
         android:layout_width="80dp"
         android:layout_height="1dp"
         android:layout_marginTop="20dp"
-        android:background="@color/invitation_rule" />
+        android:background="@color/sample_rule" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="@string/invitation_body"
+        android:text="@string/sample_body"
         android:textSize="16sp"
         android:lineSpacingMultiplier="1.3"
-        android:textColor="@color/invitation_text"
+        android:textColor="@color/sample_text"
         android:gravity="center" />
 
     <!--
@@ -59,7 +59,22 @@
         android:layout_marginTop="40dp"
         android:text="@string/test_sample_notice"
         android:textSize="11sp"
-        android:textColor="@color/invitation_notice"
+        android:textColor="@color/sample_notice"
+        android:gravity="center" />
+
+    <!--
+        Flavor + sinyal yang diuji, dicetak di layar. Enam umpan ini mirip satu
+        sama lain di mata penguji, jadi harus ada satu tempat yang menyebut
+        dengan pasti APK mana yang sedang dibuka.
+    -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/sample_signal"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/sample_rule"
         android:gravity="center" />
 
 </LinearLayout>

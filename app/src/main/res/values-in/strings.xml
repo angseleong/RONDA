@@ -76,6 +76,7 @@
     <string name="pair_protected_step">Minta anak atau kerabat Anda membuka RONDA dan membacakan kode 6 huruf yang muncul di HP mereka.</string>
     <string name="pair_protected_field">Kode penghubung</string>
     <string name="pair_protected_submit">Hubungkan</string>
+    <string name="pair_protected_scanned">Kode sudah terisi dari QR. Tekan tombol Hubungkan di bawah.</string>
     <string name="pair_error_invalid">Kode harus 6 huruf atau angka.</string>
     <string name="pair_error_notfound">Kode tidak ditemukan. Periksa lagi ketikan Anda.</string>
     <string name="pair_error_used">Kode ini sudah dipakai. Minta kode baru.</string>
