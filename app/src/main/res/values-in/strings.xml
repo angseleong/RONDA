@@ -196,4 +196,7 @@
     <string name="protected_disconnect_confirm">Putuskan hubungan dengan Rondor (%1$s)? HP ini tidak akan lagi dipantau jika terpasang aplikasi berbahaya.</string>
     <string name="disconnect_notification_title">Hubungan Terputus</string>
     <string name="disconnect_notification_body">Hubungan antara Rondor dan Rondee telah diputuskan.</string>
+    <!-- Sisi Rondor: ditampilkan di HP Rondor saat Rondee yang mengakhiri pairing -->
+    <string name="rondee_disconnected_notification_title">Rondee Memutuskan Hubungan</string>
+    <string name="rondee_disconnected_notification_body">%1$s telah mengakhiri koneksi pemantauan.</string>
 </resources>

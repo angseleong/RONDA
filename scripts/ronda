@@ -2,9 +2,10 @@
 #
 # ronda — demo driver for the two-emulator RONDA simulation.
 #
-# One phone plays the parent (PROTECTED, runs detection + overlay), the other
-# plays the child (GUARDIAN, receives alerts). Everything the demo needs is a
-# subcommand here; run `scripts/ronda help` for the list.
+# One phone plays the Rondee (PROTECTED, runs detection + overlay), the other
+# plays the Rondor (GUARDIAN, receives alerts). A third emulator can be added
+# with: scripts/ronda add-guardian <AVD_NAME>
+# Everything the demo needs is a subcommand here; run `scripts/ronda help`.
 #
 set -euo pipefail
 
@@ -113,6 +114,36 @@ ui_text() {
 # -------------------------------------------------------------- commands ----
 
 cmd_up() { boot_avd "$PROTECTED_AVD"; boot_avd "$GUARDIAN_AVD"; }
+
+# Boot, install, grant permissions, and open RONDA on one extra AVD without
+# touching the two emulators that are already running.
+# Usage: scripts/ronda add-guardian <AVD_NAME>
+cmd_add_guardian() {
+  local avd="${1:-}"
+  [ -n "$avd" ] || die "Nama AVD diperlukan. Contoh: scripts/ronda add-guardian RONDA_Guardian2"
+
+  boot_avd "$avd"
+  local s
+  s="$(serial_for "$avd")" || die "Tidak bisa membaca serial $avd"
+
+  say "Build APK RONDA…"
+  local apk="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
+  if [ ! -f "$apk" ]; then
+    (cd "$ROOT" && ./gradlew -q :app:assembleDebug)
+  fi
+
+  say "Pasang RONDA di $avd ($s)…"
+  "$ADB" -s "$s" install -r -t "$apk" > /dev/null
+
+  say "Beri izin notifikasi di $avd…"
+  "$ADB" -s "$s" shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+
+  say "Buka RONDA di $avd…"
+  "$ADB" -s "$s" shell am start -n "$PKG/.MainActivity" > /dev/null
+
+  say "$avd siap — pilih peran Rondor, lalu ketikkan kode pairing dari layar Rondee."
+  say "  Kode pairing bisa dibaca dengan: scripts/ronda status"
+}
 
 cmd_install() {
   say "Build APK RONDA…"
@@ -294,14 +325,19 @@ scripts/ronda <perintah>
   reset     pm clear kedua HP → balik ke layar pilih peran (peran write-once)
   perms     Beri izin notifikasi, overlay, usage stats lewat adb
   open      Buka RONDA di kedua HP
-  role      Pilih peran otomatis: HP-1 = orang tua, HP-2 = penjaga
-  pair      Baca kode di HP penjaga, ketikkan di HP orang tua
+  role      Pilih peran otomatis: HP-1 = Rondee, HP-2 = Rondor
+  pair      Baca kode di HP Rondor, ketikkan di HP Rondee
   attack [installer]
             Pasang APK umpan yang mendeklarasikan READ_SMS.
-            Tanpa argumen = sideload → HIGH RISK → alert ke penjaga.
+            Tanpa argumen = sideload → HIGH RISK → alert ke Rondor.
             `attack com.android.vending` = seolah dari Play Store → tidak
             memicu alert (membuktikan aturan dua sinyal).
-  victim    Buka APK umpan di HP orang tua → overlay RONDA menutupinya
+  victim    Buka APK umpan di HP Rondee → overlay RONDA menutupinya
+  add-guardian <AVD>
+            Boot AVD baru, pasang RONDA, beri izin, dan buka aplikasi —
+            tanpa mematikan dua emulator yang sudah jalan. Gunakan ini
+            untuk demo fitur multi-Rondor (satu Rondee, banyak Rondor).
+            Contoh: scripts/ronda add-guardian RONDA_Guardian2
   status    Peran + pairing tiap HP
   logs      Logcat gabungan kedua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
   shot      Screenshot kedua HP ke build/demo-shots/
@@ -316,5 +352,6 @@ if [ $# -gt 0 ]; then shift; fi
 case "$cmd" in
   demo|up|install|reset|perms|open|role|pair|attack|victim|status|logs|shot|help)
     "cmd_$cmd" "$@" ;;
+  add-guardian) cmd_add_guardian "$@" ;;
   *) die "Perintah tidak dikenal: $cmd (lihat: scripts/ronda help)" ;;
 esac

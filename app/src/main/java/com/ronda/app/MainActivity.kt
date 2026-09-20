@@ -37,6 +37,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import androidx.core.app.NotificationCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -537,6 +540,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             restartGuardianWatch()
         }
+        // Show a local notification so the Rondor knows the Rondee ended the link,
+        // even if the app was in background when the revoke arrived.
+        notifyRondeeDisconnected(roleStore.getProtectedName(id))
     }
 
     private fun disconnectProtected() {
@@ -575,6 +581,33 @@ class MainActivity : AppCompatActivity() {
     private fun restartGuardianWatch() {
         stopService(Intent(this, GuardianAlertService::class.java))
         if (roleStore.pairingIds.isNotEmpty()) GuardianAlertService.start(this)
+    }
+
+    /**
+     * Shown on the Rondor's phone when the Rondee side has revoked the pairing.
+     * Uses the localized context so the user sees the notification in the language
+     * they chose inside the app, not the system default.
+     */
+    private fun notifyRondeeDisconnected(rondeeName: String) {
+        val loc = localized()
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "ronda_rondee_disconnected_channel"
+        manager.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                loc.getString(R.string.rondee_disconnected_notification_title),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
+        val name = rondeeName.ifBlank { loc.getString(R.string.guardian_unknown_name) }
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_log_out)
+            .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
+            .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, name))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
     }
 
     /**
@@ -662,5 +695,7 @@ class MainActivity : AppCompatActivity() {
         const val DEMO_PAIRING = "DEMO01"
         /** Key for the action to start an existing apps scan manually. */
         const val ACTION_SCAN_EXISTING = "com.ronda.app.action.SCAN_EXISTING"
+        /** Notification ID for the "Rondee disconnected" alert shown on the Rondor's phone. */
+        private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
     }
 }
