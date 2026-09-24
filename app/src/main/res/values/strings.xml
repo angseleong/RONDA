@@ -72,6 +72,7 @@
     <string name="pair_protected_step">Ask your child or relative to open RONDA and read out the 6-character code shown on their phone.</string>
     <string name="pair_protected_field">Pairing code</string>
     <string name="pair_protected_submit">Connect</string>
+    <string name="pair_protected_scanned">Code filled in from the QR. Press Connect below.</string>
     <string name="pair_error_invalid">The code is 6 letters or digits.</string>
     <string name="pair_error_notfound">Code not found. Check what you typed.</string>
     <string name="pair_error_used">This code has already been used. Ask for a new one.</string>

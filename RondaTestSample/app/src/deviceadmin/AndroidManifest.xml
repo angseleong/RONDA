@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        FLAVOR: deviceadmin  (com.ronda.testsample.deviceadmin — "Layanan Keamanan")
+
+        Sinyal RONDA:
+          - DEVICE_ADMIN (40)  dari <receiver> ber-permission BIND_DEVICE_ADMIN
+          - NO_LAUNCHER (x1.25) karena MainActivity di flavor ini SENGAJA tidak
+            diberi kategori LAUNCHER -> aplikasi tanpa ikon (pola app yang
+            menyembunyikan diri agar sulit dihapus)
+          - kombo DEVICE_ADMIN+NO_LAUNCHER (+15)
+        Skor ~88 -> PERINGATAN.
+
+        AdminStubReceiver tidak punya meta-data kebijakan device-admin, jadi
+        tidak bisa diaktifkan sebagai admin perangkat. Hanya ada untuk dibaca RONDA.
+
+        Karena tanpa ikon, buka lewat adb untuk memunculkannya ke depan:
+          adb shell am start -n com.ronda.testsample.deviceadmin/com.ronda.testsample.MainActivity
+    -->
+
+    <application>
+        <!-- MainActivity TANPA intent-filter LAUNCHER: inilah yang memicu NO_LAUNCHER. -->
+        <receiver
+            android:name=".AdminStubReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="false" />
+    </application>
+
+</manifest>

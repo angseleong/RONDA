@@ -6,7 +6,7 @@
         Semakin sedikit dependency, semakin kecil risiko build gagal saat sprint.
     -->
     <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/invitation_bg</item>
+        <item name="android:statusBarColor">@color/sample_bg</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

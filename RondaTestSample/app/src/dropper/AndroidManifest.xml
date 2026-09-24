@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        FLAVOR: dropper  (com.ronda.testsample.dropper — "Info Paket")
+
+        Sinyal RONDA:
+          - INSTALL_PKG (30)  dari REQUEST_INSTALL_PACKAGES  <- app yang memasang
+            app lain (rantai dropper)
+          - INTERNET (10)
+          - kombo INSTALL_PKG+SRC_SIDELOAD (+10)  <- dropper yang datang dari luar
+            Play Store
+        Skor ~63 -> PERINGATAN.
+
+        Aplikasi ini tidak pernah benar-benar memasang apa pun; tidak ada kode
+        yang memanggil PackageInstaller. Permission hanya dideklarasikan.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

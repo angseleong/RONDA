@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        FLAVOR: accessibility  (com.ronda.testsample.accessibility — "Update Sistem")
+
+        Sinyal RONDA:
+          - ACCESSIBILITY (45)  dari <service> ber-permission BIND_ACCESSIBILITY_SERVICE
+          - OVERLAY (30)        dari SYSTEM_ALERT_WINDOW
+          - kombo ACCESSIBILITY+OVERLAY (+15)  <- pola banking-trojan klasik
+        Skor ~100 -> DARURAT.
+
+        AccessibilityStubService SENGAJA tidak punya intent-filter accessibility
+        maupun meta-data konfigurasi, sehingga TIDAK PERNAH muncul di daftar
+        layanan aksesibilitas dan tidak bisa diaktifkan siapa pun. Isinya kosong.
+        Ia ada semata-mata agar RONDA membaca deklarasi BIND_ACCESSIBILITY_SERVICE.
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".AccessibilityStubService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sample_bg">#FFF7F3</color>
+    <color name="sample_text">#4A2C2A</color>
+    <color name="sample_rule">#D9A5A0</color>
+    <color name="sample_notice">#9A8280</color>
+</resources>

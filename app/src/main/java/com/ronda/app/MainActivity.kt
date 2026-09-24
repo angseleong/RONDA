@@ -39,6 +39,7 @@ import com.ronda.app.detection.FlaggedAppStore
 import com.ronda.app.detection.PendingUninstall
 import com.ronda.app.detection.PendingUninstallStore
 import com.ronda.app.overlay.OverlayService
+import com.ronda.app.pairing.QrCodeUtils
 import com.ronda.app.pairing.Role
 import com.ronda.app.pairing.RoleStore
 import com.ronda.app.ui.components.BackTopBar
@@ -88,6 +89,17 @@ class MainActivity : AppCompatActivity() {
     private var selectedPackage by mutableStateOf<String?>(null)
     private var guardianTab by mutableStateOf(GuardianTab.ALERTS)
 
+    /**
+     * Protected: a code scanned from the guardian's QR, waiting to be offered.
+     *
+     * Held here rather than applied straight away because the scan can land
+     * before the pairing screen is reachable — a protected phone still on the
+     * language or role screen, say. The pairing screen reads it whenever it
+     * does open; on a guardian phone, or one already paired, that screen never
+     * shows and the code is simply never used.
+     */
+    private var scannedPairingCode by mutableStateOf<String?>(null)
+
     /** Protected: the uninstall request to show, and whether it was deferred. */
     private var pendingUninstall by mutableStateOf<PendingUninstall?>(null)
     private var uninstallDeferred by mutableStateOf(false)
@@ -112,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         introSeen = settings.introSeen
         themeMode = settings.themeMode
         selectedPackage = intent.getStringExtra(EXTRA_PACKAGE)
+        // Cold start from a scanned QR: RONDA was closed and the link opened it.
+        scannedPairingCode = QrCodeUtils.codeFromLink(intent.data?.toString())
 
         // Only on a genuinely new launch, so a rotation does not re-prompt. On a
         // protected phone the wizard asks instead, one permission at a time.
@@ -124,11 +138,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** The guardian taps an alert notification while RONDA is already open. */
+    /**
+     * RONDA is already open and something points it somewhere: the guardian
+     * taps an alert notification, or the protected phone scans the pairing QR.
+     * Reached for both because the Activity is singleTask.
+     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         intent.getStringExtra(EXTRA_PACKAGE)?.let { selectedPackage = it }
+        QrCodeUtils.codeFromLink(intent.data?.toString())?.let { scannedPairingCode = it }
     }
 
     override fun onResume() {
@@ -256,6 +275,7 @@ class MainActivity : AppCompatActivity() {
 
                     Screen.PROTECTED_PAIRING -> ProtectedPairingScreen(
                         protectedDeviceId = roleStore.deviceId,
+                        scannedCode = scannedPairingCode,
                         onPaired = ::onPaired
                     )
 

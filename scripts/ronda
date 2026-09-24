@@ -13,9 +13,13 @@ GUARDIAN_AVD="${RONDA_GUARDIAN_AVD:-RONDA_Guardian}"
 
 PKG="com.ronda.app"
 SAMPLE_PKG="com.ronda.testsample"
+FLAVORS="sms accessibility notification overlay deviceadmin dropper"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHOT_DIR="${RONDA_SHOT_DIR:-$ROOT/build/demo-shots}"
+# Umpan yang terakhir dipasang, supaya `victim` membuka APK yang baru saja
+# diserang dan bukan selalu flavor sms.
+LAST_FLAVOR_FILE="$ROOT/build/.ronda-last-flavor"
 
 export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
@@ -132,7 +136,12 @@ cmd_reset() {
     "$ADB" -s "$s" shell am force-stop "$PKG" || true
     "$ADB" -s "$s" shell pm clear "$PKG" >/dev/null
   done
-  "$ADB" -s "$(protected)" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  local p flavor
+  p="$(protected)"
+  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  for flavor in accessibility notification overlay deviceadmin dropper; do
+    "$ADB" -s "$p" uninstall "$SAMPLE_PKG.$flavor" >/dev/null 2>&1 || true
+  done
   say "Dua HP kembali ke kondisi baru pasang (peran & pairing terhapus)"
 }
 
@@ -182,32 +191,71 @@ cmd_pair() {
   cmd_status
 }
 
-# Install the READ_SMS sample. Optional arg fakes the installing app:
-#   scripts/ronda attack                    → sideload  → HIGH RISK, alert
-#   scripts/ronda attack com.android.vending → Play Store → hanya dicatat
+# sms memakai applicationId dasar; flavor lain memakai suffix.
+pkg_for() { if [ "$1" = "sms" ]; then echo "$SAMPLE_PKG"; else echo "$SAMPLE_PKG.$1"; fi; }
+
+check_flavor() {
+  case " $FLAVORS " in
+    *" $1 "*) ;;
+    *) die "Flavor tidak dikenal: $1 ($(echo "$FLAVORS" | tr ' ' '|'))" ;;
+  esac
+}
+
+# Pasang satu flavor APK umpan. Argumen kedua memilih sumber pemasangan:
+#   scripts/ronda attack                          → sideload SMS → HIGH RISK
+#   scripts/ronda attack accessibility            → sideload → DARURAT
+#   scripts/ronda attack overlay                  → sideload → RENDAH (tidak alert)
+#   scripts/ronda attack sms playstore            → seolah Play Store → tidak alert
+# Flavor: sms | accessibility | notification | overlay | deviceadmin | dropper
+# Sumber: not_playstore (default) | playstore
 cmd_attack() {
-  local installer="${1:-}" p apk
+  local flavor="${1:-sms}" source="${2:-not_playstore}" p apk pkg cap installer
+  check_flavor "$flavor"
+  case "$source" in
+    not_playstore) installer="" ;;
+    playstore)     installer="com.android.vending" ;;
+    *) die "Sumber tidak dikenal: $source (playstore|not_playstore)" ;;
+  esac
   p="$(protected)"
-  apk="$ROOT/RondaTestSample/app/build/outputs/apk/debug/app-debug.apk"
-  [ -f "$apk" ] || (cd "$ROOT/RondaTestSample" && ./gradlew -q :app:assembleDebug)
-  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+  # Nama task Gradle memakai huruf kapital di awal: assembleAccessibilityDebug.
+  cap="$(printf '%s' "${flavor%"${flavor#?}"}" | tr '[:lower:]' '[:upper:]')${flavor#?}"
+  apk="$ROOT/RondaTestSample/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+  # Selalu build. Dulu build hanya dijalankan kalau file APK belum ada, dan itu
+  # membuat tiap perubahan UI umpan tidak pernah kelihatan: APK lama di build/
+  # dipasang terus. Gradle sendiri yang memutuskan perlu compile ulang atau tidak.
+  say "Build umpan '$flavor'…"
+  (cd "$ROOT/RondaTestSample" && ./gradlew -q ":app:assemble${cap}Debug")
+  [ -f "$apk" ] || die "APK tidak ditemukan / gagal build: $apk"
+  pkg="$(pkg_for "$flavor")"
+  "$ADB" -s "$p" uninstall "$pkg" >/dev/null 2>&1 || true
   if [ -n "$installer" ]; then
-    say "Pasang APK umpan seolah-olah dari $installer"
+    say "Pasang flavor '$flavor' seolah-olah dari Play Store"
     "$ADB" -s "$p" install -r -t -i "$installer" "$apk" >/dev/null
   else
-    say "Sideload APK umpan (deklarasi READ_SMS, bukan dari Play Store)"
+    say "Sideload flavor '$flavor' (bukan dari Play Store)"
     "$ADB" -s "$p" install -r -t "$apk" >/dev/null
   fi
+  mkdir -p "$(dirname "$LAST_FLAVOR_FILE")"
+  echo "$flavor" > "$LAST_FLAVOR_FILE"
   sleep 3
-  "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -6
+  "$ADB" -s "$p" logcat -d -s RiskEvaluator:D InstallReceiver:D | tail -8
 }
 
 # Open the flagged app so the soft-block overlay has something to cover.
+# Flavor-nya diambil dari `attack` terakhir, bisa ditimpa lewat argumen. Dulu
+# di sini selalu com.ronda.testsample, jadi apa pun yang dipasang, yang terbuka
+# tetap umpan sms "Undangan Pernikahan".
 cmd_victim() {
-  local p
+  local flavor p pkg
+  flavor="${1:-$(cat "$LAST_FLAVOR_FILE" 2>/dev/null || echo sms)}"
+  check_flavor "$flavor"
   p="$(protected)"
-  "$ADB" -s "$p" shell monkey -p "$SAMPLE_PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-  say "APK umpan dibuka — overlay RONDA harusnya langsung menutupinya"
+  pkg="$(pkg_for "$flavor")"
+  # Komponen eksplisit, bukan monkey/LAUNCHER: flavor deviceadmin sengaja tidak
+  # punya ikon peluncur, jadi hanya cara ini yang bisa membukanya.
+  "$ADB" -s "$p" shell am start -n "$pkg/$SAMPLE_PKG.MainActivity" >/dev/null 2>&1 \
+    || die "Umpan '$flavor' belum terpasang. Jalankan dulu: scripts/ronda attack $flavor"
+  say "APK umpan '$flavor' ($pkg) dibuka — overlay RONDA harusnya menutupinya"
   sleep 3
 
   # The overlay grabs focus, so the focused window flipping to RONDA is proof it
@@ -296,12 +344,26 @@ scripts/ronda <perintah>
   open      Buka RONDA di kedua HP
   role      Pilih peran otomatis: HP-1 = orang tua, HP-2 = penjaga
   pair      Baca kode di HP penjaga, ketikkan di HP orang tua
-  attack [installer]
-            Pasang APK umpan yang mendeklarasikan READ_SMS.
-            Tanpa argumen = sideload → HIGH RISK → alert ke penjaga.
-            `attack com.android.vending` = seolah dari Play Store → tidak
-            memicu alert (membuktikan aturan dua sinyal).
-  victim    Buka APK umpan di HP orang tua → overlay RONDA menutupinya
+  attack [flavor] [sumber]
+            Pasang satu APK umpan di HP orang tua.
+
+            flavor = jenis izin bahaya yang diminta APK:
+              sms (default) | accessibility | notification | overlay
+              | deviceadmin | dropper
+            sumber = seolah dipasang dari mana:
+              not_playstore (default) → sideload, kayak download APK dari luar
+              playstore              → seolah dari Play Store
+
+            Contoh:
+              attack                    → sideload SMS → RONDA alert
+              attack accessibility      → sideload accessibility → RONDA alert
+              attack sms playstore      → seolah dari Play Store → RONDA diam
+                                          (bukti: butuh 2 sinyal buat alert)
+
+            Skor tiap flavor ada di RondaTestSample/README.md.
+  victim [flavor]
+            Buka APK umpan di HP orang tua → overlay RONDA menutupinya.
+            Tanpa argumen: flavor dari `attack` terakhir.
   status    Peran + pairing tiap HP
   logs      Logcat gabungan kedua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
   shot      Screenshot kedua HP ke build/demo-shots/
