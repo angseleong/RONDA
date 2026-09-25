@@ -16,7 +16,7 @@
     <!-- ===== Impact capabilities ===== -->
 
     <string name="cap_accessibility_eyebrow">KONTROL LAYAR</string>
-    <string name="cap_accessibility_body">Aplikasi ini bisa melihat dan mengendalikan apa pun yang ada di layar %1$s — termasuk mengetik sendiri, menekan tombol sendiri, dan membaca isi aplikasi lain seperti mobile banking.</string>
+    <string name="cap_accessibility_body">Aplikasi ini bisa melihat dan mengendalikan apa pun yang ada di layar %1$s, termasuk mengetik sendiri, menekan tombol sendiri, dan membaca isi aplikasi lain seperti mobile banking.</string>
 
     <string name="cap_device_admin_eyebrow">HAK ADMIN</string>
     <string name="cap_device_admin_body">Aplikasi ini meminta hak administrator perangkat. Artinya aplikasi ini sangat sulit dihapus, dan bisa mengunci atau menghapus seluruh isi HP %1$s.</string>
@@ -28,7 +28,7 @@
     <string name="cap_install_pkg_body">Aplikasi ini bisa memasang aplikasi lain ke HP %1$s tanpa diminta. Aplikasi yang dipasang belakangan bisa jauh lebih berbahaya.</string>
 
     <string name="cap_overlay_eyebrow">LAYAR PALSU</string>
-    <string name="cap_overlay_body">Aplikasi ini bisa menampilkan layar palsu di atas aplikasi lain — misalnya halaman login bank tiruan, untuk mencuri password %1$s.</string>
+    <string name="cap_overlay_body">Aplikasi ini bisa menampilkan layar palsu di atas aplikasi lain, misalnya halaman login bank tiruan untuk mencuri password %1$s.</string>
 
     <string name="cap_notif_listener_eyebrow">BACA NOTIFIKASI</string>
     <string name="cap_notif_listener_body">Aplikasi ini bisa membaca semua notifikasi yang masuk, termasuk isi SMS dan kode OTP yang muncul di layar kunci.</string>

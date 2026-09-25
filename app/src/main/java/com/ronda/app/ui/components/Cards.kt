@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -73,14 +72,15 @@ fun RondaCard(
     )
 
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
+    val pressed = interaction.collectIsPressedVisibly()
     val lift by animateDpAsState(
         targetValue = if (pressed && onClick != null) 0.dp else depth,
         animationSpec = tween(durationMillis = 90, easing = FastOutSlowInEasing),
         label = "cardLift"
     )
 
-    Box(modifier) {
+    // A card is big, so it shrinks less than a button; a static card never presses.
+    Box(modifier.pressScale(interaction, pressedScale = 0.98f)) {
         Box(
             Modifier
                 .matchParentSize()

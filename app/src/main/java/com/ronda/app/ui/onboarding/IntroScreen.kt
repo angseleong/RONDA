@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
 import com.ronda.app.ui.components.CardDivider
+import com.ronda.app.ui.components.BrandMark
 import com.ronda.app.ui.components.IconBox
 import com.ronda.app.ui.components.RondaCard
 import com.ronda.app.ui.components.RondaIcon
@@ -64,7 +65,7 @@ fun IntroScreen(
             Wordmark()
 
             Spacer(Modifier.height(28.dp))
-            IconBox(icon = RondaIcons.shieldCheck, tone = Tone.SAFE, size = 64.dp, filled = true)
+            BrandMark(height = 72.dp)
             Spacer(Modifier.height(20.dp))
             Text(
                 text = stringResource(R.string.intro_title),

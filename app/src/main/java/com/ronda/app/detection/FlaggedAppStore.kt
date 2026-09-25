@@ -12,7 +12,7 @@ import android.content.Context
  */
 class FlaggedAppStore(context: Context) {
 
-    private val prefs = context.applicationContext
+    val prefs = context.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun flag(packageName: String) {

@@ -17,12 +17,16 @@ class CommandRepository {
 
     private val commands = FirebaseDatabase.getInstance().reference.child("commands")
 
-    /** Guardian side: record a decision for the protected device to act on. */
+    /**
+     * Record a decision for the other phone to act on. Almost always the
+     * guardian; the protected side only ever sends a disconnect.
+     */
     suspend fun send(
         pairingId: String,
         alertId: String,
         action: String,
-        packageName: String
+        packageName: String,
+        from: String = Command.FROM_GUARDIAN
     ): String {
         val ref = commands.child(pairingId).push()
         ref.awaitSet(
@@ -31,7 +35,8 @@ class CommandRepository {
                 "action" to action,
                 "packageName" to packageName,
                 "createdAt" to ServerValue.TIMESTAMP,
-                "executedAt" to null
+                "executedAt" to null,
+                "from" to from
             )
         )
         return ref.key.orEmpty()

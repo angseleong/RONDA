@@ -52,6 +52,7 @@
 
     <!-- Detail -->
     <string name="detail_title">Detail peringatan</string>
+    <string name="detail_self_name">kamu</string>
     <string name="detail_back">Kembali</string>
     <string name="detail_of_100">/100</string>
     <string name="detail_score_label">Skor risiko</string>
@@ -91,6 +92,7 @@
     <string name="settings_language">Bahasa</string>
     <string name="settings_privacy">Privasi</string>
     <string name="settings_disconnect">Putuskan hubungan</string>
+    <string name="settings_scan">Periksa HP ini sekarang</string>
     <string name="settings_version">RONDA versi %1$s</string>
     <string name="rename_title">Nama panggilan</string>
     <string name="rename_body">Dipakai di seluruh layar Anda, misalnya \"HP Ibu\".</string>

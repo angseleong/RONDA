@@ -1,5 +1,6 @@
 package com.ronda.app.ui.guardian
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,12 +50,14 @@ import androidx.compose.ui.unit.dp
 import com.ronda.app.R
 import com.ronda.app.pairing.PairingRepository
 import com.ronda.app.pairing.QrCodeUtils
+import com.ronda.app.ui.components.BackTopBar
 import com.ronda.app.ui.components.Chip
 import com.ronda.app.ui.components.IconBox
 import com.ronda.app.ui.components.RondaCard
 import com.ronda.app.ui.components.RondaIcon
 import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.RondaTextField
+import com.ronda.app.ui.components.RondaTopBar
 import com.ronda.app.ui.components.SecondaryButton
 import com.ronda.app.ui.components.StatusBadge
 import com.ronda.app.ui.components.TactileButton
@@ -85,54 +88,76 @@ fun GuardianPairingScreen(
     /** The guardian's own name and what they call the protected person. */
     onIdentityChosen: (guardianName: String, nickname: String) -> Unit,
     onPaired: (String) -> Unit,
+    onCancel: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
     var guardianName by rememberSaveable { mutableStateOf(initialGuardianName) }
     var nickname by rememberSaveable { mutableStateOf(initialNickname) }
 
+    if (onCancel != null) {
+        BackHandler {
+            if (step > 0) step-- else onCancel()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .screenInsets()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Wordmark()
-        Spacer(Modifier.height(36.dp))
+        if (onCancel != null) {
+            BackTopBar(
+                onBack = {
+                    if (step > 0) step-- else onCancel()
+                },
+                title = stringResource(R.string.settings_add_device)
+            )
+        } else {
+            RondaTopBar(
+                leading = { Wordmark() }
+            )
+        }
 
-        AnimatedContent(
-            targetState = step,
-            transitionSpec = {
-                if (targetState > initialState) {
-                    (slideInHorizontally { it / 3 } + fadeIn()) togetherWith
-                        (slideOutHorizontally { -it / 3 } + fadeOut())
-                } else {
-                    (slideInHorizontally { -it / 3 } + fadeIn()) togetherWith
-                        (slideOutHorizontally { it / 3 } + fadeOut())
-                }
-            },
-            label = "pairingStep"
-        ) { current ->
-            if (current == 0) {
-                IdentityStep(
-                    initialGuardianName = guardianName,
-                    initialNickname = nickname,
-                    onContinue = { name, chosen ->
-                        guardianName = name
-                        nickname = chosen
-                        onIdentityChosen(name, chosen)
-                        step = 1
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            AnimatedContent(
+                targetState = step,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        (slideInHorizontally { it / 3 } + fadeIn()) togetherWith
+                            (slideOutHorizontally { -it / 3 } + fadeOut())
+                    } else {
+                        (slideInHorizontally { -it / 3 } + fadeIn()) togetherWith
+                            (slideOutHorizontally { it / 3 } + fadeOut())
                     }
-                )
-            } else {
-                CodeStep(
-                    guardianDeviceId = guardianDeviceId,
-                    guardianName = guardianName,
-                    nickname = nickname,
-                    onChangeName = { step = 0 },
-                    onPaired = onPaired
-                )
+                },
+                label = "pairingStep"
+            ) { current ->
+                if (current == 0) {
+                    IdentityStep(
+                        initialGuardianName = guardianName,
+                        initialNickname = nickname,
+                        onContinue = { name, chosen ->
+                            guardianName = name
+                            nickname = chosen
+                            onIdentityChosen(name, chosen)
+                            step = 1
+                        }
+                    )
+                } else {
+                    CodeStep(
+                        guardianDeviceId = guardianDeviceId,
+                        guardianName = guardianName,
+                        nickname = nickname,
+                        onChangeName = { step = 0 },
+                        onPaired = onPaired
+                    )
+                }
             }
         }
     }
@@ -268,10 +293,15 @@ private fun CodeStep(
             .onFailure { failed = true }
     }
 
+    var pairedCalled by remember { mutableStateOf(false) }
+
     LaunchedEffect(code) {
         val current = code ?: return@LaunchedEffect
         repository.observePairing(current).collect { pairing ->
-            if (pairing?.isActive == true) onPaired(current)
+            if (pairing?.isActive == true && !pairedCalled) {
+                pairedCalled = true
+                onPaired(current)
+            }
         }
     }
 

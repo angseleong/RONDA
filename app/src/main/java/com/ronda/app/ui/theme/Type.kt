@@ -81,9 +81,9 @@ val Typography = Typography(
     bodyMedium = style(13.sp, 18.sp, FontWeight.Bold),
     bodySmall = style(12.sp, 16.sp, FontWeight.Bold),
 
-    labelLarge = style(16.sp, 20.sp, FontWeight.ExtraBold, 0.05.em),
-    labelMedium = style(12.sp, 16.sp, FontWeight.ExtraBold, 0.02.em),
-    labelSmall = style(10.sp, 14.sp, FontWeight.Black, 0.18.em)
+    labelLarge = style(16.sp, 20.sp, FontWeight.ExtraBold),
+    labelMedium = style(12.sp, 16.sp, FontWeight.ExtraBold),
+    labelSmall = style(10.sp, 14.sp, FontWeight.Black)
 )
 
 /**
@@ -97,7 +97,7 @@ val LargePrint = style(20.sp, 30.sp, FontWeight.Bold)
 val LargePrintTitle = style(30.sp, 36.sp, FontWeight.Black, (-0.02).em)
 
 /** Buttons on the same screens: bigger than the guardian's 16sp, same voice. */
-val LargePrintLabel = style(18.sp, 22.sp, FontWeight.ExtraBold, 0.04.em)
+val LargePrintLabel = style(18.sp, 22.sp, FontWeight.ExtraBold)
 
 /**
  * The six-character pairing code, on both phones: wide tracking so it can be

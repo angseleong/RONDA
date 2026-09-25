@@ -64,18 +64,19 @@ import com.ronda.app.ui.theme.Tone
 @Composable
 internal fun SettingsTab(
     state: GuardianUiState,
-    protectedName: String,
-    pairingCode: String,
+    devices: List<PairingInfo>,
     themeMode: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
     language: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
-    onRename: (String) -> Unit,
-    onDisconnect: () -> Unit
+    onRename: (String, String) -> Unit,
+    onDisconnect: (String) -> Unit,
+    onAddDevice: () -> Unit,
+    onScan: (String) -> Unit
 ) {
     val colors = RondaTheme.colors
-    var renaming by rememberSaveable { mutableStateOf(false) }
-    var disconnecting by rememberSaveable { mutableStateOf(false) }
+    var renamingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var disconnectingId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val version = remember {
@@ -100,54 +101,82 @@ internal fun SettingsTab(
                 text = stringResource(R.string.settings_device_section),
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 10.dp)
             )
-            RondaCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconBox(icon = RondaIcons.person, tone = Tone.TRUST, size = 52.dp)
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.home_guardian_device, protectedName),
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = colors.textPrimary
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        StatusBadge(
-                            text = stringResource(
-                                if (state.connected) R.string.status_connected
-                                else R.string.status_disconnected
-                            ),
-                            tone = if (state.connected) Tone.SAFE else Tone.WARN,
-                            icon = if (state.connected) RondaIcons.link else RondaIcons.wifiOff,
-                            filled = false
-                        )
+            
+            devices.forEach { device ->
+                RondaCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconBox(icon = RondaIcons.person, tone = Tone.TRUST, size = 52.dp)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.home_guardian_device, device.name),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = colors.textPrimary
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            StatusBadge(
+                                text = stringResource(
+                                    if (state.connected) R.string.status_connected
+                                    else R.string.status_disconnected
+                                ),
+                                tone = if (state.connected) Tone.SAFE else Tone.WARN,
+                                icon = if (state.connected) RondaIcons.link else RondaIcons.wifiOff,
+                                filled = false
+                            )
+                        }
                     }
-                }
-                Spacer(Modifier.height(16.dp))
-                CardDivider()
-                Spacer(Modifier.height(14.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.settings_pairing_code).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.textSecondary
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = pairingCode,
-                            style = Tabular.copy(fontSize = MaterialTheme.typography.titleMedium.fontSize),
-                            color = colors.textPrimary
-                        )
+                    Spacer(Modifier.height(16.dp))
+                    CardDivider()
+                    Spacer(Modifier.height(14.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_pairing_code).uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.textSecondary
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = device.id,
+                                style = Tabular.copy(fontSize = MaterialTheme.typography.titleMedium.fontSize),
+                                color = colors.textPrimary
+                            )
+                        }
                     }
+                    Spacer(Modifier.height(16.dp))
+                    SecondaryButton(
+                        text = stringResource(R.string.settings_scan),
+                        onClick = { onScan(device.id) },
+                        icon = RondaIcons.activity,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    SecondaryButton(
+                        text = stringResource(R.string.settings_rename),
+                        onClick = { renamingId = device.id },
+                        icon = RondaIcons.pen,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    SecondaryButton(
+                        text = stringResource(R.string.settings_disconnect),
+                        onClick = { disconnectingId = device.id },
+                        icon = RondaIcons.logOut,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                Spacer(Modifier.height(16.dp))
-                SecondaryButton(
-                    text = stringResource(R.string.settings_rename),
-                    onClick = { renaming = true },
-                    icon = RondaIcons.pen,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
+            
+            Spacer(Modifier.height(16.dp))
+            TactileButton(
+                text = stringResource(R.string.settings_add_device),
+                onClick = onAddDevice,
+                icon = RondaIcons.users,
+                tone = Tone.TRUST,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            )
         }
 
         item {
@@ -224,18 +253,6 @@ internal fun SettingsTab(
         }
 
         item {
-            Spacer(Modifier.height(28.dp))
-            // Not red: red is spent on flagged apps and the uninstall only.
-            // Unpairing is reversible with a new code, so it is an ordinary
-            // outline action behind a confirmation.
-            SecondaryButton(
-                text = stringResource(R.string.settings_disconnect),
-                onClick = { disconnecting = true },
-                icon = RondaIcons.logOut,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-            )
             Spacer(Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.settings_version, version),
@@ -246,23 +263,25 @@ internal fun SettingsTab(
         }
     }
 
-    if (renaming) {
+    val renaming = devices.firstOrNull { it.id == renamingId }
+    if (renaming != null) {
         RenameSheet(
-            current = protectedName,
-            onSave = { onRename(it); renaming = false },
-            onDismiss = { renaming = false }
+            current = renaming.name,
+            onSave = { onRename(renaming.id, it); renamingId = null },
+            onDismiss = { renamingId = null }
         )
     }
 
-    if (disconnecting) {
+    val disconnecting = devices.firstOrNull { it.id == disconnectingId }
+    if (disconnecting != null) {
         ConfirmSheet(
-            title = stringResource(R.string.disconnect_title, protectedName),
-            body = stringResource(R.string.disconnect_body, protectedName),
+            title = stringResource(R.string.disconnect_title, disconnecting.name),
+            body = stringResource(R.string.disconnect_body, disconnecting.name),
             confirmText = stringResource(R.string.disconnect_confirm),
             confirmTone = Tone.TRUST,
             confirmIcon = RondaIcons.logOut,
-            onConfirm = { disconnecting = false; onDisconnect() },
-            onDismiss = { disconnecting = false }
+            onConfirm = { disconnectingId = null; onDisconnect(disconnecting.id) },
+            onDismiss = { disconnectingId = null }
         )
     }
 }
