@@ -96,6 +96,7 @@ fun ProtectedHomeScreen(
     onContinueSetup: () -> Unit,
     onManualScan: () -> Unit,
     onUninstall: (String) -> Unit,
+    onOpenDetail: (String) -> Unit,
     onDisconnect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -117,7 +118,8 @@ fun ProtectedHomeScreen(
                     flaggedPackages = flaggedPackages,
                     onContinueSetup = onContinueSetup,
                     onManualScan = onManualScan,
-                    onUninstall = onUninstall
+                    onUninstall = onUninstall,
+                    onOpenDetail = onOpenDetail
                 )
 
                 ProtectedTab.HISTORY -> ProtectedHistoryTab(
@@ -153,7 +155,8 @@ private fun ProtectedAlertsTab(
     flaggedPackages: Set<String>,
     onContinueSetup: () -> Unit,
     onManualScan: () -> Unit,
-    onUninstall: (String) -> Unit
+    onUninstall: (String) -> Unit,
+    onOpenDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
     val pm = context.packageManager
@@ -264,6 +267,7 @@ private fun ProtectedAlertsTab(
 
                 RondaCard(
                     tone = Tone.DANGER,
+                    onClick = { onOpenDetail(pkgName) },
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                 ) {
                     Row(verticalAlignment = Alignment.Top) {

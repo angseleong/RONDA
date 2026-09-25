@@ -6,7 +6,7 @@
 <resources>
 
     <string name="cap_accessibility_eyebrow">Screen control</string>
-    <string name="cap_accessibility_body">This app can see and control anything on %1$s\'s screen — typing by itself, pressing buttons by itself, and reading what other apps show, including mobile banking.</string>
+    <string name="cap_accessibility_body">This app can see and control anything on %1$s\'s screen, including typing by itself, pressing buttons by itself, and reading what other apps show, including mobile banking.</string>
 
     <string name="cap_device_admin_eyebrow">Admin rights</string>
     <string name="cap_device_admin_body">This app asks for device administrator rights. That makes it very hard to remove, and lets it lock or wipe everything on %1$s\'s phone.</string>
@@ -18,7 +18,7 @@
     <string name="cap_install_pkg_body">This app can install other apps on %1$s\'s phone without being asked. What it installs later can be far more dangerous.</string>
 
     <string name="cap_overlay_eyebrow">Fake screens</string>
-    <string name="cap_overlay_body">This app can draw fake screens over other apps — a copied bank login page, for example, to steal %1$s\'s password.</string>
+    <string name="cap_overlay_body">This app can draw fake screens over other apps, for example a copied bank login page to steal %1$s\'s password.</string>
 
     <string name="cap_notif_listener_eyebrow">Reads notifications</string>
     <string name="cap_notif_listener_body">This app can read every notification that arrives, including SMS contents and OTP codes shown on the lock screen.</string>

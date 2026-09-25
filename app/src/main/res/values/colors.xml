@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Forest green (DESIGN.md "safe"): launcher background and the splash window. -->
-    <color name="brand_green">#FF1D7F4E</color>
-
     <!-- Window background before Compose draws, so a cold start never flashes
          the wrong colour. Overridden in values-night. -->
     <color name="window_bg">#FFFFFFFF</color>

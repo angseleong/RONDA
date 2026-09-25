@@ -2,6 +2,7 @@ package com.ronda.app
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -22,11 +23,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -396,12 +399,40 @@ class MainActivity : AppCompatActivity() {
                         val historyStore = remember { com.ronda.app.detection.ProtectedHistoryStore(this@MainActivity) }
                         var historyItems by remember { mutableStateOf(historyStore.history()) }
 
-                        LaunchedEffect(protectedTab) {
-                            flaggedPackages = flaggedStore.flaggedPackages()
-                            historyItems = historyStore.history()
+                        // Reload whenever InstallReceiver / DetectionService writes, not just on tab switch.
+                        DisposableEffect(Unit) {
+                            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                                flaggedPackages = flaggedStore.flaggedPackages()
+                                historyItems = historyStore.history()
+                            }
+                            flaggedStore.prefs.registerOnSharedPreferenceChangeListener(listener)
+                            historyStore.prefs.registerOnSharedPreferenceChangeListener(listener)
+                            listener.onSharedPreferenceChanged(null, null) // catch writes made while off-screen
+                            onDispose {
+                                flaggedStore.prefs.unregisterOnSharedPreferenceChangeListener(listener)
+                                historyStore.prefs.unregisterOnSharedPreferenceChangeListener(listener)
+                            }
                         }
 
-                        ProtectedHomeScreen(
+                        var detailPackage by rememberSaveable { mutableStateOf<String?>(null) }
+                        val detailVerdict = detailPackage?.let { pkg ->
+                            remember(pkg) { com.ronda.app.detection.flagVerdict(this@MainActivity, pkg) }
+                        }
+                        if (detailVerdict != null) {
+                            AlertDetailScreen(
+                                verdict = detailVerdict,
+                                protectedName = stringResource(R.string.detail_self_name),
+                                undoable = false,
+                                onMarkUnsafe = {},
+                                onMarkSafe = null,
+                                onUndo = {},
+                                onRequestUninstall = {
+                                    detailPackage = null
+                                    startUninstall(detailVerdict.packageName)
+                                },
+                                onBack = { detailPackage = null }
+                            )
+                        } else ProtectedHomeScreen(
                             status = status,
                             pairingCode = pairingId.orEmpty(),
                             guardianName = guardianName,
@@ -420,6 +451,7 @@ class MainActivity : AppCompatActivity() {
                                 startForegroundService(serviceIntent)
                             },
                             onUninstall = ::startUninstall,
+                            onOpenDetail = { detailPackage = it },
                             onDisconnect = ::disconnectProtected
                         )
                     }
@@ -588,8 +620,8 @@ class MainActivity : AppCompatActivity() {
         addingDevice = true
     }
 
+    /** The service re-reads the pairings on every start; no stop needed (stop-then-start raced and crashed). */
     private fun restartGuardianWatch() {
-        stopService(Intent(this, GuardianAlertService::class.java))
         if (roleStore.pairingIds.isNotEmpty()) GuardianAlertService.start(this)
     }
 

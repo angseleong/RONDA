@@ -4,6 +4,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.ronda.app.awaitSet
 import com.ronda.app.core.Verdict
+import com.ronda.app.awaitGet
 import com.ronda.app.valueEvents
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -53,6 +54,22 @@ class AlertRepository {
     suspend fun updateStatus(pairingId: String, alertId: String, status: String) {
         if (alertId.isEmpty()) return
         alerts.child(pairingId).child(alertId).child("status").awaitSet(status)
+    }
+
+    /**
+     * Protected side: the app is gone, close every open alert about it.
+     *
+     * Looked up by package rather than alert id, because the victim can remove
+     * the app from RONDA's own card with no guardian request on hand — and a
+     * rescan may have filed more than one alert for the same package.
+     */
+    suspend fun markUninstalled(pairingId: String, packageName: String) {
+        alerts.child(pairingId).awaitGet().children
+            .filter {
+                it.child("packageName").value == packageName &&
+                    it.child("status").value != Alert.STATUS_SAFE
+            }
+            .forEach { it.ref.child("status").awaitSet(Alert.STATUS_UNINSTALLED) }
     }
 
     /** Guardian side: every alert for this pairing, newest first. */

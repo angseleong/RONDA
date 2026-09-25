@@ -3,12 +3,15 @@ package com.ronda.app.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -24,11 +27,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
@@ -40,6 +47,47 @@ import com.ronda.app.ui.theme.RondaDepth
 import com.ronda.app.ui.theme.RondaRadius
 import com.ronda.app.ui.theme.RondaTheme
 import com.ronda.app.ui.theme.Tone
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+
+/**
+ * Pressed, but held for at least [PRESS_HOLD_MS] after release. Inside a
+ * scrolling screen Compose delays the press and a quick tap emits Press and
+ * Release in the same frame, so collectIsPressedAsState() never shows it and
+ * the button looks dead. Holding the release makes every tap visible.
+ */
+@Composable
+fun InteractionSource.collectIsPressedVisibly(): Boolean {
+    var pressed by remember { mutableStateOf(false) }
+    LaunchedEffect(this) {
+        interactions.collectLatest {
+            when (it) {
+                is PressInteraction.Press -> pressed = true
+                is PressInteraction.Release, is PressInteraction.Cancel -> {
+                    delay(PRESS_HOLD_MS)
+                    pressed = false
+                }
+            }
+        }
+    }
+    return pressed
+}
+
+/**
+ * The press cue every tappable shares: a slight shrink while pressed. Goes
+ * first in the chain so the whole control (shadow, border, face) scales as one.
+ */
+@Composable
+fun Modifier.pressScale(interaction: InteractionSource, pressedScale: Float = 0.96f): Modifier {
+    val scale by animateFloatAsState(
+        targetValue = if (interaction.collectIsPressedVisibly()) pressedScale else 1f,
+        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing),
+        label = "pressScale"
+    )
+    return graphicsLayer { scaleX = scale; scaleY = scale }
+}
+
+private const val PRESS_HOLD_MS = 120L
 
 /**
  * The signature of the system (DESIGN.md §6.1): a face resting 5dp above a
@@ -67,7 +115,7 @@ fun TactileButton(
     val active = enabled && !loading
 
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
+    val pressed = interaction.collectIsPressedVisibly()
     val lift by animateDpAsState(
         targetValue = if (pressed && active) 0.dp else travel,
         animationSpec = tween(durationMillis = 90, easing = FastOutSlowInEasing),
@@ -84,7 +132,7 @@ fun TactileButton(
     val shadow = if (enabled) colors.shadow(tone) else colors.border
     val ink = colors.onFill(tone)
 
-    Box(modifier) {
+    Box(modifier.pressScale(interaction)) {
         Box(
             Modifier
                 .matchParentSize()
@@ -155,7 +203,7 @@ fun SecondaryButton(
     val travel = RondaDepth.button
 
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
+    val pressed = interaction.collectIsPressedVisibly()
     val lift by animateDpAsState(
         targetValue = if (pressed && enabled) 0.dp else travel,
         animationSpec = tween(durationMillis = 90, easing = FastOutSlowInEasing),
@@ -165,7 +213,7 @@ fun SecondaryButton(
     val edge = if (tone == Tone.DANGER) colors.dangerBorder else colors.border
     val ink = if (enabled) colors.fill(tone) else colors.textMuted
 
-    Box(modifier) {
+    Box(modifier.pressScale(interaction)) {
         Box(
             Modifier
                 .matchParentSize()
@@ -220,11 +268,13 @@ fun TextAction(
     large: Boolean = false
 ) {
     val colors = RondaTheme.colors
+    val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
+            .pressScale(interaction)
             .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(RondaRadius.button))
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(interaction, LocalIndication.current, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {

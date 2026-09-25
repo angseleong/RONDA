@@ -20,11 +20,11 @@
 
     <!-- Intro -->
     <string name="intro_title">RONDA menjaga HP dari penipuan rekayasa sosial</string>
-    <string name="intro_body">Penipu mengirim file aplikasi lewat WhatsApp — undangan, resi, tagihan. Sekali dipasang, aplikasi itu bisa membaca kode OTP bank.</string>
+    <string name="intro_body">Penipu mengirim file aplikasi lewat WhatsApp, misalnya undangan, resi, atau tagihan. Sekali dipasang, aplikasi itu bisa membaca kode OTP bank.</string>
     <string name="intro_point_1_title">Terdeteksi saat dipasang</string>
     <string name="intro_point_1_body">RONDA memeriksa setiap aplikasi baru yang datang dari luar Play Store.</string>
     <string name="intro_point_2_title">Penjaga yang diberi tahu</string>
-    <string name="intro_point_2_body">Peringatan dikirim ke HP Rondor (pendamping) — bukan ke orang yang sedang ditipu.</string>
+    <string name="intro_point_2_body">Peringatan dikirim ke HP Rondor (pendamping), bukan ke orang yang sedang ditipu.</string>
     <string name="intro_point_3_title">Aplikasinya ditutup</string>
     <string name="intro_point_3_body">Aplikasi berbahaya ditutupi peringatan RONDA sampai penjaga memutuskan.</string>
     <string name="intro_privacy">RONDA tidak membaca pesan Anda, tidak meminta izin SMS, dan tidak memakai layanan Aksesibilitas.</string>
@@ -45,7 +45,7 @@
     <string name="pair_guardian_name_title">Siapa nama Anda?</string>
     <string name="pair_guardian_name_body">Nama ini muncul di HP Rondee: \"Dijaga oleh …\".</string>
     <string name="pair_guardian_name_placeholder">Misalnya: Rina</string>
-    <string name="pair_nickname_body">Nama panggilan ini dipakai di seluruh layar Anda — misalnya \"HP Ibu\".</string>
+    <string name="pair_nickname_body">Nama panggilan ini dipakai di seluruh layar Anda, misalnya \"HP Ibu\".</string>
     <string name="pair_nickname_field">Nama panggilan lain</string>
     <string name="pair_nickname_placeholder">Misalnya: Bude Sari</string>
     <string name="pair_nickname_continue">Lanjutkan</string>
@@ -117,7 +117,7 @@
     <string name="home_protected_guarded_by">Dijaga oleh %1$s</string>
     <string name="home_protected_guarded_by_unknown">Dijaga oleh keluarga Anda</string>
     <string name="home_protected_profile">Tentang penjagaan</string>
-    <string name="home_protected_profile_body">HP ini dijaga dengan persetujuan Anda. RONDA hanya melihat aplikasi apa yang dipasang — bukan isi pesan, bukan isi layar.</string>
+    <string name="home_protected_profile_body">HP ini dijaga dengan persetujuan Anda. RONDA hanya melihat aplikasi apa yang dipasang, bukan isi pesan atau isi layar.</string>
     <string name="home_protected_pairing_code">Kode penghubung</string>
     <string name="home_protected_manual_scan">Scan ulang</string>
 

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Forest green (DESIGN.md "safe"): the same colour the splash window paints. -->
+<!-- White, so the teal and amber mark reads as it does on the brand sheet; the splash window paints the same. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#FF1D7F4E"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M0,0h108v108H0z" />
 </vector>

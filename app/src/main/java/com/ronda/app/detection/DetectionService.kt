@@ -153,7 +153,7 @@ class DetectionService : Service() {
         notificationManager.createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_shield_check)
+            .setSmallIcon(R.drawable.ic_ronda_mark)
             .setContentTitle(loc.getString(R.string.monitoring_notification_title))
             .setContentText(loc.getString(R.string.monitoring_notification_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)

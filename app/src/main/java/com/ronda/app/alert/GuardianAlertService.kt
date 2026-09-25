@@ -45,13 +45,19 @@ import kotlinx.coroutines.launch
  */
 class GuardianAlertService : Service() {
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    /** Replaced on every start, so a pairing added or removed re-reads the list. */
+    private var watch: CoroutineScope? = null
     private lateinit var seenAlerts: SeenAlertStore
 
     override fun onCreate() {
         super.onCreate()
         seenAlerts = SeenAlertStore(this)
+        // First thing, always: stopping a startForegroundService() service
+        // before this call crashes the whole app.
+        startForeground(NOTIFICATION_ID, createPersistentNotification())
+    }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val roleStore = RoleStore(this)
         val pairingIds = roleStore.pairingIds
 
@@ -59,25 +65,25 @@ class GuardianAlertService : Service() {
         if (roleStore.role != Role.GUARDIAN || pairingIds.isEmpty()) {
             Log.w(TAG, "Not a paired guardian device, stopping")
             stopSelf()
-            return
+            return START_NOT_STICKY
         }
 
-        startForeground(NOTIFICATION_ID, createPersistentNotification())
-        watchAlerts(pairingIds)
-        watchCommands(pairingIds)
+        watch?.cancel()
+        val scope = CoroutineScope(Dispatchers.Main + SupervisorJob()).also { watch = it }
+        watchAlerts(scope, pairingIds)
+        watchCommands(scope, pairingIds)
+        return START_STICKY
     }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
         super.onDestroy()
-        scope.cancel()
+        watch?.cancel()
         Log.d(TAG, "GuardianAlertService destroyed")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun watchAlerts(pairingIds: Set<String>) {
+    private fun watchAlerts(scope: CoroutineScope, pairingIds: Set<String>) {
         if (pairingIds.isEmpty()) return
         
         scope.launch {
@@ -256,7 +262,7 @@ class GuardianAlertService : Service() {
      * "disconnected" notice from firing on every later command. MainActivity
      * runs the same check, so whichever sees it first is the only one to notify.
      */
-    private fun watchCommands(pairingIds: Set<String>) {
+    private fun watchCommands(scope: CoroutineScope, pairingIds: Set<String>) {
         if (pairingIds.isEmpty()) return
 
         scope.launch {

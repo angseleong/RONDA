@@ -12,7 +12,7 @@ data class ProtectedHistoryItem(
 )
 
 class ProtectedHistoryStore(context: Context) {
-    private val prefs = context.applicationContext
+    val prefs = context.applicationContext
         .getSharedPreferences("ronda_protected_history", Context.MODE_PRIVATE)
 
     fun record(packageName: String, appLabel: String, action: String) {

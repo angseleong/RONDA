@@ -52,6 +52,7 @@
 
     <!-- Detail -->
     <string name="detail_title">Detail peringatan</string>
+    <string name="detail_self_name">kamu</string>
     <string name="detail_back">Kembali</string>
     <string name="detail_of_100">/100</string>
     <string name="detail_score_label">Skor risiko</string>

@@ -36,7 +36,12 @@ class FirebaseGuardianRepository(
     override fun observeVerdicts(): Flow<List<Verdict>> {
         if (pairingIds.isEmpty()) return flowOf(emptyList())
         val flows = pairingIds.map { alerts.observeAlerts(it) }
-        return combine(flows) { lists -> lists.flatMap { it.toList() } }.map { list ->
+        return combine(flows) { lists -> lists.flatMap { it.toList() } }.map { all ->
+            // One entry per app. A rescan or an app update can file a second
+            // alert for the same package, and the UI keys on pairing+package
+            // (duplicate LazyColumn keys crash). Lists are newest first, so the
+            // newest alert wins.
+            val list = all.distinctBy { "${it.pairingId}:${it.packageName}" }
             alertIds = list.associate { "${it.pairingId}:${it.packageName}" to it.alertId }
             list.map(::toVerdict)
         }

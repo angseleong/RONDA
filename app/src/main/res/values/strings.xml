@@ -20,11 +20,11 @@
     <string name="lang_continue">Continue</string>
 
     <string name="intro_title">RONDA guards phones against social engineering scams</string>
-    <string name="intro_body">Scammers send app files over WhatsApp — an invitation, a delivery receipt, a bill. Once installed, that app can read bank OTP codes.</string>
+    <string name="intro_body">Scammers send app files over WhatsApp, like an invitation, a delivery receipt, or a bill. Once installed, that app can read bank OTP codes.</string>
     <string name="intro_point_1_title">Caught at install time</string>
     <string name="intro_point_1_body">RONDA checks every new app that arrives from outside the Play Store.</string>
     <string name="intro_point_2_title">The Rondor is told</string>
-    <string name="intro_point_2_body">The alert goes to the Rondor (guardian) phone — not to the person being scammed.</string>
+    <string name="intro_point_2_body">The alert goes to the Rondor (guardian) phone, not to the person being scammed.</string>
     <string name="intro_point_3_title">The app is covered</string>
     <string name="intro_point_3_body">A dangerous app is covered by a RONDA warning until the guardian decides.</string>
     <string name="intro_privacy">RONDA never reads your messages, never asks for SMS permission, and never uses the Accessibility service.</string>
@@ -44,7 +44,7 @@
     <string name="pair_guardian_name_title">What is your name?</string>
     <string name="pair_guardian_name_body">Shown on the Rondee phone, as \"Guarded by …\".</string>
     <string name="pair_guardian_name_placeholder">For example: Rina</string>
-    <string name="pair_nickname_body">This name appears on every screen — for example \"Mum\'s phone\".</string>
+    <string name="pair_nickname_body">This name appears on every screen, for example \"Mum\'s phone\".</string>
     <string name="pair_nickname_field">Another name</string>
     <string name="pair_nickname_placeholder">For example: Aunt Sari</string>
     <string name="pair_nickname_continue">Continue</string>
@@ -110,7 +110,7 @@
     <string name="home_protected_guarded_by">Guarded by %1$s</string>
     <string name="home_protected_guarded_by_unknown">Guarded by your family</string>
     <string name="home_protected_profile">About this protection</string>
-    <string name="home_protected_profile_body">This phone is guarded with your consent. RONDA only sees which apps are installed — not your messages, not your screen.</string>
+    <string name="home_protected_profile_body">This phone is guarded with your consent. RONDA only sees which apps are installed, not your messages or your screen.</string>
     <string name="home_protected_pairing_code">Pairing code</string>
     <string name="home_protected_manual_scan">Scan again</string>
 

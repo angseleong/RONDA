@@ -114,7 +114,7 @@ ui_dump() {
 ui_tap() {
   local s="$1" pattern="$2" idx="${3:-1}" node bounds x1 y1 x2 y2 i
   for i in 1 2 3 4 5 6 7 8 9 10; do
-    node="$(ui_dump "$s" | grep -E "text=\"$pattern\"" | sed -n "${idx}p" || true)"
+    node="$(ui_dump "$s" | grep -iE "text=\"$pattern\"" | sed -n "${idx}p" || true)"
     if [ -n "$node" ]; then
       bounds="$(echo "$node" | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | head -1)"
       read -r x1 y1 x2 y2 <<<"$(echo "$bounds" | grep -oE '[0-9]+' | tr '\n' ' ')"
@@ -138,7 +138,7 @@ ui_text() {
 }
 
 # Is a text on screen right now? One dump, no retry.
-ui_has() { ui_dump "$1" | grep -qE "text=\"$2\""; }
+ui_has() { ui_dump "$1" | grep -qiE "text=\"$2\""; }
 
 # Scroll the current screen up so a button below the fold becomes tappable.
 ui_scroll_down() { "$ADB" -s "$1" shell input swipe 540 1800 540 700 300; sleep 1; }

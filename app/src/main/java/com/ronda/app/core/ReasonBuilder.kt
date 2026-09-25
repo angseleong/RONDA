@@ -21,7 +21,7 @@ object ReasonBuilder {
 
     private val STRINGS_ID: Map<String, String> = mapOf(
         "ACCESSIBILITY" to
-            "Aplikasi ini bisa **melihat dan mengontrol apa pun** yang kamu lakukan di layar — " +
+            "Aplikasi ini bisa **melihat dan mengontrol apa pun** yang kamu lakukan di layar, " +
             "termasuk mengetik sendiri, menekan tombol sendiri, dan membaca isi aplikasi lain.",
         "DEVICE_ADMIN" to
             "Aplikasi ini meminta hak **administrator perangkat**, yang membuatnya " +
@@ -32,7 +32,7 @@ object ReasonBuilder {
         "INSTALL_PKG" to
             "Aplikasi ini bisa **memasang aplikasi lain** ke HP kamu, bahkan tanpa kamu minta.",
         "OVERLAY" to
-            "Aplikasi ini bisa **menampilkan layar palsu di atas aplikasi lain** — " +
+            "Aplikasi ini bisa **menampilkan layar palsu di atas aplikasi lain**, " +
             "misalnya halaman login bank tiruan untuk mencuri passwordmu.",
         "NOTIF_LISTENER" to
             "Aplikasi ini bisa **membaca semua notifikasi** yang masuk, termasuk isi SMS " +
@@ -85,7 +85,7 @@ object ReasonBuilder {
 
     private val STRINGS_EN: Map<String, String> = mapOf(
         "ACCESSIBILITY" to
-            "This app can **view and control everything** you do on screen — " +
+            "This app can **view and control everything** you do on screen, " +
             "including typing, clicking buttons, and reading other apps.",
         "DEVICE_ADMIN" to
             "This app requests **device administrator** privileges, making it " +
@@ -96,8 +96,8 @@ object ReasonBuilder {
         "INSTALL_PKG" to
             "This app can **install other apps** onto your phone without your knowledge.",
         "OVERLAY" to
-            "This app can **draw fake screens on top of other apps** — " +
-            "for instance, a fake bank login to steal credentials.",
+            "This app can **draw fake screens on top of other apps**, " +
+            "for instance a fake bank login to steal credentials.",
         "NOTIF_LISTENER" to
             "This app can **read all incoming notifications**, including SMS text " +
             "and OTP codes on your lock screen.",
