@@ -26,6 +26,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -248,6 +249,13 @@ class GuardianAlertService : Service() {
             .build()
     }
 
+    /**
+     * A Rondee ending the link while this phone is in the background. The
+     * pairing set is fixed for this service's lifetime, so a pairing already
+     * dropped keeps showing up here — the store check is what stops the same
+     * "disconnected" notice from firing on every later command. MainActivity
+     * runs the same check, so whichever sees it first is the only one to notify.
+     */
     private fun watchCommands(pairingIds: Set<String>) {
         if (pairingIds.isEmpty()) return
 
@@ -260,43 +268,44 @@ class GuardianAlertService : Service() {
                 .collect { list ->
                     val roleStore = RoleStore(this@GuardianAlertService)
                     for ((id, cmds) in list) {
-                        if (cmds.any { it.action == Command.ACTION_DISCONNECT }) {
-                            Log.d(TAG, "Pairing $id disconnected by Rondee in background")
-                            val name = roleStore.getProtectedName(id)
-                            roleStore.removePairing(id)
-                            notifyRondeeDisconnected(name)
-                            if (roleStore.pairingIds.isEmpty()) {
-                                stopSelf()
-                            }
-                        }
+                        if (id !in roleStore.pairingIds) continue
+                        if (cmds.none { it.isDisconnectFrom(Command.FROM_PROTECTED) }) continue
+
+                        Log.d(TAG, "Pairing $id disconnected by Rondee in background")
+                        val name = roleStore.getProtectedName(id)
+                        roleStore.removePairing(id)
+                        notifyRondeeDisconnected(this@GuardianAlertService, name)
                     }
+                    if (roleStore.pairingIds.isEmpty()) stopSelf()
                 }
         }
     }
 
-    private fun notifyRondeeDisconnected(rondeeName: String) {
-        val loc = localized()
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "ronda_rondee_disconnected_channel"
-        manager.createNotificationChannel(
-            NotificationChannel(
-                channelId,
-                loc.getString(R.string.rondee_disconnected_notification_title),
-                NotificationManager.IMPORTANCE_HIGH
-            )
-        )
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_log_out)
-            .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
-            .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, rondeeName))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .build()
-        manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
-    }
-
     companion object {
         private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
+        private const val CHANNEL_ID_RONDEE_DISCONNECTED = "ronda_rondee_disconnected_channel"
+
+        /** Shown on the Rondor's phone when a Rondee ends the pairing from their side. */
+        fun notifyRondeeDisconnected(context: Context, rondeeName: String) {
+            val loc = context.localized()
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID_RONDEE_DISCONNECTED,
+                    loc.getString(R.string.rondee_disconnected_notification_title),
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+            )
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID_RONDEE_DISCONNECTED)
+                .setSmallIcon(R.drawable.ic_log_out)
+                .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
+                .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, rondeeName))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
+        }
+
         private const val TAG = "GuardianAlertService"
         private const val NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID_BASE = 2000

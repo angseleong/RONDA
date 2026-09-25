@@ -38,13 +38,17 @@ class CommandHandler(private val context: Context) {
     }
 
     private suspend fun handle(pairingId: String, command: Command) {
+        // Our own disconnect, echoed back on the shared channel. Acting on it
+        // would unpair a phone that may already be paired to someone new.
+        if (command.from == Command.FROM_PROTECTED) return
+
         Log.d(TAG, "Guardian command: ${command.action} for ${command.packageName}")
 
         when (command.action) {
             Command.ACTION_MARK_SAFE -> markSafe(pairingId, command)
             Command.ACTION_UNINSTALL -> requestUninstall(command)
             Command.ACTION_SCAN -> requestScan()
-            Command.ACTION_DISCONNECT -> handleDisconnect()
+            Command.ACTION_DISCONNECT -> handleDisconnect(pairingId)
             else -> Log.w(TAG, "Unknown command action: ${command.action}")
         }
 
@@ -62,16 +66,20 @@ class CommandHandler(private val context: Context) {
         Log.d(TAG, "Marked safe, block cleared: ${command.packageName}")
     }
 
-    private fun handleDisconnect() {
+    /**
+     * Works with the app closed. MainActivity re-reads the pairing on every
+     * resume, and its own listener updates the screen if it is open, so there
+     * is no need to pull the app to the front over whatever the user is doing.
+     */
+    private fun handleDisconnect(pairingId: String) {
+        val roleStore = com.ronda.app.pairing.RoleStore(context)
+        // A stale command for a pairing this phone has already left.
+        if (roleStore.pairingId != pairingId) return
+
         Log.d(TAG, "Guardian disconnected the pairing")
-        com.ronda.app.pairing.RoleStore(context).unpair()
+        roleStore.unpair()
         com.ronda.app.overlay.OverlayService.stop(context)
         notifyDisconnected()
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(MainActivity.EXTRA_DISCONNECTED, true)
-        }
-        context.startActivity(intent)
     }
 
     private fun notifyDisconnected() {

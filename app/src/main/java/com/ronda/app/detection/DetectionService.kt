@@ -42,6 +42,7 @@ class DetectionService : Service() {
 
     private var installReceiver: InstallReceiver? = null
     private var commandJob: Job? = null
+    private var commandPairingId: String? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate() {
@@ -67,9 +68,15 @@ class DetectionService : Service() {
      * the hook that eventually sees a pairing id.
      */
     private fun listenForGuardianCommands() {
-        if (commandJob?.isActive == true) return
-
         val pairingId = RoleStore(this).pairingId
+        if (commandJob?.isActive == true && commandPairingId == pairingId) return
+
+        // Unpaired or re-paired since: the old listener would keep acting on
+        // the previous guardian's commands and never hear the new one's.
+        commandJob?.cancel()
+        commandJob = null
+        commandPairingId = pairingId
+
         if (pairingId == null) {
             Log.d(TAG, "Not paired yet — will look again on next start")
             return

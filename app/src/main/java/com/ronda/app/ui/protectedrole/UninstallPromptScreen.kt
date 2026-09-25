@@ -47,6 +47,8 @@ import com.ronda.app.ui.theme.Tone
 @Composable
 fun UninstallPromptScreen(
     appLabel: String,
+    /** This app's own most severe reason; null falls back to a generic line. */
+    reason: String?,
     onConfirm: () -> Unit,
     onLater: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,7 +96,7 @@ fun UninstallPromptScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        text = stringResource(R.string.uninstall_prompt_body),
+                        text = reason ?: stringResource(R.string.uninstall_prompt_body),
                         style = LargePrint,
                         color = colors.textPrimary,
                         textAlign = TextAlign.Center

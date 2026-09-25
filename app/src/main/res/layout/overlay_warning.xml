@@ -142,7 +142,9 @@
                 android:fontVariationSettings="'wght' 800"
                 android:textSize="20sp" />
 
+            <!-- Replaced by OverlayService with this app's own reasons; this is the fallback -->
             <TextView
+                android:id="@+id/overlay_reason"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
