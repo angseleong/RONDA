@@ -8,12 +8,16 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -36,11 +40,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -58,17 +64,26 @@ import kotlinx.coroutines.launch
 @Composable
 fun Modifier.screenInsets(): Modifier = windowInsetsPadding(WindowInsets.safeDrawing)
 
-/** The RONDA mark: filled shield-check box beside the name in black weight. */
+/** The RONDA mark (drawable-nodpi/ronda_mark) at a given height; width follows its aspect. */
 @Composable
-fun Wordmark(modifier: Modifier = Modifier, boxSize: Dp = 32.dp) {
+fun BrandMark(height: Dp, modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(R.drawable.ronda_mark),
+        contentDescription = null,
+        modifier = modifier
+            .height(height)
+            .aspectRatio(464f / 640f)
+    )
+}
+
+/**
+ * The mark beside the name in black weight. The name stays live text rather
+ * than ronda_wordmark.png: the PNG's dark lettering disappears in dark theme.
+ */
+@Composable
+fun Wordmark(modifier: Modifier = Modifier, markHeight: Dp = 34.dp) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        IconBox(
-            icon = RondaIcons.shieldCheck,
-            tone = Tone.SAFE,
-            size = boxSize,
-            filled = true,
-            contentDescription = null
-        )
+        BrandMark(markHeight)
         Spacer(Modifier.width(10.dp))
         Text(
             text = stringResource(R.string.app_name),
@@ -129,13 +144,15 @@ fun IconActionButton(
 ) {
     val colors = RondaTheme.colors
     val shape = RoundedCornerShape(RondaRadius.button)
+    val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
+            .pressScale(interaction, pressedScale = 0.9f)
             .size(44.dp)
             .clip(shape)
             .background(colors.tint(tone))
             .border(2.dp, colors.border(tone), shape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(interaction, LocalIndication.current, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         RondaIcon(

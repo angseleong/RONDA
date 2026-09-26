@@ -9,7 +9,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
 import com.ronda.app.R
-import com.ronda.app.alert.Alert
+import com.ronda.app.localized
 import com.ronda.app.alert.AlertRepository
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.Verdict
@@ -122,28 +122,31 @@ class InstallReceiver : BroadcastReceiver() {
         SafeAppStore(context).forget(packageName)
 
         val pendingUninstalls = PendingUninstallStore(context)
-        val alertId = pendingUninstalls.alertIdFor(packageName)
+        val requested = pendingUninstalls.alertIdFor(packageName) != null
         pendingUninstalls.clear(packageName)
 
         val store = FlaggedAppStore(context)
-        if (store.isFlagged(packageName)) {
+        val wasFlagged = store.isFlagged(packageName)
+        if (wasFlagged) {
             Log.d(TAG, "Flagged package uninstalled, clearing block: $packageName")
             // OverlayService stops itself once no flagged packages remain.
             store.unflag(packageName)
+            ProtectedHistoryStore(context).record(packageName, packageName, "uninstalled")
         }
 
-        // Only now is it true that the app is gone — report it to the guardian.
-        if (alertId != null) reportUninstalled(context, alertId, packageName)
+        // Only now is it true that the app is gone — report it to the guardian,
+        // whether they asked for it or the victim removed it from RONDA's card.
+        if (requested || wasFlagged) reportUninstalled(context, packageName)
     }
 
-    private fun reportUninstalled(context: Context, alertId: String, packageName: String) {
+    private fun reportUninstalled(context: Context, packageName: String) {
         val pairingId = RoleStore(context).pairingId ?: return
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             try {
                 withTimeoutOrNull(ALERT_WRITE_TIMEOUT_MS) {
-                    AlertRepository().updateStatus(pairingId, alertId, Alert.STATUS_UNINSTALLED)
+                    AlertRepository().markUninstalled(pairingId, packageName)
                     Log.d(TAG, "Reported $packageName as uninstalled to guardian")
                 } ?: Log.w(TAG, "Uninstall report did not confirm in time; queued for retry")
             } catch (e: Exception) {
@@ -159,20 +162,21 @@ class InstallReceiver : BroadcastReceiver() {
      * says, in the same plain words, so the shade and the screen never disagree.
      */
     private fun showRiskNotification(context: Context, verdict: Verdict) {
+        val localizedContext = context.localized()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(R.string.channel_detection),
+            localizedContext.getString(R.string.channel_detection),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = context.getString(R.string.channel_detection_desc)
+            description = localizedContext.getString(R.string.channel_detection_desc)
         }
         notificationManager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_shield_alert)
-            .setContentTitle(context.getString(R.string.detected_notification_title, verdict.appLabel))
+            .setContentTitle(localizedContext.getString(R.string.detected_notification_title, verdict.appLabel))
             .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText(verdict.reasons.joinToString("\n\n").replace("**", "")))

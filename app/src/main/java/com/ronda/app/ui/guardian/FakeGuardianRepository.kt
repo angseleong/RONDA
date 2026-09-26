@@ -1,5 +1,6 @@
 package com.ronda.app.ui.guardian
 
+import com.ronda.app.MainActivity
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.Verdict
 import com.ronda.app.core.VerdictState
@@ -88,14 +89,14 @@ class FakeGuardianRepository(
                     appLabel = f.label,
                     activeKeys = f.keys,
                     detectedAt = now - f.ageMillis
-                ).copy(overrodeAt = f.overrodeAt, removed = f.packageName in gone)
+                ).copy(pairingId = MainActivity.DEMO_PAIRING, overrodeAt = f.overrodeAt, removed = f.packageName in gone)
                 decided[f.packageName]?.let { verdict.copy(state = it) } ?: verdict
             }
         }
 
     override fun observeConnected(): Flow<Boolean> = flowOf(true)
 
-    override suspend fun decide(packageName: String, safe: Boolean) {
+    override suspend fun decide(pairingId: String, packageName: String, safe: Boolean) {
         decisions.value = decisions.value + (packageName to
             if (safe) VerdictState.RESOLVED_SAFE else VerdictState.RESOLVED_UNSAFE)
     }
@@ -105,8 +106,10 @@ class FakeGuardianRepository(
      * holding the phone" taps Hapus about four seconds later, which is how long
      * the real dialog takes when someone is expecting it.
      */
-    override suspend fun requestUninstall(packageName: String) {
+    override suspend fun requestUninstall(pairingId: String, packageName: String) {
         delay(4_000L)
         removed.value = removed.value + packageName
     }
+
+    override suspend fun requestScan(pairingId: String) = Unit
 }

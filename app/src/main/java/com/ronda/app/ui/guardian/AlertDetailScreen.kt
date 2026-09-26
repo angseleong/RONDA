@@ -3,7 +3,9 @@ package com.ronda.app.ui.guardian
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -51,6 +53,7 @@ import com.ronda.app.ui.components.SectionLabel
 import com.ronda.app.ui.components.StatusBadge
 import com.ronda.app.ui.components.TactileButton
 import com.ronda.app.ui.components.label
+import com.ronda.app.ui.components.pressScale
 import com.ronda.app.ui.components.relativeTime
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.guardian.components.ExplanationStack
@@ -67,6 +70,10 @@ import com.ronda.app.ui.theme.tone
  * Everything above the buttons is evidence; the buttons stay at the end of the
  * scroll so a guardian cannot decide before passing the sentences. Two actions
  * only (PRD FR-5): remove the app, or mark it safe.
+ *
+ * The protected phone reuses this read-only: [onMarkSafe] null drops the
+ * guardian-only "mark safe" and the "they will be asked" hint, since only the
+ * guardian decides.
  */
 @Composable
 fun AlertDetailScreen(
@@ -74,7 +81,7 @@ fun AlertDetailScreen(
     protectedName: String,
     undoable: Boolean,
     onMarkUnsafe: () -> Unit,
-    onMarkSafe: () -> Unit,
+    onMarkSafe: (() -> Unit)?,
     onUndo: () -> Unit,
     onRequestUninstall: () -> Unit,
     onBack: () -> Unit,
@@ -134,7 +141,7 @@ fun AlertDetailScreen(
                 verdict = verdict,
                 protectedName = protectedName,
                 undoable = undoable,
-                onAskMarkSafe = { confirming = true },
+                onAskMarkSafe = onMarkSafe?.let { { confirming = true } },
                 onUndo = onUndo,
                 onUninstall = {
                     onMarkUnsafe()
@@ -153,7 +160,7 @@ fun AlertDetailScreen(
             confirmText = stringResource(R.string.confirm_safe_yes),
             confirmTone = Tone.TRUST,
             confirmIcon = RondaIcons.check,
-            onConfirm = { confirming = false; onMarkSafe() },
+            onConfirm = { confirming = false; onMarkSafe?.invoke() },
             onDismiss = { confirming = false }
         )
     }
@@ -270,7 +277,7 @@ private fun Decision(
     verdict: Verdict,
     protectedName: String,
     undoable: Boolean,
-    onAskMarkSafe: () -> Unit,
+    onAskMarkSafe: (() -> Unit)?,
     onUndo: () -> Unit,
     onUninstall: () -> Unit,
     onRequestAgain: () -> Unit
@@ -327,21 +334,23 @@ private fun Decision(
                 icon = RondaIcons.trash,
                 modifier = wide
             )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = stringResource(R.string.action_uninstall_hint, protectedName),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier = wide
-            )
-            Spacer(Modifier.height(16.dp))
-            SecondaryButton(
-                text = stringResource(R.string.action_mark_safe),
-                onClick = onAskMarkSafe,
-                icon = RondaIcons.check,
-                modifier = wide
-            )
+            if (onAskMarkSafe != null) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.action_uninstall_hint, protectedName),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = wide
+                )
+                Spacer(Modifier.height(16.dp))
+                SecondaryButton(
+                    text = stringResource(R.string.action_mark_safe),
+                    onClick = onAskMarkSafe,
+                    icon = RondaIcons.check,
+                    modifier = wide
+                )
+            }
         }
     }
 }
@@ -370,14 +379,16 @@ private fun OutcomeCard(tone: Tone, icon: Int, text: String) {
 private fun TechnicalDetails(verdict: Verdict, open: Boolean, onToggle: () -> Unit) {
     val colors = RondaTheme.colors
     val rotation by animateFloatAsState(targetValue = if (open) 180f else 0f, label = "chevron")
+    val interaction = remember { MutableInteractionSource() }
 
     Column(Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
+                .pressScale(interaction, pressedScale = 0.98f)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(RondaRadius.iconBoxSmall))
-                .clickable(onClick = onToggle, role = Role.Button)
+                .clickable(interaction, LocalIndication.current, role = Role.Button, onClick = onToggle)
                 .padding(vertical = 12.dp, horizontal = 4.dp)
         ) {
             Text(

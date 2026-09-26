@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.localized
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.RiskLevel
 import com.ronda.app.pairing.Role
@@ -23,6 +24,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -41,40 +45,50 @@ import kotlinx.coroutines.launch
  */
 class GuardianAlertService : Service() {
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    /** Replaced on every start, so a pairing added or removed re-reads the list. */
+    private var watch: CoroutineScope? = null
     private lateinit var seenAlerts: SeenAlertStore
 
     override fun onCreate() {
         super.onCreate()
         seenAlerts = SeenAlertStore(this)
-
-        val roleStore = RoleStore(this)
-        val pairingId = roleStore.pairingId
-
-        // Belt and braces: nothing should start this on a protected device.
-        if (roleStore.role != Role.GUARDIAN || pairingId == null) {
-            Log.w(TAG, "Not a paired guardian device, stopping")
-            stopSelf()
-            return
-        }
-
+        // First thing, always: stopping a startForegroundService() service
+        // before this call crashes the whole app.
         startForeground(NOTIFICATION_ID, createPersistentNotification())
-        watchAlerts(pairingId)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val roleStore = RoleStore(this)
+        val pairingIds = roleStore.pairingIds
+
+        // Belt and braces: nothing should start this on a protected device.
+        if (roleStore.role != Role.GUARDIAN || pairingIds.isEmpty()) {
+            Log.w(TAG, "Not a paired guardian device, stopping")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        watch?.cancel()
+        val scope = CoroutineScope(Dispatchers.Main + SupervisorJob()).also { watch = it }
+        watchAlerts(scope, pairingIds)
+        watchCommands(scope, pairingIds)
+        return START_STICKY
+    }
 
     override fun onDestroy() {
         super.onDestroy()
-        scope.cancel()
+        watch?.cancel()
         Log.d(TAG, "GuardianAlertService destroyed")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun watchAlerts(pairingId: String) {
+    private fun watchAlerts(scope: CoroutineScope, pairingIds: Set<String>) {
+        if (pairingIds.isEmpty()) return
+        
         scope.launch {
-            AlertRepository().observeAlerts(pairingId)
+            val flows = pairingIds.map { AlertRepository().observeAlerts(it) }
+            combine(flows) { lists -> lists.flatMap { it.toList() } }
                 .catch { Log.e(TAG, "Alert stream failed", it) }
                 .collect { alerts ->
                     // Oldest first, so the newest threat ends up on top of
@@ -105,34 +119,31 @@ class GuardianAlertService : Service() {
     private fun notifyAlert(alert: Alert) {
         Log.d(TAG, "New alert for guardian: ${alert.packageName}")
 
-        // Only DARURAT earns the alarm treatment. A PERINGATAN that buzzes like
-        // an emergency trains the guardian to swipe both away.
+        val loc = localized()
         val darurat = RiskLevel.of(alert.score) == RiskLevel.DARURAT
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(
                 if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID,
-                getString(R.string.channel_guardian_alerts),
+                loc.getString(R.string.channel_guardian_alerts),
                 if (darurat) NotificationManager.IMPORTANCE_HIGH
                 else NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = getString(R.string.channel_guardian_alerts_desc)
+                description = loc.getString(R.string.channel_guardian_alerts_desc)
                 enableVibration(true)
-                // Takes effect only if the guardian grants DND policy access;
-                // harmless otherwise.
                 setBypassDnd(darurat)
             }
         )
 
         val pendingIntent = openAlertIntent(alert)
 
-        val body = getString(R.string.alert_notification_body, alert.appLabel)
+        val body = loc.getString(R.string.alert_notification_body, alert.appLabel)
         val notification =
             NotificationCompat.Builder(this, if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_triangle_warning)
             .setContentTitle(
-                getString(R.string.alert_notification_title) + " (${alert.score}/100)"
+                loc.getString(R.string.alert_notification_title) + " (${alert.score}/100)"
             )
             .setContentText(body)
             .setStyle(
@@ -161,7 +172,8 @@ class GuardianAlertService : Service() {
      * never sent over the wire, because only this device knows the nickname.
      */
     private fun topReasons(alert: Alert): List<String> {
-        val name = RoleStore(this).protectedName
+        val loc = localized()
+        val name = RoleStore(this).getProtectedName(alert.pairingId)
         val verdict = RiskEvaluator.evaluate(
             packageName = alert.packageName,
             appLabel = alert.appLabel,
@@ -171,7 +183,7 @@ class GuardianAlertService : Service() {
         return explanationKeys(verdict)
             .mapNotNull { sentenceRes(it) }
             .take(2)
-            .map { getString(it, name) }
+            .map { loc.getString(it, name) }
     }
 
     /**
@@ -181,19 +193,20 @@ class GuardianAlertService : Service() {
     private fun notifyUninstalled(alert: Alert) {
         Log.d(TAG, "Protected phone removed ${alert.packageName}")
 
+        val loc = localized()
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(
                 OUTCOME_CHANNEL_ID,
-                getString(R.string.channel_guardian_outcome),
+                loc.getString(R.string.channel_guardian_outcome),
                 NotificationManager.IMPORTANCE_DEFAULT
-            ).apply { description = getString(R.string.channel_guardian_outcome_desc) }
+            ).apply { description = loc.getString(R.string.channel_guardian_outcome_desc) }
         )
 
         val notification = NotificationCompat.Builder(this, OUTCOME_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_trash)
-            .setContentTitle(getString(R.string.uninstalled_notification_title))
-            .setContentText(getString(R.string.uninstalled_notification_body, alert.appLabel))
+            .setContentTitle(loc.getString(R.string.uninstalled_notification_title))
+            .setContentText(loc.getString(R.string.uninstalled_notification_body, alert.appLabel))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(openAlertIntent(alert))
             .setAutoCancel(true)
@@ -209,6 +222,7 @@ class GuardianAlertService : Service() {
         val openDetail = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(MainActivity.EXTRA_PACKAGE, alert.packageName)
+            putExtra(MainActivity.EXTRA_PAIRING_ID, alert.pairingId)
         }
         return PendingIntent.getActivity(
             this,
@@ -222,25 +236,82 @@ class GuardianAlertService : Service() {
     private fun outcomeKey(alertId: String): String = "$alertId:uninstalled"
 
     private fun createPersistentNotification(): Notification {
+        val loc = localized()
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                getString(R.string.channel_guardian_watch),
+                loc.getString(R.string.channel_guardian_watch),
                 NotificationManager.IMPORTANCE_LOW
-            ).apply { description = getString(R.string.channel_guardian_watch_desc) }
+            ).apply { description = loc.getString(R.string.channel_guardian_watch_desc) }
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_bell)
-            .setContentTitle(getString(R.string.guardian_watch_title))
-            .setContentText(getString(R.string.guardian_watch_body))
+            .setContentTitle(loc.getString(R.string.guardian_watch_title))
+            .setContentText(loc.getString(R.string.guardian_watch_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()
     }
 
+    /**
+     * A Rondee ending the link while this phone is in the background. The
+     * pairing set is fixed for this service's lifetime, so a pairing already
+     * dropped keeps showing up here — the store check is what stops the same
+     * "disconnected" notice from firing on every later command. MainActivity
+     * runs the same check, so whichever sees it first is the only one to notify.
+     */
+    private fun watchCommands(scope: CoroutineScope, pairingIds: Set<String>) {
+        if (pairingIds.isEmpty()) return
+
+        scope.launch {
+            val flows = pairingIds.map { id ->
+                CommandRepository().observeCommands(id).map { cmds -> id to cmds }
+            }
+            combine(flows) { it.toList() }
+                .catch { Log.e(TAG, "Command stream failed", it) }
+                .collect { list ->
+                    val roleStore = RoleStore(this@GuardianAlertService)
+                    for ((id, cmds) in list) {
+                        if (id !in roleStore.pairingIds) continue
+                        if (cmds.none { it.isDisconnectFrom(Command.FROM_PROTECTED) }) continue
+
+                        Log.d(TAG, "Pairing $id disconnected by Rondee in background")
+                        val name = roleStore.getProtectedName(id)
+                        roleStore.removePairing(id)
+                        notifyRondeeDisconnected(this@GuardianAlertService, name)
+                    }
+                    if (roleStore.pairingIds.isEmpty()) stopSelf()
+                }
+        }
+    }
+
     companion object {
+        private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
+        private const val CHANNEL_ID_RONDEE_DISCONNECTED = "ronda_rondee_disconnected_channel"
+
+        /** Shown on the Rondor's phone when a Rondee ends the pairing from their side. */
+        fun notifyRondeeDisconnected(context: Context, rondeeName: String) {
+            val loc = context.localized()
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID_RONDEE_DISCONNECTED,
+                    loc.getString(R.string.rondee_disconnected_notification_title),
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+            )
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID_RONDEE_DISCONNECTED)
+                .setSmallIcon(R.drawable.ic_log_out)
+                .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
+                .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, rondeeName))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            manager.notify(NOTIF_ID_RONDEE_DISCONNECTED, notification)
+        }
+
         private const val TAG = "GuardianAlertService"
         private const val NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID_BASE = 2000

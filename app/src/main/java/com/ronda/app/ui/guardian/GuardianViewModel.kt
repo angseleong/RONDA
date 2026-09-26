@@ -54,23 +54,23 @@ class GuardianViewModel(private val repo: GuardianRepository) : ViewModel() {
         }
     }
 
-    fun find(packageName: String?): Verdict? {
-        if (packageName == null) return null
+    fun find(pairingId: String?, packageName: String?): Verdict? {
+        if (packageName == null || pairingId == null) return null
         val s = _state.value
         return (s.needsReview + s.monitored + s.history)
-            .firstOrNull { it.packageName == packageName }
+            .firstOrNull { it.packageName == packageName && it.pairingId == pairingId }
     }
 
-    fun markUnsafe(packageName: String) {
-        viewModelScope.launch { repo.decide(packageName, safe = false) }
+    fun markUnsafe(pairingId: String, packageName: String) {
+        viewModelScope.launch { repo.decide(pairingId, packageName, safe = false) }
     }
 
     /**
      * Marking safe removes protection, so it is the only decision that is
      * reversible — the guardian gets ten seconds to take it back.
      */
-    fun markSafe(packageName: String) {
-        viewModelScope.launch { repo.decide(packageName, safe = true) }
+    fun markSafe(pairingId: String, packageName: String) {
+        viewModelScope.launch { repo.decide(pairingId, packageName, safe = true) }
         undoJob?.cancel()
         _state.value = _state.value.copy(undoable = packageName)
         undoJob = viewModelScope.launch {
@@ -81,14 +81,18 @@ class GuardianViewModel(private val repo: GuardianRepository) : ViewModel() {
         }
     }
 
-    fun undoMarkSafe(packageName: String) {
+    fun undoMarkSafe(pairingId: String, packageName: String) {
         undoJob?.cancel()
         _state.value = _state.value.copy(undoable = null)
-        viewModelScope.launch { repo.decide(packageName, safe = false) }
+        viewModelScope.launch { repo.decide(pairingId, packageName, safe = false) }
     }
 
-    fun requestUninstall(packageName: String) {
-        viewModelScope.launch { repo.requestUninstall(packageName) }
+    fun requestUninstall(pairingId: String, packageName: String) {
+        viewModelScope.launch { repo.requestUninstall(pairingId, packageName) }
+    }
+
+    fun requestScan(pairingId: String) {
+        viewModelScope.launch { repo.requestScan(pairingId) }
     }
 
     private companion object {

@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.localized
+import com.ronda.app.detection.DetectionService
 import com.ronda.app.detection.FlaggedAppStore
 import com.ronda.app.detection.PendingUninstallStore
 import com.ronda.app.detection.SafeAppStore
@@ -36,11 +38,17 @@ class CommandHandler(private val context: Context) {
     }
 
     private suspend fun handle(pairingId: String, command: Command) {
+        // Our own disconnect, echoed back on the shared channel. Acting on it
+        // would unpair a phone that may already be paired to someone new.
+        if (command.from == Command.FROM_PROTECTED) return
+
         Log.d(TAG, "Guardian command: ${command.action} for ${command.packageName}")
 
         when (command.action) {
             Command.ACTION_MARK_SAFE -> markSafe(pairingId, command)
             Command.ACTION_UNINSTALL -> requestUninstall(command)
+            Command.ACTION_SCAN -> requestScan()
+            Command.ACTION_DISCONNECT -> handleDisconnect(pairingId)
             else -> Log.w(TAG, "Unknown command action: ${command.action}")
         }
 
@@ -54,7 +62,45 @@ class CommandHandler(private val context: Context) {
         // OverlayService stops itself once no flagged packages remain.
         FlaggedAppStore(context).unflag(command.packageName)
         alertRepository.updateStatus(pairingId, command.alertId, Alert.STATUS_SAFE)
+        com.ronda.app.detection.ProtectedHistoryStore(context).record(command.packageName, command.packageName, "safe")
         Log.d(TAG, "Marked safe, block cleared: ${command.packageName}")
+    }
+
+    /**
+     * Works with the app closed. MainActivity re-reads the pairing on every
+     * resume, and its own listener updates the screen if it is open, so there
+     * is no need to pull the app to the front over whatever the user is doing.
+     */
+    private fun handleDisconnect(pairingId: String) {
+        val roleStore = com.ronda.app.pairing.RoleStore(context)
+        // A stale command for a pairing this phone has already left.
+        if (roleStore.pairingId != pairingId) return
+
+        Log.d(TAG, "Guardian disconnected the pairing")
+        roleStore.unpair()
+        com.ronda.app.overlay.OverlayService.stop(context)
+        notifyDisconnected()
+    }
+
+    private fun notifyDisconnected() {
+        val loc = context.localized()
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "ronda_disconnect_channel"
+        manager.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                loc.getString(R.string.disconnect_notification_title),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_log_out)
+            .setContentTitle(loc.getString(R.string.disconnect_notification_title))
+            .setContentText(loc.getString(R.string.disconnect_notification_body))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(9999, notification)
     }
 
     private fun requestUninstall(command: Command) {
@@ -62,19 +108,28 @@ class CommandHandler(private val context: Context) {
         notifyUninstallRequested(command.packageName)
     }
 
+    private fun requestScan() {
+        val intent = Intent(context, DetectionService::class.java).apply {
+            action = MainActivity.ACTION_SCAN_EXISTING
+        }
+        context.startForegroundService(intent)
+        Log.d(TAG, "Requested a scan of installed apps")
+    }
+
     /**
      * The prompt lives inside RONDA, but the phone may be in a pocket when the
      * guardian decides. This notification is the way back into the app.
      */
     private fun notifyUninstallRequested(packageName: String) {
+        val loc = context.localized()
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                context.getString(R.string.channel_guardian_request),
+                loc.getString(R.string.channel_guardian_request),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = context.getString(R.string.channel_guardian_request_desc)
+                description = loc.getString(R.string.channel_guardian_request_desc)
                 enableVibration(true)
             }
         )
@@ -91,9 +146,9 @@ class CommandHandler(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_delete)
-            .setContentTitle(context.getString(R.string.uninstall_request_notification_title))
+            .setContentTitle(loc.getString(R.string.uninstall_request_notification_title))
             .setContentText(
-                context.getString(
+                loc.getString(
                     R.string.uninstall_request_notification_body,
                     appLabelOf(packageName)
                 )

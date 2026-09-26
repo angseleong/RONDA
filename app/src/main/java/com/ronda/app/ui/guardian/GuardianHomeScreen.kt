@@ -70,8 +70,7 @@ enum class GuardianTab { ALERTS, HISTORY, SETTINGS }
 @Composable
 fun GuardianHomeScreen(
     state: GuardianUiState,
-    protectedName: String,
-    pairingCode: String,
+    devices: List<PairingInfo>,
     /** Paired to the offline fixture: the alert list is synthetic and says so. */
     demo: Boolean,
     tab: GuardianTab,
@@ -81,8 +80,10 @@ fun GuardianHomeScreen(
     onThemeChange: (ThemeMode) -> Unit,
     language: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
-    onRename: (String) -> Unit,
-    onDisconnect: () -> Unit,
+    onRename: (String, String) -> Unit,
+    onDisconnect: (String) -> Unit,
+    onAddDevice: () -> Unit,
+    onScan: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier.fillMaxSize()) {
@@ -101,27 +102,28 @@ fun GuardianHomeScreen(
             when (current) {
                 GuardianTab.ALERTS -> AlertsTab(
                     state = state,
-                    protectedName = protectedName,
+                    devices = devices,
                     demo = demo,
                     onVerdictClick = onVerdictClick
                 )
 
                 GuardianTab.HISTORY -> HistoryTab(
                     state = state,
-                    protectedName = protectedName,
+                    devices = devices,
                     onVerdictClick = onVerdictClick
                 )
 
                 GuardianTab.SETTINGS -> SettingsTab(
                     state = state,
-                    protectedName = protectedName,
-                    pairingCode = pairingCode,
+                    devices = devices,
                     themeMode = themeMode,
                     onThemeChange = onThemeChange,
                     language = language,
                     onLanguageChange = onLanguageChange,
                     onRename = onRename,
-                    onDisconnect = onDisconnect
+                    onDisconnect = onDisconnect,
+                    onAddDevice = onAddDevice,
+                    onScan = onScan
                 )
             }
         }
@@ -140,7 +142,7 @@ fun GuardianHomeScreen(
 @Composable
 private fun AlertsTab(
     state: GuardianUiState,
-    protectedName: String,
+    devices: List<PairingInfo>,
     demo: Boolean,
     onVerdictClick: (Verdict) -> Unit
 ) {
@@ -151,8 +153,8 @@ private fun AlertsTab(
     ) {
         item(key = "top") {
             RondaTopBar(
-                title = stringResource(R.string.home_guardian_device, protectedName),
-                leading = { IconBox(icon = RondaIcons.person, tone = Tone.TRUST, size = 44.dp) },
+                title = stringResource(R.string.tab_alerts),
+                leading = { IconBox(icon = RondaIcons.bell, tone = Tone.TRUST, size = 44.dp) },
                 trailing = {
                     // The fixture's apps carry real bank names, so a demo says
                     // so where the connection pill would go: offline there is
@@ -181,7 +183,6 @@ private fun AlertsTab(
         item(key = "hero") {
             HeroCard(
                 state = state,
-                protectedName = protectedName,
                 modifier = Modifier
                     .animateItem()
                     .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -200,7 +201,7 @@ private fun AlertsTab(
                         IconBox(icon = RondaIcons.wifiOff, tone = Tone.WARN, size = 40.dp)
                         Spacer(Modifier.width(14.dp))
                         Text(
-                            text = stringResource(R.string.watch_disconnected, protectedName),
+                            text = stringResource(R.string.status_disconnected),
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.textPrimary,
                             modifier = Modifier.weight(1f)
@@ -241,10 +242,11 @@ private fun AlertsTab(
                 )
             }
         } else {
-            items(state.needsReview, key = { "open:${it.packageName}" }) { verdict ->
+            items(state.needsReview, key = { "open:${it.pairingId}:${it.packageName}" }) { verdict ->
                 AlertRow(
                     verdict = verdict,
-                    protectedName = protectedName,
+                    protectedName = devices.firstOrNull { it.id == verdict.pairingId }?.name
+                        ?: state.protectedName,
                     onClick = { onVerdictClick(verdict) },
                     modifier = Modifier
                         .animateItem()
@@ -264,7 +266,7 @@ private fun AlertsTab(
         if (state.monitored.isEmpty()) {
             item(key = "monitored-empty") {
                 Text(
-                    text = stringResource(R.string.watch_empty_monitored, protectedName),
+                    text = stringResource(R.string.section_review_empty), // fallback message
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.textSecondary,
                     modifier = Modifier
@@ -273,10 +275,11 @@ private fun AlertsTab(
                 )
             }
         } else {
-            items(state.monitored, key = { "quiet:${it.packageName}" }) { verdict ->
+            items(state.monitored, key = { "quiet:${it.pairingId}:${it.packageName}" }) { verdict ->
                 AlertRow(
                     verdict = verdict,
-                    protectedName = protectedName,
+                    protectedName = devices.firstOrNull { it.id == verdict.pairingId }?.name
+                        ?: state.protectedName,
                     onClick = { onVerdictClick(verdict) },
                     modifier = Modifier
                         .animateItem()
@@ -288,7 +291,7 @@ private fun AlertsTab(
 }
 
 @Composable
-private fun HeroCard(state: GuardianUiState, protectedName: String, modifier: Modifier = Modifier) {
+private fun HeroCard(state: GuardianUiState, modifier: Modifier = Modifier) {
     val colors = RondaTheme.colors
     val open = state.needsReview.size
     val tone = when {
@@ -322,8 +325,8 @@ private fun HeroCard(state: GuardianUiState, protectedName: String, modifier: Mo
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = when {
-                        !state.loaded -> stringResource(R.string.hero_loading_body, protectedName)
-                        open == 0 -> stringResource(R.string.hero_all_clear_body, protectedName)
+                        !state.loaded -> stringResource(R.string.hero_loading_body, state.protectedName)
+                        open == 0 -> stringResource(R.string.hero_all_clear_body, state.protectedName)
                         else -> stringResource(R.string.hero_review_body)
                     },
                     style = MaterialTheme.typography.bodyLarge,
@@ -338,7 +341,7 @@ private fun HeroCard(state: GuardianUiState, protectedName: String, modifier: Mo
 @Composable
 private fun HistoryTab(
     state: GuardianUiState,
-    protectedName: String,
+    devices: List<PairingInfo>,
     onVerdictClick: (Verdict) -> Unit
 ) {
     LazyColumn(
@@ -362,10 +365,11 @@ private fun HistoryTab(
                 )
             }
         } else {
-            items(state.history, key = { "history:${it.packageName}" }) { verdict ->
+            items(state.history, key = { "history:${it.pairingId}:${it.packageName}" }) { verdict ->
                 AlertRow(
                     verdict = verdict,
-                    protectedName = protectedName,
+                    protectedName = devices.firstOrNull { it.id == verdict.pairingId }?.name
+                        ?: state.protectedName,
                     onClick = { onVerdictClick(verdict) },
                     modifier = Modifier
                         .animateItem()

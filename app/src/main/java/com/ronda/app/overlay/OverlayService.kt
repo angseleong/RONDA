@@ -17,6 +17,8 @@ import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
 import com.ronda.app.R
 import com.ronda.app.detection.FlaggedAppStore
+import com.ronda.app.detection.flagReasons
+import com.ronda.app.localized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -111,8 +113,16 @@ class OverlayService : Service() {
         if (overlayView != null && overlayPackage == packageName) return
         hideOverlay()
 
-        val view = LayoutInflater.from(this).inflate(R.layout.overlay_warning, null)
+        // Localized so the static text matches the reasons, which follow the
+        // in-app language rather than the system one.
+        val view = LayoutInflater.from(localized()).inflate(R.layout.overlay_warning, null)
         view.findViewById<TextView>(R.id.overlay_app_label).text = appLabelOf(packageName)
+        // Two is enough to say what the app can do and where it came from
+        // without turning the overlay into a list.
+        val reasons = flagReasons(this, packageName).take(2)
+        if (reasons.isNotEmpty()) {
+            view.findViewById<TextView>(R.id.overlay_reason).text = reasons.joinToString("\n\n")
+        }
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -194,6 +204,11 @@ class OverlayService : Service() {
         /** Safe to call repeatedly — starting an already-running service is a no-op. */
         fun start(context: Context) {
             context.startForegroundService(Intent(context, OverlayService::class.java))
+        }
+
+        /** Mirror of [start]. Stopping a service that is not running is a no-op. */
+        fun stop(context: Context) {
+            context.stopService(Intent(context, OverlayService::class.java))
         }
     }
 }

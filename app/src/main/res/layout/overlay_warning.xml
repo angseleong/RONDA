@@ -38,11 +38,12 @@
             android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_shield_check"
-                android:tint="@color/overlay_text_primary"
-                tools:ignore="UseAppTint"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:adjustViewBounds="true"
+                android:padding="8dp"
+                android:background="@drawable/bg_overlay_mark"
+                android:src="@drawable/ronda_mark"
                 android:contentDescription="@null"
                 android:importantForAccessibility="no" />
 
@@ -54,8 +55,7 @@
                 android:textColor="@color/overlay_text_primary"
                 android:fontFamily="@font/nunito"
                 android:fontVariationSettings="'wght' 900"
-                android:textSize="28sp"
-                android:letterSpacing="0.06" />
+                android:textSize="28sp" />
         </LinearLayout>
 
         <TextView
@@ -142,7 +142,9 @@
                 android:fontVariationSettings="'wght' 800"
                 android:textSize="20sp" />
 
+            <!-- Replaced by OverlayService with this app's own reasons; this is the fallback -->
             <TextView
+                android:id="@+id/overlay_reason"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
