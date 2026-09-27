@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -49,16 +51,21 @@ import com.ronda.app.detection.DetectionService
 import com.ronda.app.detection.FlaggedAppStore
 import com.ronda.app.detection.PendingUninstall
 import com.ronda.app.detection.PendingUninstallStore
+import com.ronda.app.detection.ScanEvents
 import com.ronda.app.overlay.OverlayService
 import com.ronda.app.pairing.QrCodeUtils
 import com.ronda.app.pairing.Role
 import com.ronda.app.pairing.RoleStore
 import com.ronda.app.ui.components.BackTopBar
+import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.SkeletonCard
+import com.ronda.app.ui.components.ToastHost
+import com.ronda.app.ui.components.ToastState
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.guardian.AlertDetailScreen
 import com.ronda.app.ui.guardian.FakeGuardianRepository
 import com.ronda.app.ui.guardian.FirebaseGuardianRepository
+import com.ronda.app.ui.guardian.GuardianEvent
 import com.ronda.app.ui.guardian.GuardianHomeScreen
 import com.ronda.app.ui.guardian.GuardianPairingScreen
 import com.ronda.app.ui.guardian.GuardianTab
@@ -67,6 +74,7 @@ import com.ronda.app.ui.guardian.PairingInfo
 import com.ronda.app.ui.onboarding.IntroScreen
 import com.ronda.app.ui.onboarding.LanguageScreen
 import com.ronda.app.ui.onboarding.RoleSelectionScreen
+import com.ronda.app.ui.onboarding.SplashIntro
 import com.ronda.app.ui.protectedrole.InitialScanScreen
 import com.ronda.app.ui.protectedrole.ProtectedHomeScreen
 import com.ronda.app.ui.protectedrole.ProtectedPairingScreen
@@ -75,6 +83,7 @@ import com.ronda.app.ui.setup.SetupStatus
 import com.ronda.app.ui.setup.SetupWizardScreen
 import com.ronda.app.ui.theme.RONDATheme
 import com.ronda.app.ui.theme.RondaTheme
+import com.ronda.app.ui.theme.Tone
 
 /**
  * The whole app is one Activity. Which screen it shows is a function of a
@@ -104,6 +113,8 @@ class MainActivity : AppCompatActivity() {
     /** Guardian: which app's detail screen is open, addressed by package. */
     private var selectedPackage by mutableStateOf<String?>(null)
     private var selectedPairingId by mutableStateOf<String?>(null)
+    /** Set from a history row, where one app can have a ruling per install. */
+    private var selectedAlertId by mutableStateOf<String?>(null)
     private var guardianTab by mutableStateOf(GuardianTab.ALERTS)
     private var protectedTab by mutableStateOf(ProtectedTab.ALERTS)
 
@@ -124,6 +135,15 @@ class MainActivity : AppCompatActivity() {
 
     /** Protected: the wizard shows itself while something is off, until Back. */
     private var setupDismissed by mutableStateOf(false)
+
+    private var introPlaying by mutableStateOf(false)
+
+    /** Activity-wide, so a toast survives the screen change it announces. */
+    private val toasts = ToastState()
+
+    private fun toast(tone: Tone, icon: Int, @StringRes text: Int, vararg args: Any) {
+        toasts.show(getString(text, *args), tone, icon)
+    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -155,9 +175,17 @@ class MainActivity : AppCompatActivity() {
         // protected phone the wizard asks instead, one permission at a time.
         if (savedInstanceState == null && role == Role.GUARDIAN) requestNotificationPermission()
 
+        // The intro plays on a fresh launch only: not on a rotation or a theme
+        // or language switch, and not from an alert notification — a guardian
+        // tapping one should land on the alert, not wait through a logo.
+        introPlaying = savedInstanceState == null && intent.getStringExtra(EXTRA_PACKAGE) == null
+
         setContent {
             RONDATheme {
-                AppRoot()
+                Box(Modifier.fillMaxSize()) {
+                    AppRoot()
+                    if (introPlaying) SplashIntro(onFinished = { introPlaying = false })
+                }
             }
         }
     }
@@ -180,6 +208,7 @@ class MainActivity : AppCompatActivity() {
         intent.getStringExtra(EXTRA_PACKAGE)?.let {
             selectedPackage = it
             selectedPairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
+            selectedAlertId = null
         }
         QrCodeUtils.codeFromLink(intent.data?.toString())?.let { scannedPairingCode = it }
     }
@@ -201,6 +230,11 @@ class MainActivity : AppCompatActivity() {
         pairingIds = roleStore.pairingIds.toSet()
         protectedName = roleStore.protectedName
         guardianName = roleStore.guardianName
+        // A disconnect seen in the background starts setup over, which
+        // resets these too — see SettingsStore.startSetupOver.
+        languageChosen = settings.languageChosen
+        introSeen = settings.introSeen
+        initialScanDone = settings.initialScanDone
     }
 
     private enum class Screen {
@@ -249,12 +283,31 @@ class MainActivity : AppCompatActivity() {
         if (role == Role.PROTECTED && pairingId != null) {
             val currentId = pairingId!!
             LaunchedEffect(currentId) {
-                // CommandHandler has already unpaired and notified; this only
-                // takes the open screen back to pairing.
+                // CommandHandler may have got there first and already started
+                // setup over; doing it again is harmless, and this is what
+                // takes the open screen back to the start.
                 com.ronda.app.alert.CommandRepository().observeCommands(currentId).collect { cmds ->
                     if (cmds.any { it.isDisconnectFrom(com.ronda.app.alert.Command.FROM_GUARDIAN) }) {
                         Log.d(TAG, "Pairing $currentId disconnected remotely by Rondor")
-                        leavePairing()
+                        startOver()
+                        toast(Tone.WARN, RondaIcons.logOut, R.string.toast_disconnected_by_guardian)
+                    }
+                }
+            }
+            ProtectedToasts()
+        }
+        if (role == Role.GUARDIAN && pairingIds.isNotEmpty()) {
+            val viewModel = guardianViewModel(pairingIds)
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    val app = event.verdict.appLabel
+                    when (event) {
+                        is GuardianEvent.NeedsReview ->
+                            toast(Tone.DANGER, RondaIcons.shieldAlert, R.string.toast_alert_review, app)
+                        is GuardianEvent.Monitored ->
+                            toast(Tone.TRUST, RondaIcons.eye, R.string.toast_alert_monitored, app)
+                        is GuardianEvent.Removed ->
+                            toast(Tone.SAFE, RondaIcons.check, R.string.toast_removed, app)
                     }
                 }
             }
@@ -303,8 +356,23 @@ class MainActivity : AppCompatActivity() {
             ) { screen ->
                 when (screen) {
                     Screen.LANGUAGE -> LanguageScreen(onChosen = ::chooseLanguage)
-                    Screen.INTRO -> IntroScreen(onStart = ::finishIntro)
-                    Screen.ROLE -> RoleSelectionScreen(onRoleChosen = ::chooseRole)
+                    // Every first-run screen can step back one, so a wrong tap
+                    // never needs a data wipe. Each Back unsets the one stored
+                    // value that moved the app forward.
+                    Screen.INTRO -> IntroScreen(
+                        onStart = ::finishIntro,
+                        onBack = {
+                            settings.languageChosen = false
+                            languageChosen = false
+                        }
+                    )
+                    Screen.ROLE -> RoleSelectionScreen(
+                        onRoleChosen = ::chooseRole,
+                        onBack = {
+                            settings.introSeen = false
+                            introSeen = false
+                        }
+                    )
 
                     Screen.GUARDIAN_PAIRING -> GuardianPairingScreen(
                         guardianDeviceId = roleStore.deviceId,
@@ -316,7 +384,12 @@ class MainActivity : AppCompatActivity() {
                             protectedName = nickname
                         },
                         onPaired = { code -> onPaired(code, guardianName) },
-                        onCancel = if (addingDevice) ({ addingDevice = false }) else null
+                        onCancel = when {
+                            addingDevice -> ({ addingDevice = false })
+                            roleStore.canClearRole -> ::leaveRole
+                            else -> null
+                        },
+                        adding = addingDevice
                     )
 
                     Screen.GUARDIAN_HOME -> {
@@ -334,6 +407,7 @@ class MainActivity : AppCompatActivity() {
                                 onTabChange = { guardianTab = it },
                                 onVerdictClick = {
                                     selectedPairingId = it.pairingId
+                                    selectedAlertId = it.alertId
                                     selectedPackage = it.packageName
                                 },
                                 themeMode = themeMode,
@@ -343,7 +417,10 @@ class MainActivity : AppCompatActivity() {
                                 onRename = ::renameDevice,
                                 onDisconnect = ::disconnectDevice,
                                 onAddDevice = ::addDevice,
-                                onScan = { id -> viewModel.requestScan(id) }
+                                onScan = { id ->
+                                    viewModel.requestScan(id)
+                                    toast(Tone.TRUST, RondaIcons.send, R.string.toast_scan_sent, roleStore.getProtectedName(id))
+                                }
                             )
                         }
                     }
@@ -352,16 +429,31 @@ class MainActivity : AppCompatActivity() {
                         val viewModel = guardianViewModel(pairingIds)
                         val state by viewModel.state.collectAsState()
                         
-                        val verdict = viewModel.find(selectedPairingId, selectedPackage)
+                        val verdict = viewModel.find(selectedPairingId, selectedPackage, selectedAlertId)
                         if (verdict != null) {
                             AlertDetailScreen(
                                 verdict = verdict,
                                 protectedName = roleStore.getProtectedName(verdict.pairingId),
                                 undoable = state.undoable == verdict.packageName,
-                                onMarkSafe = { viewModel.markSafe(verdict.pairingId, verdict.packageName) },
-                                onMarkUnsafe = { viewModel.markUnsafe(verdict.pairingId, verdict.packageName) },
-                                onUndo = { viewModel.undoMarkSafe(verdict.pairingId, verdict.packageName) },
-                                onRequestUninstall = { viewModel.requestUninstall(verdict.pairingId, verdict.packageName) },
+                                onMarkSafe = {
+                                    viewModel.markSafe(verdict.pairingId, verdict.packageName)
+                                    toast(Tone.SAFE, RondaIcons.circleCheck, R.string.toast_marked_safe, verdict.appLabel)
+                                },
+                                onMarkUnsafe = {
+                                    viewModel.markUnsafe(verdict.pairingId, verdict.packageName)
+                                    toast(Tone.DANGER, RondaIcons.shieldAlert, R.string.toast_marked_unsafe, verdict.appLabel)
+                                },
+                                onUndo = {
+                                    viewModel.undoMarkSafe(verdict.pairingId, verdict.packageName)
+                                    toast(Tone.NEUTRAL, RondaIcons.undo, R.string.toast_undone)
+                                },
+                                onRequestUninstall = {
+                                    viewModel.requestUninstall(verdict.pairingId, verdict.packageName)
+                                    toast(
+                                        Tone.TRUST, RondaIcons.send, R.string.toast_uninstall_sent,
+                                        roleStore.getProtectedName(verdict.pairingId)
+                                    )
+                                },
                                 onBack = {
                                     selectedPairingId = null
                                     selectedPackage = null
@@ -376,19 +468,26 @@ class MainActivity : AppCompatActivity() {
                     Screen.PROTECTED_PAIRING -> ProtectedPairingScreen(
                         protectedDeviceId = roleStore.deviceId,
                         scannedCode = scannedPairingCode,
-                        onPaired = ::onPaired
+                        onPaired = ::onPaired,
+                        onBack = if (roleStore.canClearRole) ::leaveRole else null
                     )
 
                     Screen.INITIAL_SCAN -> InitialScanScreen(
                         onScan = {
                             val serviceIntent = Intent(this@MainActivity, DetectionService::class.java)
                             serviceIntent.action = ACTION_SCAN_EXISTING
+                            // First scan of a pairing: report what is already
+                            // flagged too, or a new Rondor never hears of it.
+                            serviceIntent.putExtra(EXTRA_INITIAL_SCAN, true)
                             startForegroundService(serviceIntent)
                         },
                         onComplete = {
                             settings.initialScanDone = true
                             initialScanDone = true
-                        }
+                        },
+                        // Paired with the wrong code: undo just the pairing,
+                        // tell the Rondor, and land back on the code screen.
+                        onBack = ::undoPairing
                     )
 
                     Screen.UNINSTALL_PROMPT -> pendingUninstall?.let { request ->
@@ -479,6 +578,69 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+
+            ToastHost(
+                state = toasts,
+                modifier = Modifier.align(Alignment.TopCenter),
+                large = role == Role.PROTECTED
+            )
+        }
+    }
+
+    /**
+     * What changes on a Rondee's phone without a tap on it: a scan finishing,
+     * an app being flagged, the Rondor clearing one, an app leaving. All of it
+     * is written by services, so this watches the stores rather than callbacks.
+     */
+    @Composable
+    private fun ProtectedToasts() {
+        LaunchedEffect(Unit) {
+            ScanEvents.results.collect { result ->
+                if (result.found == 0) {
+                    toast(Tone.SAFE, RondaIcons.shieldCheck, R.string.toast_scan_clean)
+                } else {
+                    toasts.show(
+                        resources.getQuantityString(R.plurals.toast_scan_found, result.found, result.found),
+                        Tone.DANGER,
+                        RondaIcons.shieldAlert
+                    )
+                }
+            }
+        }
+
+        DisposableEffect(Unit) {
+            val flagged = FlaggedAppStore(this@MainActivity)
+            val history = com.ronda.app.detection.ProtectedHistoryStore(this@MainActivity)
+            var knownFlagged = flagged.flaggedPackages().toSet()
+            var lastEvent = history.history().firstOrNull()?.timestamp ?: 0L
+            // Read while the app is still installed: by the time "uninstalled"
+            // is recorded, PackageManager no longer knows its name.
+            val labels = knownFlagged.associateWith(::appLabelOf).toMutableMap()
+
+            val onFlagged = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                val now = flagged.flaggedPackages().toSet()
+                (now - knownFlagged).forEach {
+                    val app = appLabelOf(it).also { label -> labels[it] = label }
+                    toast(Tone.DANGER, RondaIcons.shieldAlert, R.string.toast_flagged, app)
+                }
+                knownFlagged = now
+            }
+            val onHistory = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                val newest = history.history().firstOrNull() ?: return@OnSharedPreferenceChangeListener
+                if (newest.timestamp <= lastEvent) return@OnSharedPreferenceChangeListener
+                lastEvent = newest.timestamp
+                val app = labels[newest.packageName] ?: appLabelOf(newest.packageName)
+                when (newest.action) {
+                    "safe" -> toast(Tone.SAFE, RondaIcons.circleCheck, R.string.toast_cleared, app)
+                    "uninstalled" -> toast(Tone.SAFE, RondaIcons.check, R.string.toast_removed, app)
+                }
+            }
+            flagged.prefs.registerOnSharedPreferenceChangeListener(onFlagged)
+            history.prefs.registerOnSharedPreferenceChangeListener(onHistory)
+            onDispose {
+                flagged.prefs.unregisterOnSharedPreferenceChangeListener(onFlagged)
+                history.prefs.unregisterOnSharedPreferenceChangeListener(onHistory)
+            }
         }
     }
 
@@ -528,7 +690,22 @@ class MainActivity : AppCompatActivity() {
     private fun chooseRole(chosen: Role) {
         roleStore.chooseRole(chosen)
         role = roleStore.role
-        if (role == Role.GUARDIAN) requestNotificationPermission()
+        if (role == Role.GUARDIAN) {
+            // A former Rondee becoming a Rondor: its local protection ends here.
+            settings.keepsLocalProtection = false
+            RondaServices.stopDetection(this)
+            requestNotificationPermission()
+        }
+        refreshStatus()
+    }
+
+    /** Setup's Back from pairing: the role was a wrong tap, pick again. */
+    private fun leaveRole() {
+        if (!roleStore.clearRole()) return
+        role = null
+        // Choosing Rondee starts detection straight away; undo that too —
+        // unless this phone was a Rondee before and keeps local protection.
+        if (!RondaServices.runsDetection(this)) RondaServices.stopDetection(this)
         refreshStatus()
     }
 
@@ -541,6 +718,7 @@ class MainActivity : AppCompatActivity() {
         // New set instance so the settings list re-reads nicknames.
         pairingIds = roleStore.pairingIds.toSet()
         protectedName = protectedName
+        toast(Tone.TRUST, RondaIcons.pen, R.string.toast_renamed, name)
     }
 
     private fun changeTheme(mode: ThemeMode) {
@@ -561,19 +739,35 @@ class MainActivity : AppCompatActivity() {
             addingDevice = false
         } else {
             roleStore.pairingId = code
+            // Every pairing starts with a scan, re-pairs included: a new
+            // guardian has never seen what is already on this phone. Reset
+            // here rather than on unpair, because a guardian can end the
+            // pairing while RONDA is closed and only CommandHandler sees it.
+            settings.initialScanDone = false
+            initialScanDone = false
         }
         roleStore.guardianName = pairedGuardianName
         pairingId = roleStore.pairingId
         guardianName = pairedGuardianName
         setupDismissed = false
         refreshStatus()
-        if (role == Role.GUARDIAN) restartGuardianWatch()
+        if (role == Role.GUARDIAN) {
+            restartGuardianWatch()
+            toast(Tone.SAFE, RondaIcons.link, R.string.toast_paired_guardian, roleStore.getProtectedName(code))
+        } else {
+            toast(
+                Tone.SAFE, RondaIcons.heartHandshake, R.string.toast_paired_protected,
+                pairedGuardianName.ifBlank { getString(R.string.guardian_unknown_name) }
+            )
+        }
     }
 
     /** Guardian side, the Rondor's own choice: tell the Rondee, then forget it. */
     private fun disconnectDevice(id: String) {
+        val name = roleStore.getProtectedName(id)
         sendDisconnect(id, com.ronda.app.alert.Command.FROM_GUARDIAN)
         removeDevice(id)
+        toast(Tone.NEUTRAL, RondaIcons.logOut, R.string.toast_device_disconnected, name)
     }
 
     /**
@@ -585,6 +779,7 @@ class MainActivity : AppCompatActivity() {
         val name = roleStore.getProtectedName(id)
         removeDevice(id)
         if (stillStored) GuardianAlertService.notifyRondeeDisconnected(this, name)
+        toast(Tone.WARN, RondaIcons.logOut, R.string.toast_rondee_left, name)
     }
 
     private fun removeDevice(id: String) {
@@ -595,27 +790,55 @@ class MainActivity : AppCompatActivity() {
             selectedPackage = null
             selectedPairingId = null
         }
-        if (pairingIds.isEmpty()) {
-            stopService(Intent(this, GuardianAlertService::class.java))
-            guardianTab = GuardianTab.ALERTS
-            status = SetupStatus(false, false, false, false)
-        } else {
-            restartGuardianWatch()
-        }
+        if (pairingIds.isEmpty()) startOver() else restartGuardianWatch()
     }
 
     /** Protected side, the Rondee's own choice: tell the Rondor, then leave. */
     private fun disconnectProtected() {
         pairingId?.let { sendDisconnect(it, com.ronda.app.alert.Command.FROM_PROTECTED) }
+        startOver()
+        toast(Tone.NEUTRAL, RondaIcons.logOut, R.string.toast_disconnected_self)
+    }
+
+    /**
+     * Back from the first scan: the code was the wrong one. Only the pairing
+     * is undone, so this lands on the code screen, not the start of setup.
+     */
+    private fun undoPairing() {
+        pairingId?.let { sendDisconnect(it, com.ronda.app.alert.Command.FROM_PROTECTED) }
         leavePairing()
+    }
+
+    /**
+     * The last pairing ended, from either side: back to the language screen,
+     * with nothing left of the old setup, so the phone can become either a
+     * Rondor or a Rondee. The alert listener stops; a former Rondee's
+     * detection and overlay keep running (refreshStatus below), so apps it
+     * flagged stay covered until it is set up as a Rondor.
+     */
+    private fun startOver() {
+        stopService(Intent(this, GuardianAlertService::class.java))
+        settings.startSetupOver(roleStore)
+        syncPairingFromStore()
+        addingDevice = false
+        selectedPackage = null
+        selectedPairingId = null
+        selectedAlertId = null
+        guardianTab = GuardianTab.ALERTS
+        protectedTab = ProtectedTab.ALERTS
+        setupDismissed = false
+        pendingUninstall = null
+        uninstallDeferred = false
+        refreshStatus()
     }
 
     private fun leavePairing() {
         roleStore.unpair()
         pairingId = null
         pairingIds = emptySet()
-        stopService(Intent(this, DetectionService::class.java))
-        OverlayService.stop(this)
+        // Detection and the overlay stay up: still a Rondee, still flagged
+        // apps to cover. DetectionService drops the old pairing's command
+        // listener on its next start, which refreshStatus triggers.
         protectedTab = ProtectedTab.ALERTS
         refreshStatus()
     }
@@ -668,12 +891,8 @@ class MainActivity : AppCompatActivity() {
     /**
      * Permissions are granted in system Settings, so the result arrives as a
      * resume rather than a callback. OEM power management also revokes them
-     * silently, which is why this runs on every launch.
-     *
-     * The two roles start different services: a guardian phone never runs
-     * detection or the overlay, and a protected phone never opens an alert
-     * listener. Starting everything everywhere would put a needless foreground
-     * service — and its permanent notification — on both devices.
+     * silently, which is why this runs on every launch. Which services run is
+     * decided by [RondaServices], shared with the boot receiver.
      */
     private fun refreshStatus() {
         status = SetupStatus(
@@ -683,23 +902,7 @@ class MainActivity : AppCompatActivity() {
             batteryExemption = Permissions.hasBatteryExemption(this)
         )
 
-        when (role) {
-            Role.PROTECTED -> {
-                startForegroundService(Intent(this, DetectionService::class.java))
-
-                // Restore blocking after a reboot or a process kill: if an app is
-                // still flagged and we are allowed to block, resume covering it.
-                if (Permissions.canBlock(this) &&
-                    FlaggedAppStore(this).flaggedPackages().isNotEmpty()
-                ) {
-                    OverlayService.start(this)
-                }
-            }
-
-            Role.GUARDIAN -> if (roleStore.pairingIds.isNotEmpty()) GuardianAlertService.start(this)
-
-            null -> Unit
-        }
+        RondaServices.start(this)
     }
 
     private fun requestNotificationPermission() {
@@ -732,5 +935,7 @@ class MainActivity : AppCompatActivity() {
         const val DEMO_PAIRING = "DEMO01"
         /** Key for the action to start an existing apps scan manually. */
         const val ACTION_SCAN_EXISTING = "com.ronda.app.action.SCAN_EXISTING"
+        /** On [ACTION_SCAN_EXISTING]: the pairing's first scan, see DetectionService. */
+        const val EXTRA_INITIAL_SCAN = "initial_scan"
     }
 }

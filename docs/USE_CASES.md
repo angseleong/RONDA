@@ -1,306 +1,335 @@
-# Skenario Use Case RONDA
+# RONDA Use Case Scenarios
 
-Dokumen ini memetakan alur kerja utama aplikasi RONDA beserta penanganan skenario alternatif (ketika kondisi tidak ideal atau ada *edge case* tertentu). Skenario ini didasarkan pada implementasi aktual dari *codebase* RONDA.
+This document maps RONDA's main flows and how each one handles the less-than-ideal paths (edge cases and failures). It describes what the code on `main` actually does.
 
----
+Terms used throughout: the **Rondor** is the guardian's phone (the one that receives alerts); the **Rondee** is the protected phone (the one that runs detection and the overlay). One APK holds both roles; the role is picked during setup.
 
-## UC01: Pendaftaran, Pairing, dan Manajemen Perangkat
-
-**Skenario Normal: Pairing Pertama Kali (QR Code atau Input Kode)**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Pengguna 1 membuka aplikasi RONDA, memilih peran "Rondor", dan mengisi nama Rondee yang ingin dipantau | Sistem membuat ID unik, menyimpannya di basis data lokal, dan menampilkan *QR Code* beserta *Kode Text* 6-digit (`RondorPairingScreen`). |
-| 2 | Pengguna 2 membuka aplikasi RONDA, memilih "Rondee", lalu **memindai *QR Code*** atau **memasukkan *Kode Text*** secara manual | Sistem memvalidasi input, mengirim data ke Firebase (`PairingRepository`), menautkan perangkat, dan mengarahkan pengguna ke *Home Screen*. |
-
-<br>
-
-**Skenario Alternatif 1: Rondor Menambahkan Rondee Tambahan (Multi-Rondee)**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Rondor membuka menu Pengaturan (*Settings*) dan menekan "Add Device" | Sistem memunculkan form untuk memasukkan nama perangkat Rondee baru (seperti pada tahap awal pengaturan). |
-| 2 | Rondor mengisi nama lalu menekan tombol Lanjut | Sistem menerbitkan ID dan *QR Code*/*Kode Text* baru khusus untuk perangkat tambahan tersebut tanpa memutuskan koneksi dari Rondee sebelumnya. |
-| 3 | Rondee baru memasukkan kode tersebut | Sistem menautkan Rondee baru ke akun Rondor. Menu *Settings* Rondor kini menampilkan daftar *Rondee connected* yang memuat dua perangkat atau lebih, dan beranda Rondor akan memantau notifikasi dari seluruh Rondee tersebut. |
-
-<br>
-
-**Skenario Alternatif 2: Memutus Koneksi (Disconnect / Unpair)**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Rondor membuka menu Pengaturan, melihat daftar *Rondee connected*, lalu menekan tombol "Disconnect" pada salah satu spesifik Rondee | Sistem memunculkan prompt konfirmasi pemutusan koneksi khusus untuk Rondee yang dipilih. (Catatan: Rondee juga bisa menekan "Disconnect" mandiri dari sisi mereka). |
-| 2 | Pengguna menekan tombol "Confirm" | Sistem menghapus sesi *pairing* tersebut, menghapus datanya dari perangkat lokal, dan mengirim pembaruan status pemutusan ke Firebase tanpa mengganggu koneksi ke Rondee lainnya (jika ada). |
-| 3 | (Pada perangkat lawan / *the other party*) | Sistem mendeteksi putusnya koneksi secara *real-time* via Firebase, langsung memperbarui tampilan aplikasi, dan memunculkan notifikasi bahwa pihak sebelah telah memutus koneksi. |
-
-<br>
-
-**Skenario Alternatif 3: Kode Pairing / QR Code Tidak Valid**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" memindai QR Code atau mengetikkan kode yang salah/bukan dari sesi Rondor yang benar | Sistem (`QrCodeUtils`) gagal memvalidasi input, menolak proses *pairing*, menampilkan pesan kesalahan "Kode tidak valid", dan meminta pengguna mencoba lagi. |
-
-<br>
-
-**Skenario Alternatif 4: Kode Pairing Kedaluwarsa atau Sudah Dipakai**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" memasukkan kode yang dibuat Rondor lebih dari 10 menit lalu, atau kode yang sudah pernah diklaim perangkat lain | `PairingRepository.claimPairing()` membaca catatan *pairing* di Firebase dan menolak klaim (`Expired` / `AlreadyUsed`). Sistem menampilkan pesan spesifik: "Kode sudah kedaluwarsa. Minta kode baru." atau "Kode ini sudah dipakai. Minta kode baru." |
-| 2 | Rondor membuat kode baru dan membacakannya ulang | Sistem menerbitkan kode baru yang berlaku 10 menit, lalu *pairing* dilanjutkan seperti Skenario Normal. |
-
-<br>
-
-**Skenario Alternatif 5: Tidak Ada Koneksi Internet Saat Pairing**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menekan tombol hubungkan saat HP tidak tersambung ke internet | Sistem gagal menjangkau Firebase (`ClaimResult.Failed`) dan menampilkan pesan "Tidak bisa terhubung ke server. Periksa koneksi internet, lalu coba lagi." Kode yang sudah diketik tetap tersimpan di kolom. |
-| 2 | (Pada perangkat Rondor, jika pembuatan kode gagal) | `GuardianPairingScreen` menampilkan kartu gagal dengan tombol "Coba lagi" untuk menerbitkan ulang kode. |
-
-<br>
-
-**Skenario Alternatif 6: Memindai QR Code dengan Aplikasi Kamera (Deep Link)**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" memindai *QR Code* Rondor memakai aplikasi kamera atau pemindai QR bawaan HP | QR berisi tautan `ronda://pair/XXXXXX`. OS membuka RONDA (atau meneruskan ke RONDA yang sedang terbuka lewat `onNewIntent`), dan `QrCodeUtils.codeFromLink()` mengambil kodenya. |
-| 2 | (Sistem bekerja secara otomatis) | Kode diisikan ke kolom di `ProtectedPairingScreen` beserta keterangan bahwa kode sudah masuk tetapi belum terhubung. Jika Rondee masih di layar bahasa/peran, kode disimpan dan diisikan ketika layar *pairing* terbuka. |
-| 3 | Pengguna "Rondee" menekan tombol hubungkan | *Pairing* dilanjutkan seperti Skenario Normal. Tautan tidak pernah memasangkan perangkat sendiri tanpa ketukan dari pemilik HP, agar persetujuan tetap terjadi secara sadar (PRD FR-2). |
+Most scenarios can be run end to end on the emulators with `scripts/ronda scenario <id>`; the id is given under each heading. `scripts/ronda scenario` with no id lists them all.
 
 ---
 
-## UC02: Mendeteksi Aplikasi Berbahaya (Initial Scan & Real-time)
+## UC01: Setup, Pairing and Device Management
 
-**Skenario Normal 1: Initial Scan (Pasca-Pairing)**
+**Normal Scenario: First Pairing (QR Code or Typed Code)** — `uc01-pair`, `uc01-qr`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" baru saja menyelesaikan proses *pairing* (UC01) | Sistem (`DetectionService`) secara otomatis memicu *Initial Scan* untuk memindai seluruh aplikasi yang sudah ada di perangkat Rondee. |
-| 2 | (Sistem bekerja secara otomatis) | `RiskEvaluator` memeriksa sumber instalasi dan izin setiap aplikasi. Jika ditemukan aplikasi *sideload* dengan izin berbahaya, sistem memvonis **HIGH RISK**. |
-| 3 | (Sistem bekerja secara otomatis) | Sistem mencatat aplikasi bermasalah ke `FlaggedAppStore` dan mengirimkan peringatan massal (*Alerts*) ke perangkat Rondor via Firebase. |
+| 1 | User 1 opens RONDA, chooses the "Rondor" role, enters their own name and what they call the person being guarded (a preset such as "Mum", or any name typed in) | The system creates a pairing record in Firebase and shows a *QR code* and a 6-character *text code* (`GuardianPairingScreen`). The code shows at once; a live countdown shows how long it stays valid (10 minutes). |
+| 2 | User 2 opens RONDA, chooses "Rondee", then **scans the QR code** or **types the text code** | The system validates the input, claims the pairing in Firebase (`PairingRepository`) and links the two phones. Both phones show a confirmation toast. |
+| 3 | (The Rondee continues) | The Rondee is taken to the *Initial Scan* screen (UC02), then the permission wizard (UC05), then its home screen. The Rondor lands on its home screen with the new phone listed. |
 
 <br>
 
-**Skenario Normal 2: Deteksi Real-time Instalasi Baru (True Positive)**
+**Alternative Scenario 1: Rondor Adds Another Rondee (Multiple Rondees)** — `uc01-multi`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menginstal APK dari WhatsApp (di luar Play Store) | OS Android memicu *broadcast* `ACTION_PACKAGE_ADDED`. Sistem (melalui `InstallReceiver`) mulai mengeksekusi pemindaian di latar belakang. |
-| 2 | (Sistem bekerja secara otomatis tanpa aksi pengguna) | `RiskEvaluator` mengekstrak data aplikasi. Karena meminta *permission* bahaya (misal `READ_SMS`), sistem memberikan vonis **HIGH RISK** dan mengirim *Alert* ke Rondor. |
+| 1 | The Rondor opens Settings and taps "Add another device" | The system shows the same name form as the first setup. |
+| 2 | The Rondor fills in the name and taps Continue | The system issues a new QR code / text code for the extra phone, without disconnecting the existing Rondee. |
+| 3 | The new Rondee enters the code | The system links the new Rondee to the same Rondor. The Rondor's Settings now list two or more connected phones, and its home screen shows alerts from all of them. |
 
 <br>
 
-**Skenario Alternatif 1: Scan Ulang Manual (Scan Again)**
+**Alternative Scenario 2: Disconnecting (Unpair)** — `uc01-disconnect-rondee`, `uc01-disconnect-rondor`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menekan tombol "Scan Again" pada halaman utama aplikasi | Sistem memulai ulang proses pemindaian ke seluruh aplikasi yang terinstal, mengulang siklus *Initial Scan*. |
-| 2 | (Sistem bekerja secara otomatis) | Jika ada aplikasi berbahaya baru atau yang status *Safe*-nya dicabut, sistem akan memperbarui daftarnya dan segera melaporkan ke Rondor. |
+| 1 | The Rondor opens Settings, finds one of its connected phones and taps "Disconnect" on it — or the Rondee taps "Disconnect" in its own Settings | The system asks for confirmation for that one pairing. |
+| 2 | The user confirms | The system sends a disconnect command through Firebase and removes the pairing locally, without touching the Rondor's other pairings (if any). |
+| 3 | (On the other phone) | The other phone sees the disconnect in real time, updates its screen and shows a notification (or a toast, if RONDA is open) that the other side has ended the connection. |
+| 4 | (What each phone does next) | **A Rondee** whose pairing ended — from either side — starts over from the language screen, free to be set up as either role. **A Rondor** starts over only when its *last* Rondee is gone; while it still guards another phone it just shows the notice and stays on its home screen. |
+| 5 | (Protection on the former Rondee) | Starting over never uncovers anything: apps the Rondee had flagged stay blocked by the overlay, and new installs are still detected and blocked locally, with nobody told, until the phone is set up again. Only choosing the Rondor role ends that local protection. |
 
 <br>
 
-**Skenario Alternatif 2: Instalasi Aplikasi Aman (True Negative / False Positive Handling)**
+**Alternative Scenario 3: Invalid Pairing Code or QR Code** — `uc01-invalid`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menginstal aplikasi dari Play Store (meski butuh *permission* SMS), ATAU aplikasi *sideload* tanpa *permission* bahaya | `RiskEvaluator` mengeksekusi logika. Karena tidak memenuhi syarat bahaya, aplikasi divonis **Aman**. Sistem mencatatnya di `SafeAppStore` agar tidak ditanyakan lagi, dan **TIDAK** mengirim peringatan ke Rondor. |
+| 1 | The Rondee types a code that is badly formed, or one that no Rondor created | The system rejects it with a specific message: "The code is 6 letters or digits." for a malformed code, or "Code not found. Check what you typed." for an unknown one. The typed code stays in the field. |
+| 2 | The Rondee scans a QR code that is not a RONDA link | `QrCodeUtils.codeFromLink()` returns nothing, so the field is not filled and no pairing is attempted. |
 
 <br>
 
-**Skenario Alternatif 3: HP Rondee Offline Saat Aplikasi Berbahaya Terdeteksi**
+**Alternative Scenario 4: Pairing Code Expired or Already Used** — `uc01-expired`, `uc01-used`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menginstal APK berbahaya saat HP tidak tersambung ke internet | Deteksi tetap berjalan penuh di perangkat: `RiskEvaluator` memvonis **HIGH RISK**, sistem memunculkan notifikasi peringatan lokal, mencatat aplikasi di `FlaggedAppStore`, dan menyalakan *overlay* (UC03). |
-| 2 | (Sistem bekerja secara otomatis) | Penulisan *alert* ke Firebase gagal terkonfirmasi dalam 8 detik. *Persistence* Firebase Realtime Database menyimpan *alert* di antrean lokal. |
-| 3 | HP Rondee kembali tersambung ke internet | Firebase mengirim *alert* yang tertunda, dan perangkat Rondor menerima peringatan seperti pada Skenario Normal 2. |
+| 1 | (On the Rondor, 10 minutes after the code was made) | The countdown reaches zero and the code card is replaced by "This code has expired" with a **Make a new code** button. The names entered on the step before are kept. |
+| 2 | The Rondee enters a code created more than 10 minutes ago, or one already claimed by another phone | `PairingRepository.claimPairing()` reads the pairing record and refuses the claim (`Expired` / `AlreadyUsed`). The system shows a specific message: "This code has expired. Ask for a new one." or "This code has already been used. Ask for a new one." |
+| 3 | The Rondor taps Make a new code and reads it out again | The system issues a new code valid for 10 minutes, and pairing continues as in the Normal Scenario. |
 
 <br>
 
-**Skenario Alternatif 4: Aplikasi yang Sudah Ditandai Diperbarui (Update)**
+**Alternative Scenario 5: No Internet During Pairing** — `uc01-offline`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Aplikasi yang sudah masuk daftar **HIGH RISK** diperbarui ke versi baru | OS mengirim `ACTION_PACKAGE_REMOVED` (dengan `EXTRA_REPLACING`) lalu `ACTION_PACKAGE_ADDED`. `InstallReceiver` mengabaikan sinyal *removed* karena aplikasi sebenarnya masih terpasang, sehingga status **HIGH RISK** dan pemblokiran tetap berlaku. |
+| 1 | The Rondee taps Connect while it has no internet | The system cannot reach Firebase (`ClaimResult.Failed`) and shows "Could not reach the server. Check the internet connection, then try again." The typed code stays in the field. |
+| 2 | (On the Rondor, when the code cannot be saved) | The code is shown immediately, but if the server has not confirmed it within 10 seconds, `GuardianPairingScreen` replaces it with a failure card and a "Try again" button that issues a new code. |
 
 <br>
 
-**Skenario Alternatif 5: Aplikasi yang Pernah Ditandai Aman Diinstal Ulang**
+**Alternative Scenario 6: Scanning the QR Code with the Camera App (Deep Link)** — `uc01-qr`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menghapus aplikasi yang sebelumnya ditandai aman oleh Rondor | `InstallReceiver` menghapus aplikasi tersebut dari `SafeAppStore`, karena instalasi ulang dianggap sebagai pertanyaan baru. |
-| 2 | Pengguna "Rondee" menginstal aplikasi dengan nama paket yang sama lagi | Aplikasi dinilai ulang dari awal oleh `RiskEvaluator`. Jika hasilnya **HIGH RISK**, Rondor kembali menerima peringatan. |
+| 1 | The Rondee scans the Rondor's QR code with the phone's camera or any QR scanner | The QR holds the link `ronda://pair/XXXXXX`. The OS opens RONDA (or hands the link to the running RONDA through `onNewIntent`), and `QrCodeUtils.codeFromLink()` extracts the code. |
+| 2 | (Automatic) | The code is filled into `ProtectedPairingScreen` with a note that it came from the QR but is not connected yet. If the Rondee is still on the language, intro or role screen, the code is held and filled in once the pairing screen opens. |
+| 3 | The Rondee taps Connect | Pairing continues as in the Normal Scenario. A link never pairs the phone on its own without a tap from the phone's owner, so consent is always a conscious act (PRD FR-2). |
+
+<br>
+
+**Alternative Scenario 7: Going Back During Setup**
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The user taps the back arrow (or the system Back gesture) on any setup screen: intro, role, pairing | The system steps back one screen, undoing the single choice that moved it forward. A wrong tap on the role screen — Rondee instead of Rondor — is undone without clearing the app's data. |
+| 2 | The Rondee taps back on the *Initial Scan* screen, before starting the scan | The pairing is undone (the Rondor is told) and the Rondee returns to the code screen, ready for the right code. Back is not offered while a scan or a pairing claim is in progress. |
 
 ---
 
-## UC03: Pemblokiran Aplikasi Berbahaya (Soft-block Overlay)
+## UC02: Detecting Malicious Apps (Initial Scan & Real Time)
 
-**Skenario Normal: Overlay Muncul Saat Aplikasi Dibuka**
+**Normal Scenario 1: Initial Scan (After Pairing)** — `uc02-initial`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" mencoba membuka aplikasi yang baru saja masuk daftar **HIGH RISK** | Sistem (`ForegroundAppMonitor`) mendeteksi paket tersebut berada di *foreground*. |
-| 2 | (Sistem bekerja secara otomatis) | `OverlayService` langsung menggambar peringatan layar penuh di atas aplikasi. Sistem tidak menyediakan tombol tutup; pengguna hanya bisa menekan "Home" pada OS untuk keluar. |
+| 1 | The Rondee has just finished pairing (UC01) and taps **Scan now** on the *Initial Scan* screen | `DetectionService` scans every non-system app already installed on the phone. The screen waits for the real result (at least a short moment, at most 30 seconds). |
+| 2 | (Automatic) | `RiskEvaluator` checks each app's install source and declared permissions. A sideloaded app with dangerous permissions is judged **HIGH RISK**. |
+| 3 | (Automatic) | The system records problem apps in `FlaggedAppStore` and sends an alert for each to the Rondor through Firebase. Apps that were already flagged before this pairing (for example on a phone set up again with a new Rondor) are reported too, so the new Rondor learns about them. Apps an earlier Rondor cleared stay cleared. |
+| 4 | (Automatic) | A toast says how the scan ended: "Scan done: no dangerous apps" or "Scan done: N dangerous apps found". |
 
 <br>
 
-**Skenario Alternatif 1: Aplikasi Telah Ditandai Aman oleh Rondor**
+**Normal Scenario 2: Real-Time Detection of a New Install (True Positive)** — `uc02-realtime`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" membuka aplikasi yang sebelumnya diblokir, namun telah diizinkan (*Mark as Safe*) oleh Rondor | `ForegroundAppMonitor` mengecek statusnya di basis data, menemukan status "Aman", sehingga *overlay* ditahan. Pengguna dapat memakai aplikasi dengan normal. |
+| 1 | The Rondee installs an APK received over WhatsApp (outside the Play Store) | Android broadcasts `ACTION_PACKAGE_ADDED`. The system (`InstallReceiver`) starts the evaluation in the background. |
+| 2 | (Automatic, no user action) | `RiskEvaluator` extracts the app's signals. Because it declares dangerous permissions (for example `READ_SMS`), it is judged **HIGH RISK**: the Rondee gets a local notification and a toast, the app is covered by the overlay (UC03), and an alert is sent to the Rondor, who gets a notification and a toast. |
 
 <br>
 
-**Skenario Alternatif 2: Izin Overlay atau Usage Access Belum Diberikan / Dicabut**
+**Alternative Scenario 1: Manual Rescan (Scan Again)** — `uc02-scan-again`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Aplikasi **HIGH RISK** terdeteksi, tetapi izin `SYSTEM_ALERT_WINDOW` atau `PACKAGE_USAGE_STATS` belum diberikan, atau dicabut oleh *power management* OEM | `Permissions.canBlock()` bernilai *false*. *Overlay* tidak dijalankan, atau `OverlayService` berhenti sendiri jika izin dicabut saat sedang berjalan. Deteksi dan pengiriman *alert* ke Rondor tetap berjalan normal. |
-| 2 | Pengguna "Rondee" membuka RONDA | Beranda Rondee berubah menjadi kartu kuning dengan tombol "Lanjutkan pengaturan" yang membawa ke *wizard* izin (UC05). |
-| 3 | Pengguna "Rondee" memberikan izin kembali, lalu kembali ke RONDA | Sistem memeriksa ulang izin saat `onResume`. Karena masih ada aplikasi di `FlaggedAppStore`, `OverlayService` dinyalakan lagi dan pemblokiran kembali aktif. |
+| 1 | The Rondee taps "Scan again" on its home screen — or the Rondor taps "Scan this phone now" in Settings | The system scans all installed apps again. |
+| 2 | (Automatic) | Newly dangerous apps are flagged and reported to the Rondor at once. Apps already flagged are skipped, since this Rondor already has them. A toast reports the result on the Rondee. |
 
 <br>
 
-**Skenario Alternatif 3: HP Rondee Di-restart**
+**Alternative Scenario 2: Installing a Safe App (True Negative)** — `uc02-safe-install`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | HP Rondee dinyalakan ulang (atau proses RONDA dimatikan OS) saat masih ada aplikasi **HIGH RISK** yang belum ditangani | Daftar aplikasi bermasalah tetap tersimpan di `FlaggedAppStore` pada penyimpanan lokal. |
-| 2 | Pengguna "Rondee" membuka RONDA | `MainActivity.refreshStatus()` menyalakan kembali `DetectionService` dan, jika izin lengkap, `OverlayService`, sehingga aplikasi berbahaya kembali tertutup *overlay*. |
+| 1 | The Rondee installs an app from the Play Store (even one asking for SMS permission), OR a sideloaded app without dangerous permissions | `RiskEvaluator` runs. Because the app does not meet both conditions for danger, it scores below the alert threshold. Nothing is flagged and **no** alert is sent to the Rondor. (Only an app the Rondor has explicitly marked safe goes into `SafeAppStore`.) |
 
 <br>
 
-**Skenario Alternatif 4: Pengguna Menekan Tombol Back di Overlay**
+**Alternative Scenario 3: The Rondee Is Offline When a Malicious App Is Detected** — `uc02-offline`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menekan tombol Back atau mengetuk layar saat *overlay* tampil | *Overlay* menyerap sentuhan dan tombol Back sehingga keduanya tidak diteruskan ke aplikasi berbahaya di bawahnya. Satu-satunya jalan keluar tetap tombol Home. |
+| 1 | The Rondee installs a malicious APK while it has no internet | Detection runs fully on the device: `RiskEvaluator` judges it **HIGH RISK**, the system shows a local warning notification, records the app in `FlaggedAppStore` and starts the overlay (UC03). |
+| 2 | (Automatic) | Writing the alert to Firebase is not confirmed within 8 seconds. Firebase Realtime Database persistence keeps the alert in a local queue. |
+| 3 | The Rondee is back online | Firebase sends the queued alert, and the Rondor receives it as in Normal Scenario 2. |
+
+<br>
+
+**Alternative Scenario 4: A Flagged App Is Updated** — `uc02-update`
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | An app already on the **HIGH RISK** list is updated to a new version | Android sends `ACTION_PACKAGE_REMOVED` then `ACTION_PACKAGE_ADDED`, both with `EXTRA_REPLACING`. `InstallReceiver` ignores both for a flagged app: the **HIGH RISK** status and the block stay, no second alert is sent, and the Rondor's decision about the app stands. An update to an app that was *not* flagged is still evaluated, since the new version may declare new permissions. |
+
+<br>
+
+**Alternative Scenario 5: An App Previously Marked Safe Is Reinstalled** — `uc02-reinstall-safe`
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondee removes an app the Rondor had marked safe | `InstallReceiver` removes it from `SafeAppStore`, because a reinstall is a new question. The Rondor is told the app was removed; its history keeps the "marked safe" entry and adds "removed". |
+| 2 | The Rondee installs an app with the same package name again | The app is evaluated from scratch by `RiskEvaluator`. If it is **HIGH RISK**, the Rondor receives a new alert — a new card to decide on, while the history of the first install stays. |
 
 ---
 
-## UC04: Penanganan Peringatan oleh Rondor & Sinkronisasi Uninstall
+## UC03: Blocking Malicious Apps (Soft-Block Overlay)
 
-**Skenario Normal: Rondor Memicu Uninstall dan Status Sinkron**
+**Normal Scenario: The Overlay Appears When the App Is Opened** — `uc03-overlay`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Rondor membuka notifikasi FCM yang masuk, sistem menampilkan layar rincian aplikasi berbahaya (`AlertDetailScreen`) | Sistem mendisplay nama paket, sumber, dan alasan kenapa aplikasi tersebut berbahaya. |
-| 2 | Rondor menekan tombol "Uninstall" | Sistem mengirim *Command Uninstall* ke Firebase. |
-| 3 | (Pada perangkat "Rondee") | `CommandHandler` menerima instruksi, lalu mengeksekusi `Intent.ACTION_DELETE`. OS Android memunculkan *pop-up* sistem yang meminta pengguna "Rondee" mengonfirmasi *uninstall*. |
-| 4 | Pengguna "Rondee" menekan "OK" pada dialog sistem Android | Aplikasi terhapus. OS menyebarkan `ACTION_PACKAGE_REMOVED`. |
-| 5 | (Sistem bekerja secara otomatis) | `InstallReceiver` menangkap pelepasan aplikasi, mengubah status di Firebase menjadi `STATUS_UNINSTALLED`, dan menghapus pemblokiran lokal. |
-| 6 | (Pada perangkat Rondor) | Layar Rondor otomatis terbarui, memindahkan *alert* tersebut dari daftar aktif ke tab *History* (Riwayat), dan `RondorAlertService` memunculkan notifikasi sukses: "Aplikasi [Nama] telah berhasil dihapus dari perangkat Rondee". |
+| 1 | The Rondee tries to open an app that was just flagged **HIGH RISK** | `ForegroundAppMonitor` sees the package come to the foreground. |
+| 2 | (Automatic) | `OverlayService` immediately draws a full-screen, RONDA-branded warning over the app. There is no close button; the only way out is the OS Home button. |
 
 <br>
 
-**Skenario Alternatif 1: Rondor Membiarkan (Tandai Aman)**
+**Alternative Scenario 1: The Rondor Has Marked the App Safe** — `uc04-safe`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Rondor menekan tombol "Tandai Aman (*Mark as Safe*)" pada `AlertDetailScreen` | Sistem mengirim *Command Safe* ke Firebase. |
-| 2 | (Pada perangkat "Rondee") | `CommandHandler` menerima instruksi, menghapus aplikasi dari `FlaggedAppStore`, memindahkannya ke `SafeAppStore`, dan segera mencabut *Overlay* jika sedang aktif. |
-| 3 | (Pada perangkat Rondor) | Sistem memperbarui status *alert* menjadi selesai (aman), memindahkannya ke tab *History*, dan memunculkan notifikasi bahwa peringatan telah berhasil ditandai aman. |
+| 1 | The Rondee opens an app that was blocked but that the Rondor has since marked safe | The app is no longer in `FlaggedAppStore`, so `ForegroundAppMonitor` does not cover it. The app works normally. |
 
 <br>
 
-**Skenario Alternatif 2: Pengguna "Rondee" Batal Melakukan Uninstall**
+**Alternative Scenario 2: Overlay or Usage Access Permission Missing or Revoked** — `uc03-permission`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menekan "Cancel" atau menunda (*defer*) *pop-up* sistem Android saat instruksi *uninstall* dari Rondor masuk | OS membatalkan penghapusan. `MainActivity` menahan *pending uninstall*. Aplikasi tetap berada dalam daftar **HIGH RISK**, *overlay* tetap aktif jika aplikasi dibuka, dan status di layar Rondor akan tetap "Menunggu aksi" sampai *uninstall* benar-benar berhasil dieksekusi. |
+| 1 | A **HIGH RISK** app is detected, but `SYSTEM_ALERT_WINDOW` or `PACKAGE_USAGE_STATS` was never granted, or was revoked by OEM power management | `Permissions.canBlock()` is *false*. The overlay does not start, or `OverlayService` stops itself if the permission is revoked while it runs. Detection and alerts to the Rondor keep working. |
+| 2 | The Rondee opens RONDA | The Rondee home screen turns into a yellow card with a "Continue setup" button that opens the permission wizard (UC05). |
+| 3 | The Rondee grants the permission again and returns to RONDA | The system rechecks permissions in `onResume`. Because `FlaggedAppStore` still holds apps, `OverlayService` starts again and blocking resumes. |
 
 <br>
 
-**Skenario Alternatif 3: Rondee Menunda Permintaan Uninstall di Layar RONDA ("Nanti saja")**
+**Alternative Scenario 3: The Rondee Restarts** — `uc03-reboot`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Permintaan *uninstall* dari Rondor masuk saat HP Rondee sedang tidak dipegang | `CommandHandler` menyimpan permintaan di `PendingUninstallStore` dan memunculkan notifikasi prioritas tinggi "Penjaga Anda minta aplikasi ini dihapus". |
-| 2 | Pengguna "Rondee" membuka RONDA (atau mengetuk notifikasi) | `UninstallPromptScreen` mengambil alih layar dan menjelaskan dengan bahasa sederhana bahwa penjaga meminta aplikasi dihapus. |
-| 3 | Pengguna "Rondee" menekan "Nanti saja" | Sistem kembali ke beranda Rondee. Permintaan tetap tersimpan, aplikasi tetap diblokir *overlay*, dan status di layar Rondor tetap menunggu. |
+| 1 | The Rondee is restarted (or RONDA is updated, which also stops its services) while a **HIGH RISK** app is still unhandled | The flagged list stays in `FlaggedAppStore` on local storage. |
+| 2 | (Automatic, without opening RONDA) | `StartupReceiver` receives `BOOT_COMPLETED` / `MY_PACKAGE_REPLACED` and restarts `DetectionService` and, if permissions allow, `OverlayService`. The malicious app is covered again, and new installs are detected, without anyone opening RONDA. On a Rondor, the alert listener is restarted the same way. |
 
 <br>
 
-**Skenario Alternatif 4: Rondor Mengirim Ulang Permintaan Uninstall**
+**Alternative Scenario 4: The User Presses Back on the Overlay** — `uc03-back`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Rondor membuka `AlertDetailScreen` untuk aplikasi yang sudah diminta dihapus tetapi belum juga dihapus oleh Rondee | Sistem menampilkan status bahwa aplikasi masih menunggu dihapus di HP Rondee, beserta tombol "Kirim lagi permintaannya". |
-| 2 | Rondor menekan "Kirim lagi permintaannya" | Sistem mengirim *Command Uninstall* baru ke Firebase. Perangkat Rondee kembali memunculkan notifikasi permintaan dan alur berlanjut seperti Skenario Normal langkah 3. |
-
-<br>
-
-**Skenario Alternatif 5: Rondor Membatalkan "Tandai Aman" (Undo)**
-
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
-| :--- | :--- | :--- |
-| 1 | Rondor menekan "Tandai Aman" pada `AlertDetailScreen` | Sistem memunculkan lembar konfirmasi karena menandai aman berarti mencabut perlindungan dari HP Rondee. |
-| 2 | Rondor menekan konfirmasi | Sistem mengirim *Command Safe* (seperti Skenario Alternatif 1) dan menampilkan tombol "Batalkan" selama 10 detik. |
-| 3 | Rondor menekan "Batalkan" dalam 10 detik | Sistem mengubah status *alert* kembali menjadi tidak aman (`STATUS_UNSAFE`) sehingga Rondor dapat memilih "Uninstall". |
+| 1 | The Rondee presses Back or taps the screen while the overlay is showing | The overlay absorbs the touches and the Back key, so neither reaches the malicious app underneath. Home remains the only way out. |
 
 ---
 
-## UC05: Setup Awal dan Izin Perangkat
+## UC04: The Rondor Handles an Alert & Uninstall Sync
 
-**Skenario Normal: Onboarding Pertama Kali**
+**Normal Scenario: The Rondor Requests an Uninstall and the Status Syncs** — `uc04-uninstall`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna membuka RONDA untuk pertama kali | Sistem menampilkan *splash screen* lalu layar pemilihan bahasa (Indonesia / English). |
-| 2 | Pengguna memilih bahasa dan menekan "Lanjutkan" | Sistem menerapkan bahasa tersebut ke seluruh aplikasi, lalu menampilkan layar pengenalan singkat (`IntroScreen`). |
-| 3 | Pengguna menekan tombol mulai | Sistem menampilkan layar pemilihan peran: "HP saya sebagai penjaga" (Rondor) atau "HP orang tua saya" (Rondee). |
-| 4 | Pengguna memilih peran | Sistem menyimpan peran secara lokal (`RoleStore`). Jika Rondor, sistem langsung meminta izin notifikasi. Jika Rondee, sistem menyalakan `DetectionService`. Keduanya lalu diarahkan ke alur *pairing* (UC01). |
+| 1 | The Rondor opens the alert notification (delivered by `GuardianAlertService`, which keeps a live Realtime Database listener open) | The system shows the app's detail screen (`AlertDetailScreen`): the app name, the score, and why it is dangerous, in the Rondor's own words for the protected person. |
+| 2 | The Rondor taps "Remove this app" | The system sends an *uninstall command* through Firebase and confirms with a toast. |
+| 3 | (On the Rondee) | `CommandHandler` stores the request in `PendingUninstallStore` and shows a high-priority notification. When RONDA is open, `UninstallPromptScreen` takes over the screen and explains in plain words that the guardian asked for the app to be removed. |
+| 4 | The Rondee taps "Remove this app", then "OK" in Android's system dialog | The app is removed. Android broadcasts `ACTION_PACKAGE_REMOVED`. |
+| 5 | (Automatic) | `InstallReceiver` catches the removal, sets the alert's status in Firebase to `STATUS_UNINSTALLED` and lifts the local block. |
+| 6 | (On the Rondor) | The Rondor's screen updates by itself and moves the alert from the active list to the History tab, and `GuardianAlertService` shows a success notification that the app was removed from the Rondee's phone. |
 
 <br>
 
-**Skenario Normal 2: Wizard Izin di HP Rondee**
+**Alternative Scenario 1: The Rondor Allows the App (Mark as Safe)** — `uc04-safe`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Rondee baru selesai *pairing* dan izin belum lengkap | Sistem menampilkan `SetupWizardScreen` berisi 4 langkah, satu izin per layar: notifikasi, tampil di atas aplikasi lain (`SYSTEM_ALERT_WINDOW`), akses penggunaan (`PACKAGE_USAGE_STATS`), dan pengecualian optimasi baterai. Setiap langkah menjelaskan alasan izin tersebut dibutuhkan. |
-| 2 | Pengguna (dibantu Rondor) menekan "Aktifkan" | Sistem membuka dialog izin atau halaman *Settings* Android yang sesuai. |
-| 3 | Pengguna memberikan izin lalu kembali ke RONDA | Sistem memeriksa ulang semua izin saat `onResume`, mengisi indikator progres, dan menggeser ke langkah berikutnya. |
-| 4 | Semua izin sudah diberikan, pengguna menekan "Selesai" | Sistem menampilkan beranda Rondee dengan kartu hijau "terlindungi" dan nama penjaganya. |
+| 1 | The Rondor taps "Mark safe" on `AlertDetailScreen` and confirms | The system sends a *mark-safe command* through Firebase. |
+| 2 | (On the Rondee) | `CommandHandler` removes the app from `FlaggedAppStore`, adds it to `SafeAppStore` and lifts the overlay at once. The Rondee gets a notification that the guardian cleared the app. |
+| 3 | (On the Rondor) | The alert's status becomes resolved (safe), it moves to the History tab, and a toast confirms it. |
 
 <br>
 
-**Skenario Alternatif 1: Pengguna Keluar dari Wizard Sebelum Selesai**
+**Alternative Scenario 2: The Rondee Cancels the Uninstall**
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menekan tombol Back di tengah *wizard* | Sistem kembali ke beranda Rondee yang menampilkan kartu kuning berisi izin yang belum aktif, beserta tombol "Lanjutkan pengaturan". Deteksi dan pengiriman *alert* tetap berjalan, tetapi *overlay* belum bisa memblokir (UC03 Skenario Alternatif 2). |
-| 2 | Pengguna menekan "Lanjutkan pengaturan" | Sistem membuka kembali *wizard* pada langkah pertama yang belum selesai. |
+| 1 | The Rondee taps "Cancel" in Android's system uninstall dialog | Android cancels the removal. `MainActivity` keeps the pending uninstall. The app stays on the **HIGH RISK** list, the overlay still covers it when opened, and the Rondor's screen keeps showing "Waiting" until the uninstall actually happens. |
 
 <br>
 
-**Skenario Alternatif 2: Rondee Melihat Siapa yang Menjaga (Transparansi Pemantauan)**
+**Alternative Scenario 3: The Rondee Defers the Request in RONDA ("Not now")** — `uc04-defer`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Pengguna "Rondee" menarik panel notifikasi | Sistem selalu menampilkan notifikasi permanen dari `DetectionService` yang menyatakan RONDA sedang memantau HP ini. |
-| 2 | Pengguna "Rondee" menekan ikon profil di beranda | Sistem membuka lembar informasi berisi nama penjaga dan kode *pairing*. Lembar ini hanya menampilkan informasi, tanpa tombol yang bisa mengubah atau memutus *pairing* (PRD §5.5). |
+| 1 | The uninstall request arrives while nobody is holding the Rondee | `CommandHandler` stores the request in `PendingUninstallStore` and shows a high-priority notification "Your guardian asks you to remove this app". |
+| 2 | The Rondee opens RONDA (or taps the notification) | `UninstallPromptScreen` takes over the screen and explains in simple words that the guardian asked for the app to be removed. |
+| 3 | The Rondee taps "Not now" | The system returns to the Rondee home screen. The request stays stored, the app stays blocked by the overlay, and the Rondor's screen keeps waiting. |
+
+<br>
+
+**Alternative Scenario 4: The Rondor Sends the Uninstall Request Again** — `uc04-defer`
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondor opens `AlertDetailScreen` for an app that was requested for removal but is still installed | The system shows that the app is still waiting to be removed on the Rondee's phone, with a "Send the request again" button. |
+| 2 | The Rondor taps "Send the request again" | The system sends a new *uninstall command* through Firebase. The Rondee shows the request notification again, and the flow continues from step 3 of the Normal Scenario. |
+
+<br>
+
+**Alternative Scenario 5: The Rondor Takes Back "Mark Safe" (Undo)** — `uc04-undo`
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondor taps "Mark safe" on `AlertDetailScreen` | The system shows a confirmation sheet, because marking an app safe removes protection from the Rondee's phone. |
+| 2 | The Rondor confirms | The system sends the *mark-safe command* (as in Alternative Scenario 1) and shows an "Undo" button for 10 seconds. |
+| 3 | The Rondor taps "Undo" within 10 seconds | The system sets the alert back to not safe (`STATUS_UNSAFE`) **and** sends a *revoke-safe command* to the Rondee, which removes the app from `SafeAppStore`, flags it again and brings the overlay back. The Rondor can then choose "Remove this app". |
 
 ---
 
-## UC06: Pengaturan Aplikasi Rondor
+## UC05: First-Time Setup and Device Permissions
 
-**Skenario Normal: Mengubah Nama Panggilan, Tema, dan Bahasa**
+**Normal Scenario: First Onboarding** — `uc05-onboarding`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | Rondor membuka tab "Setelan" di bilah navigasi bawah | Sistem menampilkan pengaturan HP yang dijaga, tampilan, bahasa, privasi, dan opsi memutus *pairing*. |
-| 2 | Rondor mengubah nama panggilan Rondee (misal "Ibu") | Sistem menyimpan nama baru secara lokal. Semua kalimat di HP Rondor (daftar peringatan, rincian, notifikasi) langsung memakai nama tersebut. |
-| 3 | Rondor mengganti tema (terang / gelap / ikuti sistem) atau bahasa | Sistem menyimpan pilihan dan menerapkannya ke seluruh aplikasi. |
+| 1 | The user opens RONDA for the first time | The system shows the animated splash (the RONDA mark pops in, slides left as the name appears), then the language screen (Indonesian / English). |
+| 2 | The user picks a language and taps "Continue" | The system applies the language to the whole app and shows a short introduction (`IntroScreen`). |
+| 3 | The user taps the start button | The system shows the role screen: Rondor (this phone guards) or Rondee (this phone is guarded). |
+| 4 | The user picks a role | The system saves the role locally (`RoleStore`). For a Rondor it asks for notification permission straight away; for a Rondee it starts `DetectionService`. Both then go to pairing (UC01). Every one of these screens has a back arrow (UC01 Alternative Scenario 7). |
 
 <br>
 
-**Skenario Alternatif 1: Rondor Sedang Offline**
+**Normal Scenario 2: The Permission Wizard on the Rondee** — `uc05-wizard`
 
-| No | Aksi Aktor | Reaksi Perangkat Lunak |
+| No | Actor action | System response |
 | :--- | :--- | :--- |
-| 1 | HP Rondor kehilangan koneksi internet saat membuka tab Peringatan | Sistem membaca status koneksi Firebase (`.info/connected`) dan menampilkan penanda offline di bilah atas, agar daftar kosong tidak disalahartikan sebagai "semua aman". |
-| 2 | Koneksi kembali | Penanda offline hilang, dan *alert* yang masuk selama offline langsung tampil di daftar. |
+| 1 | The Rondee has just paired and scanned, and its permissions are incomplete | The system shows `SetupWizardScreen` with 4 steps, one permission per screen: notifications, display over other apps (`SYSTEM_ALERT_WINDOW`), usage access (`PACKAGE_USAGE_STATS`) and the battery-optimisation exemption. Each step explains why the permission is needed. |
+| 2 | The user (helped by the Rondor) taps the step's button | The system opens the matching permission dialog or Android Settings page. |
+| 3 | The user grants the permission and returns to RONDA | The system rechecks every permission in `onResume`, fills the progress indicator and moves to the next step. |
+| 4 | Every permission is granted and the user taps "Done" | The system shows the Rondee home screen with a green "protected" card and the guardian's name. |
+
+<br>
+
+**Alternative Scenario 1: The User Leaves the Wizard Early**
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondee presses Back in the middle of the wizard | The system returns to the Rondee home screen, which shows a yellow card listing the permissions still off and a "Continue setup" button. Detection and alerts keep running, but the overlay cannot block yet (UC03 Alternative Scenario 2). |
+| 2 | The user taps "Continue setup" | The system reopens the wizard at the first step that is not done. |
+
+<br>
+
+**Alternative Scenario 2: The Rondee Sees Who Is Guarding (Transparent Monitoring)**
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondee pulls down the notification shade | The system always shows a permanent notification from `DetectionService` stating that RONDA is protecting this phone. |
+| 2 | The Rondee opens the profile on its home screen, or its Settings tab | The system shows the guardian's name and the pairing code. Ending the pairing is possible only from Settings, behind a confirmation (UC01 Alternative Scenario 2). |
+
+---
+
+## UC06: Rondor Settings
+
+**Normal Scenario: Changing the Nickname, Theme and Language**
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondor opens the "Settings" tab in the bottom bar | The system shows the guarded phones, appearance, language and the option to disconnect each phone. |
+| 2 | The Rondor changes a Rondee's nickname (for example "Mum") | The system saves the new name locally. Every sentence on the Rondor (alert list, details, notifications) uses it immediately, and a toast confirms it. |
+| 3 | The Rondor switches the theme (light / dark / follow system) or the language | The system saves the choice and applies it across the app. |
+
+<br>
+
+**Alternative Scenario 1: The Rondor Is Offline** — `uc06-offline`
+
+| No | Actor action | System response |
+| :--- | :--- | :--- |
+| 1 | The Rondor loses its internet connection while on the Alerts tab | The system reads Firebase's connection state (`.info/connected`) and shows an offline marker in the top bar, so an empty list is not mistaken for "all clear". |
+| 2 | The connection returns | The offline marker disappears, and alerts that arrived while offline appear in the list at once. |
+
+---
+
+## Feedback the user sees on every change
+
+These apply across all use cases.
+
+- **Toasts.** A short banner drops in from the top whenever something changes or finishes: pairing, a scan finishing, a new alert or watched app, an app removed or marked safe, a request sent, a disconnect from either side, a rename. On the Rondee it uses large print and stays on screen longer.
+- **Notification sounds by situation.** Every notification carries the RONDA mark in the status bar, and its sound says what kind of news it is: *danger* (fast, high, repeated) for an emergency alert or a detection; *warning* (two falling notes) for a lower-risk alert or a lost connection; *resolved* (a rising bell) when an app was removed or cleared; *info* (a soft chime) for a request from the guardian.
+- **Tactile controls.** Every button dips under the thumb with a haptic tick and springs back when released.

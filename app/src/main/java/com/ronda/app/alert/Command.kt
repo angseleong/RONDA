@@ -39,6 +39,9 @@ data class Command(
 
         const val ACTION_UNINSTALL = "uninstall"
         const val ACTION_MARK_SAFE = "mark_safe"
+
+        /** The guardian's undo of [ACTION_MARK_SAFE]: cover the app again. */
+        const val ACTION_REVOKE_SAFE = "revoke_safe"
         const val ACTION_SCAN = "scan"
         const val ACTION_DISCONNECT = "disconnect"
     }

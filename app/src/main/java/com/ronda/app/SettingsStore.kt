@@ -3,6 +3,9 @@ package com.ronda.app
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.ronda.app.detection.PendingUninstallStore
+import com.ronda.app.pairing.Role
+import com.ronda.app.pairing.RoleStore
 import java.util.Locale
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
@@ -47,8 +50,8 @@ fun Context.localized(): Context {
  */
 class SettingsStore(context: Context) {
 
-    private val prefs = context.applicationContext
-        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     var themeMode: ThemeMode
         get() = prefs.getString(KEY_THEME, null)?.let(ThemeMode::valueOf) ?: ThemeMode.SYSTEM
@@ -71,6 +74,15 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_INITIAL_SCAN_DONE, false)
         set(value) = prefs.edit().putBoolean(KEY_INITIAL_SCAN_DONE, value).apply()
 
+    /**
+     * A Rondee that started setup over, and has not chosen a role since.
+     * It still detects and blocks on its own — only nobody is told.
+     * See [RondaServices.runsDetection].
+     */
+    var keepsLocalProtection: Boolean
+        get() = prefs.getBoolean(KEY_LOCAL_PROTECTION, false)
+        set(value) = prefs.edit().putBoolean(KEY_LOCAL_PROTECTION, value).apply()
+
     /** Called at process start so the first frame already has the right theme. */
     fun applyTheme() {
         AppCompatDelegate.setDefaultNightMode(
@@ -92,11 +104,30 @@ class SettingsStore(context: Context) {
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language.tag))
     }
 
+    /**
+     * The last pairing ended: this phone starts over from the language screen,
+     * free to be set up as either side. Called from the screen and from the
+     * background services alike, since either can be the one that sees the
+     * disconnect. Theme and language preference themselves are kept, and so
+     * are flagged apps: they are still installed and still dangerous.
+     */
+    fun startSetupOver(roleStore: RoleStore) {
+        // Read before the role is forgotten. A former Rondee keeps covering
+        // what it flagged, and keeps detecting, until it becomes a Rondor.
+        keepsLocalProtection = roleStore.role == Role.PROTECTED
+        roleStore.forgetSetup()
+        PendingUninstallStore(appContext).clearAll()
+        languageChosen = false
+        introSeen = false
+        initialScanDone = false
+    }
+
     private companion object {
         const val PREFS_NAME = "ronda_settings"
         const val KEY_THEME = "theme_mode"
         const val KEY_INTRO_SEEN = "intro_seen"
         const val KEY_LANGUAGE_CHOSEN = "language_chosen"
         const val KEY_INITIAL_SCAN_DONE = "initial_scan_done"
+        const val KEY_LOCAL_PROTECTION = "local_protection"
     }
 }

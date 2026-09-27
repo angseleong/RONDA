@@ -62,14 +62,25 @@ class AlertRepository {
      * Looked up by package rather than alert id, because the victim can remove
      * the app from RONDA's own card with no guardian request on hand — and a
      * rescan may have filed more than one alert for the same package.
+     *
+     * Alerts from an earlier install that are already closed are left alone:
+     * they are history. A cleared app keeps its `safe` status and only gets
+     * [Alert.removedAt], so the guardian's ruling is not rewritten.
      */
     suspend fun markUninstalled(pairingId: String, packageName: String) {
         alerts.child(pairingId).awaitGet().children
             .filter {
                 it.child("packageName").value == packageName &&
-                    it.child("status").value != Alert.STATUS_SAFE
+                    it.child("status").value != Alert.STATUS_UNINSTALLED &&
+                    (it.child("removedAt").value as? Long ?: 0L) == 0L
             }
-            .forEach { it.ref.child("status").awaitSet(Alert.STATUS_UNINSTALLED) }
+            .forEach {
+                if (it.child("status").value == Alert.STATUS_SAFE) {
+                    it.ref.child("removedAt").awaitSet(ServerValue.TIMESTAMP)
+                } else {
+                    it.ref.child("status").awaitSet(Alert.STATUS_UNINSTALLED)
+                }
+            }
     }
 
     /** Guardian side: every alert for this pairing, newest first. */

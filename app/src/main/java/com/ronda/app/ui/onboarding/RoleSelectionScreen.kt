@@ -28,7 +28,7 @@ import com.ronda.app.ui.components.ChoiceCard
 import com.ronda.app.ui.components.RondaIcon
 import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.TactileButton
-import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.WordmarkBar
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.LargePrint
 import com.ronda.app.ui.theme.LargePrintTitle
@@ -48,7 +48,8 @@ import com.ronda.app.ui.theme.Tone
 @Composable
 fun RoleSelectionScreen(
     onRoleChosen: (Role) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null
 ) {
     val colors = RondaTheme.colors
     var selected by rememberSaveable { mutableStateOf<Role?>(null) }
@@ -64,7 +65,7 @@ fun RoleSelectionScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 24.dp)
         ) {
-            Wordmark()
+            WordmarkBar(onBack)
 
             Spacer(Modifier.height(32.dp))
             Text(

@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
+import com.ronda.app.pairing.Pairing
 import com.ronda.app.pairing.PairingRepository
 import com.ronda.app.pairing.QrCodeUtils
 import com.ronda.app.ui.components.BackTopBar
@@ -62,12 +64,14 @@ import com.ronda.app.ui.components.SecondaryButton
 import com.ronda.app.ui.components.StatusBadge
 import com.ronda.app.ui.components.TactileButton
 import com.ronda.app.ui.components.TextAction
-import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.WordmarkBar
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.PairingCode
 import com.ronda.app.ui.theme.RondaRadius
 import com.ronda.app.ui.theme.RondaTheme
 import com.ronda.app.ui.theme.Tone
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Guardian side of pairing, in two steps: who is being guarded, then the code.
@@ -88,34 +92,29 @@ fun GuardianPairingScreen(
     /** The guardian's own name and what they call the protected person. */
     onIdentityChosen: (guardianName: String, nickname: String) -> Unit,
     onPaired: (String) -> Unit,
+    modifier: Modifier = Modifier,
     onCancel: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    /** Adding a second phone from Setelan, rather than first-run setup. */
+    adding: Boolean = false
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
     var guardianName by rememberSaveable { mutableStateOf(initialGuardianName) }
     var nickname by rememberSaveable { mutableStateOf(initialNickname) }
 
-    if (onCancel != null) {
-        BackHandler {
-            if (step > 0) step-- else onCancel()
-        }
-    }
+    // Back walks the steps first, and only leaves the screen from the first.
+    val back: (() -> Unit)? = onCancel?.let { cancel -> { if (step > 0) step-- else cancel() } }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .screenInsets()
     ) {
-        if (onCancel != null) {
-            BackTopBar(
-                onBack = {
-                    if (step > 0) step-- else onCancel()
-                },
-                title = stringResource(R.string.settings_add_device)
-            )
+        if (adding && back != null) {
+            BackHandler(onBack = back)
+            BackTopBar(onBack = back, title = stringResource(R.string.settings_add_device))
         } else {
             RondaTopBar(
-                leading = { Wordmark() }
+                leading = { WordmarkBar(back) }
             )
         }
 
@@ -284,13 +283,41 @@ private fun CodeStep(
     var code by remember { mutableStateOf<String?>(null) }
     var failed by remember { mutableStateOf(false) }
     var attempt by remember { mutableIntStateOf(0) }
+    var expiresAt by remember { mutableLongStateOf(0L) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(guardianDeviceId, attempt) {
         failed = false
         val newCode = QrCodeUtils.newPairingCode()
-        runCatching { repository.createPairing(newCode, guardianDeviceId, guardianName) }
-            .onSuccess { code = newCode }
-            .onFailure { failed = true }
+        // Same clock and TTL the record is written with, so the countdown
+        // runs out when the Rondee's claim would start being refused.
+        expiresAt = System.currentTimeMillis() + Pairing.TTL_MS
+        // Shown at once rather than after the server confirms: the write is in
+        // the local cache immediately, and on a cold connection confirmation
+        // took long enough to read as broken. Reading the code out takes
+        // longer than the write takes to land.
+        code = newCode
+        // Offline, confirmation never comes and the write would wait forever —
+        // a code nobody can claim. Past the timeout it counts as failed.
+        val confirmed = runCatching {
+            withTimeoutOrNull(CONFIRM_TIMEOUT_MS) {
+                repository.createPairing(newCode, guardianDeviceId, guardianName)
+            } != null
+        }.getOrDefault(false)
+        if (!confirmed) failed = true
+    }
+
+    // The code dies after ten minutes whether anyone is looking or not. A
+    // Rondor left reading out a dead code gets "not found" from the other end
+    // and no idea why, so the screen says so itself and offers a new one.
+    val expired = code != null && now >= expiresAt
+    LaunchedEffect(code, expired) {
+        if (code == null || expired) return@LaunchedEffect
+        while (true) {
+            now = System.currentTimeMillis()
+            if (now >= expiresAt) break
+            delay(1_000L)
+        }
     }
 
     var pairedCalled by remember { mutableStateOf(false) }
@@ -335,13 +362,14 @@ private fun CodeStep(
         when {
             failed -> FailedCard(onRetry = { attempt++ })
             currentCode == null -> Waiting(stringResource(R.string.pair_creating))
-            else -> CodeCards(currentCode)
+            expired -> ExpiredCard(onRenew = { attempt++ })
+            else -> CodeCards(currentCode, remainingMs = expiresAt - now)
         }
     }
 }
 
 @Composable
-private fun CodeCards(code: String) {
+private fun CodeCards(code: String, remainingMs: Long) {
     val colors = RondaTheme.colors
     // 640px is regenerated only when the code changes, so this never runs per frame.
     val qr = remember(code) { QrCodeUtils.qrBitmap(code) }
@@ -365,11 +393,21 @@ private fun CodeCards(code: String) {
                 )
             }
             Spacer(Modifier.height(10.dp))
-            Text(
-                text = stringResource(R.string.pair_guardian_expiry),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.textSecondary
-            )
+            val seconds = (remainingMs.coerceAtLeast(0L) + 999L) / 1_000L
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Amber in the last minute: long enough to still read it out.
+                val tint = if (seconds <= 60) colors.warn else colors.textSecondary
+                RondaIcon(RondaIcons.clock, contentDescription = null, tint = tint, size = 16.dp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = stringResource(
+                        R.string.pair_guardian_expires_in,
+                        "%d:%02d".format(seconds / 60, seconds % 60)
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tint
+                )
+            }
         }
     }
 
@@ -435,6 +473,34 @@ private fun FailedCard(onRetry: () -> Unit) {
     }
 }
 
+/**
+ * The old code is gone. Only the code step reruns — the names typed on the
+ * step before are kept, so nothing has to be entered twice.
+ */
+@Composable
+private fun ExpiredCard(onRenew: () -> Unit) {
+    val colors = RondaTheme.colors
+    RondaCard(tone = Tone.WARN) {
+        Row(verticalAlignment = Alignment.Top) {
+            IconBox(icon = RondaIcons.clock, tone = Tone.WARN, size = 44.dp)
+            Spacer(Modifier.width(14.dp))
+            Text(
+                text = stringResource(R.string.pair_guardian_expired),
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        TactileButton(
+            text = stringResource(R.string.pair_guardian_new_code),
+            onClick = onRenew,
+            icon = RondaIcons.undo,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
 /** A small spinner beside its sentence, rather than a large one above it. */
 @Composable
 private fun Waiting(text: String) {
@@ -453,3 +519,6 @@ private fun Waiting(text: String) {
         )
     }
 }
+
+/** How long a new code waits for the server before it is reported as failed. */
+private const val CONFIRM_TIMEOUT_MS = 10_000L

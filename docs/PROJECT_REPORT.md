@@ -341,8 +341,8 @@ RONDA instead writes to RTDB and the guardian holds an open listener socket.
 - **Gains:** no backend, no billing plan, sub-second delivery, and one mechanism
   serving both directions (the `commands/` node is the same pattern reversed).
 - **Costs, stated openly:** delivery only holds while `GuardianAlertService` is
-  alive; an OEM that kills the foreground service delays alerts until RONDA is
-  reopened. The permanent service notification is the visible price of having no
+  alive; an OEM that kills the foreground service delays alerts until the service
+  runs again — on boot (`StartupReceiver` restarts it) or when RONDA is opened. The permanent service notification is the visible price of having no
   backend. FCM is the correct upgrade once a backend exists.
 
 **Offline resilience:** `setPersistenceEnabled(true)` queues alerts written while
@@ -417,8 +417,8 @@ and no application data.
 
 | Threat | Mitigation |
 |---|---|
-| **RONDA becomes stalkerware** | Pairing requires physical co-presence and a locally-typed code. A permanent indicator shows the protected person they are guarded and by whom. No remote unpairing. No covert mode — permanently out of scope, not merely deferred. |
-| **Attacker coaches victim to uninstall RONDA or revoke overlay permission** | Permission state is re-verified on every launch; loss of capability is itself reportable to the guardian. Long-term, the banking "second approval" path (§6.5) does not depend on the victim's handset at all. |
+| **RONDA becomes stalkerware** | Pairing requires physical co-presence and a locally-typed code. A permanent indicator shows the protected person they are guarded and by whom. Either side can end the pairing, and the other side is always told; ending it never lifts local protection on the protected phone. No covert mode — permanently out of scope, not merely deferred. |
+| **Attacker coaches victim to disconnect, uninstall RONDA or revoke overlay permission** | A disconnect is announced to the guardian at once, while the protected phone keeps covering what it flagged and keeps detecting locally. Permission state is re-verified on every launch and protection is restored on boot; loss of capability is itself reportable to the guardian. Long-term, the banking "second approval" path (§6.5) does not depend on the victim's handset at all. |
 | **Overlay impersonates a system dialog** | Forbidden. The overlay is explicitly branded RONDA. Mimicking system UI is the banking-trojan technique and must not be reproduced. |
 | **Overlay abused as a general app blocker** | It may only target packages the detection engine has flagged. Never arbitrary apps. |
 | **Malicious deep link pairs a device silently** | `ronda://pair` **pre-fills the field only.** Claiming a code always requires an explicit tap on the protected device. A link arriving by itself can never pair a phone. |
@@ -534,8 +534,8 @@ the one thing a security product cannot afford to lose.
 
 | Phase | Window | Scope |
 |---|---|---|
-| **0 — PoC** | Complete | Detection, soft-block, pairing, alerting, guardian response, decoy APKs |
-| **1 — Trustworthy MVP** | Oct 2026 – Mar 2027 | Physical devices (Xiaomi/Oppo/Vivo, Android 11–14); 100-app false-positive study; initial device scan; multi-parent support; Play Store listing; developer verification |
+| **0 — PoC** | Complete | Detection, soft-block, pairing, alerting, guardian response, initial device scan, multi-parent support, QR deep link, decoy APKs |
+| **1 — Trustworthy MVP** | Oct 2026 – Mar 2027 | Physical devices (Xiaomi/Oppo/Vivo, Android 11–14); 100-app false-positive study; Play Store listing; developer verification |
 | **2 — Second and third signals** | Q2–Q3 2027 | Remote-access/screen-share app installed; accessibility enabled for a sideloaded app; new device-admin; default SMS app changed — all still via `PackageManager`, **no new permissions** |
 | **3 — Guardian as second approval** | 2027–2028 | With a bank partner: the guardian is notified of out-of-pattern transfers on an elderly account and can hold one for 30 minutes. A ScamShield-style kill switch, pressed by someone who is not being manipulated. |
 | **4 — Signal network** | 2028+ | Opt-in, fully anonymised aggregate detection metadata (hashes, certificates, permissions, install source — **no personal data**) as an early-warning feed for IASC, banks and Kaspersky |
@@ -570,8 +570,8 @@ insurers; and **Kaspersky**, whose renewed BSSN memorandum of understanding
 
 For elderly people without a tech-literate child — the obvious objection — the
 answer is in the product's name: RT/RW volunteers, Karang Taruna members or
-posyandu cadres act as guardians for several neighbours, which the multi-parent
-support in Phase 1 enables directly.
+posyandu cadres act as guardians for several neighbours, which multi-parent
+support (already built) enables directly.
 
 ## 6.6 Next 90 days
 

@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.RondaNotifications
 import com.ronda.app.alert.CommandHandler
 import com.ronda.app.localized
 import com.ronda.app.pairing.RoleStore
@@ -94,7 +95,7 @@ class DetectionService : Service() {
         listenForGuardianCommands()
         
         if (intent?.action == MainActivity.ACTION_SCAN_EXISTING) {
-            scanExistingApps()
+            scanExistingApps(initial = intent.getBooleanExtra(MainActivity.EXTRA_INITIAL_SCAN, false))
         }
         
         return START_STICKY
@@ -163,20 +164,30 @@ class DetectionService : Service() {
 
     /**
      * Scans all installed non-system apps for risks. Used for initial scan and manual scans.
+     *
+     * A manual scan skips apps that are already flagged: this guardian has
+     * them already. The [initial] scan of a pairing includes them — a phone
+     * set up again with a new guardian keeps its flags, and without this the
+     * new guardian would never learn of an app that is still installed and
+     * still blocked. Apps an earlier guardian cleared stay cleared.
      */
-    fun scanExistingApps() {
+    fun scanExistingApps(initial: Boolean = false) {
         val pairingId = RoleStore(this).pairingId
         if (pairingId == null) {
             Log.w(TAG, "Not paired yet — skipping scanExistingApps")
+            // Still answer, or a screen waiting on the result waits forever.
+            ScanEvents.finish(found = 0)
             return
         }
 
-        scope.launch {
+        // Off the main thread: reading every package's manifest is slow enough
+        // to stall the scan screen's own progress animation.
+        scope.launch(Dispatchers.Default) {
             Log.d(TAG, "Starting manual/initial scan of installed apps")
             val pm = packageManager
             val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
             val extractor = SignalExtractor(pm)
-            var foundRisk = false
+            var found = 0
 
             for (pkg in packages) {
                 val packageName = pkg.packageName
@@ -186,7 +197,8 @@ class DetectionService : Service() {
                 if (appInfo != null && appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) continue
 
                 if (SafeAppStore(this@DetectionService).isAllowed(packageName)) continue
-                if (FlaggedAppStore(this@DetectionService).isFlagged(packageName)) continue
+                val alreadyFlagged = FlaggedAppStore(this@DetectionService).isFlagged(packageName)
+                if (alreadyFlagged && !initial) continue
 
                 val activeKeys = extractor.extract(packageName)
                 if (activeKeys.isEmpty()) continue
@@ -199,19 +211,23 @@ class DetectionService : Service() {
                 )
 
                 if (verdict.state == VerdictState.PENDING_GUARDIAN) {
-                    foundRisk = true
+                    found++
                     Log.d(TAG, "Found risk during manual scan: $packageName (${verdict.vector})")
-                    
-                    showRiskNotification(this@DetectionService, verdict)
-                    FlaggedAppStore(this@DetectionService).flag(packageName)
+
+                    // The person here has been told about a flagged app already.
+                    if (!alreadyFlagged) {
+                        showRiskNotification(this@DetectionService, verdict)
+                        FlaggedAppStore(this@DetectionService).flag(packageName)
+                    }
                     publishAlert(pairingId, verdict)
                 }
             }
 
-            if (foundRisk && Permissions.canBlock(this@DetectionService)) {
+            if (found > 0 && Permissions.canBlock(this@DetectionService)) {
                 OverlayService.start(this@DetectionService)
             }
-            Log.d(TAG, "Finished manual/initial scan")
+            Log.d(TAG, "Finished manual/initial scan, $found flagged")
+            ScanEvents.finish(found)
         }
     }
 
@@ -232,17 +248,18 @@ class DetectionService : Service() {
         val localizedContext = context.localized()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channel = NotificationChannel(
-            "ronda_alert_channel",
+        val channel = RondaNotifications.ensureChannel(
+            context,
+            RondaNotifications.CHANNEL_DETECTION,
             localizedContext.getString(R.string.channel_detection),
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = localizedContext.getString(R.string.channel_detection_desc)
-        }
-        notificationManager.createNotificationChannel(channel)
+            NotificationManager.IMPORTANCE_HIGH,
+            RondaNotifications.Sound.DANGER,
+            localizedContext.getString(R.string.channel_detection_desc)
+        )
 
-        val notification = NotificationCompat.Builder(context, "ronda_alert_channel")
-            .setSmallIcon(R.drawable.ic_shield_alert)
+        val notification = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_DANGER)
             .setContentTitle(localizedContext.getString(R.string.detected_notification_title, verdict.appLabel))
             .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()

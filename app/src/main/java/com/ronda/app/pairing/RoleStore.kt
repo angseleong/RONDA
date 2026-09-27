@@ -14,9 +14,10 @@ enum class Role {
 /**
  * Which side of the pair this phone is, and who it is paired with.
  *
- * Role is deliberately write-once (PRD: "cannot be changed without app
- * reinstall"). A scammer talking a victim through the app must not be able to
- * flip the phone into Guardian mode and cut the real guardian out of the loop.
+ * Role holds for as long as the phone is paired: it cannot be switched from
+ * inside a pairing. A wrong tap during setup can be undone ([clearRole]), and
+ * once the last pairing ends the whole setup is forgotten ([forgetSetup]) and
+ * the phone starts again from the first screen, either side open to it.
  */
 class RoleStore(context: Context) {
 
@@ -96,9 +97,44 @@ class RoleStore(context: Context) {
     }
 
     /**
+     * Whether setup's Back button may take this phone back to the role screen.
+     * Only while unpaired: the other phone's view of this one depends on the
+     * role, so a pairing has to end before the role can change.
+     */
+    val canClearRole: Boolean
+        get() = pairingId == null && pairingIds.isEmpty()
+
+    /**
+     * Setup's Back button: a wrong tap on the role screen must be undoable
+     * without clearing the app's data.
+     *
+     * @return false if the role was kept, see [canClearRole]
+     */
+    fun clearRole(): Boolean {
+        if (!canClearRole) return false
+        prefs.edit().remove(KEY_ROLE).apply()
+        return true
+    }
+
+    /**
+     * The last pairing has ended: forget the role, the pairings and the names,
+     * so the phone is set up again from the first screen and either side can
+     * be chosen. [deviceId] stays — it identifies the install, not the setup.
+     */
+    fun forgetSetup() {
+        prefs.edit()
+            .remove(KEY_ROLE)
+            .remove(KEY_PAIRING_ID)
+            .remove(KEY_PAIRING_IDS)
+            .remove(KEY_PROTECTED_NAME)
+            .remove(KEY_GUARDIAN_NAME)
+            .apply()
+    }
+
+    /**
      * Guardian side: forget the pairing so a new code can be made. Local only —
      * the database rules never let a client write `revoked` (ARCHITECTURE.md §7),
-     * and the role stays put: unpairing is not a way to flip sides.
+     * and the role stays put: unpairing alone does not flip sides.
      */
     fun unpair() {
         prefs.edit().remove(KEY_PAIRING_ID).remove(KEY_PAIRING_IDS).apply()

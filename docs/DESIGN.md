@@ -19,7 +19,7 @@ RONDA takes **Duolingo's structural DNA** (chunky tactile buttons, card-based la
 | Single role UI | Two role UIs (Protected / Guardian) | Different users, different needs |
 | Always light mode | Light + Dark mode | App used at night (dark conditions) |
 
-**Core rule:** The Protected screen (HP Orang Tua) must require zero decisions from the user. The Guardian screen can be information-dense.
+**Core rule:** The Protected screen (HP Orang Tua — the parent's phone) must require zero decisions from the user. The Guardian screen can be information-dense.
 
 ---
 
@@ -276,7 +276,7 @@ Label:          10sp, Nunito 900, UPPERCASE, tracking 0.12–0.18em
 
 ## 8. Role-Based UI Rules
 
-### 8.1 Protected (HP Orang Tua)
+### 8.1 Protected (HP Orang Tua — the parent's phone)
 
 | Rule | Value |
 |---|---|
@@ -294,17 +294,17 @@ Label:          10sp, Nunito 900, UPPERCASE, tracking 0.12–0.18em
 - Alerts requiring user decision
 
 **Copy examples:**
-- ✅ "HP ini sedang dilindungi" · ❌ "Device monitoring active"
-- ✅ "Anak Anda menjaga HP ini" · ❌ "Guardian paired successfully"
+- ✅ "HP ini sedang dilindungi" ("This phone is protected") · ❌ "Device monitoring active"
+- ✅ "Anak Anda menjaga HP ini" ("Your child is guarding this phone") · ❌ "Guardian paired successfully"
 
 ---
 
-### 8.2 Guardian (HP Penjaga)
+### 8.2 Guardian (HP Penjaga — the guardian's phone)
 
 | Rule | Value |
 |---|---|
 | Info density | Medium-high |
-| Primary CTA | `DangerButton` "Hapus Aplikasi Ini" |
+| Primary CTA | `DangerButton` "Hapus Aplikasi Ini" ("Remove This App") |
 | Secondary CTA | Outline button "Tandai Aman" |
 | Alert detail | App name · install source · flagged permissions |
 | Nav | Full bottom nav (Alert, Riwayat, Setelan) |

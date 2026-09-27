@@ -37,13 +37,13 @@ class FirebaseGuardianRepository(
         if (pairingIds.isEmpty()) return flowOf(emptyList())
         val flows = pairingIds.map { alerts.observeAlerts(it) }
         return combine(flows) { lists -> lists.flatMap { it.toList() } }.map { all ->
-            // One entry per app. A rescan or an app update can file a second
-            // alert for the same package, and the UI keys on pairing+package
-            // (duplicate LazyColumn keys crash). Lists are newest first, so the
-            // newest alert wins.
-            val list = all.distinctBy { "${it.pairingId}:${it.packageName}" }
-            alertIds = list.associate { "${it.pairingId}:${it.packageName}" to it.alertId }
-            list.map(::toVerdict)
+            // Every alert goes out, not one per app: a reinstall files a new
+            // alert, and collapsing would drop the earlier ruling from history.
+            // GuardianViewModel decides which one is the app's current state.
+            // Decisions always act on the newest; lists are newest first.
+            alertIds = all.distinctBy { "${it.pairingId}:${it.packageName}" }
+                .associate { "${it.pairingId}:${it.packageName}" to it.alertId }
+            all.map(::toVerdict)
         }
     }
 
@@ -69,6 +69,14 @@ class FirebaseGuardianRepository(
         }
     }
 
+    override suspend fun revokeSafe(pairingId: String, packageName: String) {
+        val alertId = alertIds["$pairingId:$packageName"] ?: return
+        // Mark safe already went out and has likely been carried out; the
+        // protected phone has to hear about the reversal to re-cover the app.
+        commands.send(pairingId, alertId, Command.ACTION_REVOKE_SAFE, packageName)
+        alerts.updateStatus(pairingId, alertId, Alert.STATUS_UNSAFE)
+    }
+
     override suspend fun requestUninstall(pairingId: String, packageName: String) {
         val alertId = alertIds["$pairingId:$packageName"] ?: return
         commands.send(pairingId, alertId, Command.ACTION_UNINSTALL, packageName)
@@ -87,9 +95,10 @@ class FirebaseGuardianRepository(
         )
         return verdict.copy(
             pairingId = alert.pairingId,
+            alertId = alert.alertId,
             state = stateOf(alert, verdict.state),
             overrodeAt = alert.overrodeAt,
-            removed = alert.status == Alert.STATUS_UNINSTALLED
+            removed = alert.status == Alert.STATUS_UNINSTALLED || alert.removedAt > 0L
         )
     }
 

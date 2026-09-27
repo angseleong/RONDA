@@ -58,6 +58,22 @@ require_serial() {
 protected() { require_serial "$PROTECTED_AVD"; }
 guardian()  { require_serial "$GUARDIAN_AVD"; }
 
+# Every running Rondee: the first phone, plus the second one when it is up.
+rondee_serials() {
+  protected
+  local s; s="$(serial_for "$PROTECTED2_AVD")"
+  if [ -n "$s" ]; then echo "$s"; fi
+}
+
+# Which Rondee a bait lands on. target_serial rondee|rondee2
+target_serial() {
+  case "$1" in
+    rondee|1)  protected ;;
+    rondee2|2) require_serial "$PROTECTED2_AVD" ;;
+    *) die "Target tidak dikenal: $1 (rondee|rondee2)" ;;
+  esac
+}
+
 # Serials of the two main phones plus the second Rondee when it is running, so
 # every command that touches "all phones" includes the third one for free.
 all_serials() {
@@ -187,8 +203,14 @@ guardian_code() {
 
 # Type a code on a Rondee's pairing screen. rondee_enter_code <serial> <code>
 rondee_enter_code() {
-  local p="$1" code="$2"
-  ui_tap "$p" "Kode penghubung" || die "Kolom kode tidak ketemu di $p"
+  local p="$1" code="$2" node x1 y1 x2 y2
+  # The field itself, not its "Kode penghubung" label: a tap on the label
+  # does not focus the field, and the code would be typed into nothing.
+  node="$(ui_dump "$p" | grep 'class="android.widget.EditText"' | head -1 || true)"
+  [ -n "$node" ] || die "Kolom kode tidak ketemu di $p"
+  read -r x1 y1 x2 y2 <<<"$(echo "$node" | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | grep -oE '[0-9]+' | tr '\n' ' ')"
+  "$ADB" -s "$p" shell input tap $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 ))
+  sleep 1
   "$ADB" -s "$p" shell input text "$code"
   "$ADB" -s "$p" shell input keyevent 111
   ui_tap "$p" "Hubungkan" || die "Tombol Hubungkan tidak ketemu di $p"
@@ -199,11 +221,18 @@ rondee_enter_code() {
 cmd_up() { boot_avd "$PROTECTED_AVD"; boot_avd "$GUARDIAN_AVD"; }
 
 # Third phone for the multi-device demo: a second Rondee paired to the same
-# Rondor. Creates the AVD on first use, then drives it the whole way — the
-# Rondor must already be paired (run `demo` or `role` + `pair` first).
+# Rondor. Creates the AVD on first use and leaves a fresh install for the
+# presenter to open by hand, from the language screen — the multi-device demo
+# is about showing that setup on camera. `--auto` drives it the whole way
+# instead; the Rondor must then already be paired (`demo`, or `role` + `pair`).
 cmd_add_rondee() {
-  local p2 g code apk="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
-  g="$(guardian)"
+  local p2 g code auto="" apk="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
+  case "${1:-}" in
+    --auto) auto=1 ;;
+    "") ;;
+    *) die "Opsi tidak dikenal: $1 (add-rondee [--auto])" ;;
+  esac
+  if [ -n "$auto" ]; then g="$(guardian)"; fi
   ensure_avd "$PROTECTED2_AVD"
   boot_avd "$PROTECTED2_AVD"
   p2="$(require_serial "$PROTECTED2_AVD")"
@@ -215,9 +244,16 @@ cmd_add_rondee() {
   "$ADB" -s "$p2" shell am force-stop "$PKG" || true
   "$ADB" -s "$p2" shell pm clear "$PKG" >/dev/null
   grant_protected "$p2"
+
+  if [ -z "$auto" ]; then
+    say "RONDA terpasang di $PROTECTED2_AVD, izin sudah diberikan."
+    say "Buka RONDA sendiri di HP itu — mulai dari pilih bahasa."
+    say "Umpan untuk HP ini: scripts/ronda attack <flavor> --on rondee2"
+    return
+  fi
+
   "$ADB" -s "$p2" shell am start -n "$PKG/.MainActivity" >/dev/null
   sleep 3
-
   ui_onboard "$p2" rondee
   say "$PROTECTED2_AVD → Rondee kedua"
   code="$(guardian_code "$g" "Ayah")"
@@ -237,7 +273,8 @@ cmd_install() {
   done
 }
 
-# Wipe both phones back to first-launch: role is write-once, so a fresh
+# Wipe both phones back to first-launch. Disconnecting in the app also starts
+# setup over, but only for a paired phone and only by hand, so a fresh
 # simulation is only possible by clearing app data.
 cmd_reset() {
   local s
@@ -246,10 +283,11 @@ cmd_reset() {
     "$ADB" -s "$s" shell pm clear "$PKG" >/dev/null
   done
   local p flavor
-  p="$(protected)"
-  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
-  for flavor in accessibility notification overlay deviceadmin dropper; do
-    "$ADB" -s "$p" uninstall "$SAMPLE_PKG.$flavor" >/dev/null 2>&1 || true
+  for p in $(rondee_serials); do
+    "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null 2>&1 || true
+    for flavor in accessibility notification overlay deviceadmin dropper; do
+      "$ADB" -s "$p" uninstall "$SAMPLE_PKG.$flavor" >/dev/null 2>&1 || true
+    done
   done
   say "Semua HP kembali ke kondisi baru pasang (peran & pairing terhapus)"
 }
@@ -302,6 +340,43 @@ cmd_pair() {
   cmd_status
 }
 
+# Put the Rondor into the offline demo: paired to DEMO01, which MainActivity
+# serves from FakeGuardianRepository — five scored apps, no network, no second
+# phone. There is no way to reach DEMO01 from the UI (Rondor codes are random),
+# so the state is written straight into RONDA's preferences. Debug builds only:
+# run-as needs a debuggable app.
+cmd_fixture() {
+  local g tmp
+  g="$(guardian)"
+  tmp="$(mktemp)"
+  "$ADB" -s "$g" shell am force-stop "$PKG"
+  cat > "$tmp" <<'XML'
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="role">GUARDIAN</string>
+    <string name="pairing_id">DEMO01</string>
+    <set name="pairing_ids">
+        <string>DEMO01</string>
+    </set>
+    <string name="guardian_name">Rina</string>
+    <string name="protected_name">Ibu</string>
+    <string name="protected_name_DEMO01">Ibu</string>
+</map>
+XML
+  "$ADB" -s "$g" shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cat > shared_prefs/ronda_role.xml'" < "$tmp"
+  cat > "$tmp" <<'XML'
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="language_chosen" value="true" />
+    <boolean name="intro_seen" value="true" />
+</map>
+XML
+  "$ADB" -s "$g" shell "run-as $PKG sh -c 'cat > shared_prefs/ronda_settings.xml'" < "$tmp"
+  rm -f "$tmp"
+  "$ADB" -s "$g" shell am start -n "$PKG/.MainActivity" >/dev/null
+  say "Rondor di mode demo DEMO01 — lima aplikasi contoh, tanpa jaringan"
+}
+
 # sms memakai applicationId dasar; flavor lain memakai suffix.
 pkg_for() { if [ "$1" = "sms" ]; then echo "$SAMPLE_PKG"; else echo "$SAMPLE_PKG.$1"; fi; }
 
@@ -317,17 +392,30 @@ check_flavor() {
 #   scripts/ronda attack accessibility            → sideload → DARURAT
 #   scripts/ronda attack overlay                  → sideload → RENDAH (tidak alert)
 #   scripts/ronda attack sms playstore            → seolah Play Store → tidak alert
+#   scripts/ronda attack sms --on rondee2         → umpan ke HP ketiga
 # Flavor: sms | accessibility | notification | overlay | deviceadmin | dropper
 # Sumber: not_playstore (default) | playstore
+# Target: --on rondee (default) | rondee2
 cmd_attack() {
-  local flavor="${1:-sms}" source="${2:-not_playstore}" p apk pkg cap installer
+  local args=() target=rondee flavor source p apk pkg cap installer
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --on) target="${2:-}"; shift; if [ $# -gt 0 ]; then shift; fi ;;
+      --on=*) target="${1#--on=}"; shift ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+  # ${args[n]:-…} rather than "${args[@]}": bash 3.2 treats an empty array as
+  # unset under set -u.
+  flavor="${args[0]:-sms}"
+  source="${args[1]:-not_playstore}"
   check_flavor "$flavor"
   case "$source" in
     not_playstore) installer="" ;;
     playstore)     installer="com.android.vending" ;;
     *) die "Sumber tidak dikenal: $source (playstore|not_playstore)" ;;
   esac
-  p="$(protected)"
+  p="$(target_serial "$target")"
   # Nama task Gradle memakai huruf kapital di awal: assembleAccessibilityDebug.
   cap="$(printf '%s' "${flavor%"${flavor#?}"}" | tr '[:lower:]' '[:upper:]')${flavor#?}"
   apk="$ROOT/RondaTestSample/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
@@ -357,10 +445,17 @@ cmd_attack() {
 # di sini selalu com.ronda.testsample, jadi apa pun yang dipasang, yang terbuka
 # tetap umpan sms "Undangan Pernikahan".
 cmd_victim() {
-  local flavor p pkg
-  flavor="${1:-$(cat "$LAST_FLAVOR_FILE" 2>/dev/null || echo sms)}"
+  local args=() target=rondee flavor p pkg
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --on) target="${2:-}"; shift; if [ $# -gt 0 ]; then shift; fi ;;
+      --on=*) target="${1#--on=}"; shift ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+  flavor="${args[0]:-$(cat "$LAST_FLAVOR_FILE" 2>/dev/null || echo sms)}"
   check_flavor "$flavor"
-  p="$(protected)"
+  p="$(target_serial "$target")"
   pkg="$(pkg_for "$flavor")"
   # Komponen eksplisit, bukan monkey/LAUNCHER: flavor deviceadmin sengaja tidak
   # punya ikon peluncur, jadi hanya cara ini yang bisa membukanya.
@@ -444,6 +539,408 @@ cmd_demo() {
   say "Selesai. Cek notifikasi di $GUARDIAN_AVD, lalu: scripts/ronda victim"
 }
 
+# --------------------------------------------------------------- scenarios ----
+# One subcommand per scenario in docs/USE_CASES.md, for demoing and for checking
+# a build end to end. Each drives what adb can drive, pauses where a person has
+# to tap (a decision on the Rondor, the system uninstall dialog), and ends by
+# checking the screen for what should be there. `scripts/ronda scenario` lists
+# them all.
+
+# Wait for the presenter. Reads the terminal, so it works inside pipes too.
+pause() {
+  printf '\033[1;35m  ⏸  %s\033[0m\n' "$*"
+  printf '     tekan Enter kalau sudah… '
+  read -r _ </dev/tty
+}
+
+# Print a pass/fail line for "is this text on that phone's screen?".
+expect() {
+  local s="$1" pattern="$2" label="$3" i
+  for i in 1 2 3 4 5 6; do
+    if ui_has "$s" "$pattern"; then printf '\033[1;32m  ✓ %s\033[0m\n' "$label"; return 0; fi
+    sleep 2
+  done
+  printf '\033[1;31m  ✗ %s (tidak ketemu: %s)\033[0m\n' "$label" "$pattern"
+  return 0
+}
+
+# Same, for the overlay: it is a window of RONDA's own over another app.
+expect_overlay() {
+  local s="$1" want="$2" label="$3" on=""
+  sleep 3
+  if "$ADB" -s "$s" shell dumpsys window | grep -q 'mCurrentFocus=.*com\.ronda\.app'; then on=1; fi
+  if { [ "$want" = on ] && [ -n "$on" ]; } || { [ "$want" = off ] && [ -z "$on" ]; }; then
+    printf '\033[1;32m  ✓ %s\033[0m\n' "$label"
+  else
+    printf '\033[1;31m  ✗ %s\033[0m\n' "$label"
+  fi
+}
+
+airplane() { "$ADB" -s "$1" shell cmd connectivity airplane-mode "$2" >/dev/null; }
+
+# Tap a bottom tab or any labelled control, scrolling once if it is below the fold.
+tap_text() {
+  local s="$1" pattern="$2"
+  ui_has "$s" "$pattern" || ui_scroll_down "$s"
+  ui_tap "$s" "$pattern" >/dev/null || die "'$pattern' tidak ketemu di $s"
+}
+
+rondee_home() { "$ADB" -s "$1" shell am start -n "$PKG/.MainActivity" >/dev/null; sleep 2; }
+
+# Both phones from nothing to a paired Rondee on its home screen. Used by
+# almost every scenario, so each one starts from the same known state.
+fresh_pair() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  say "Mulai bersih: pasang, reset, pilih peran, pairing"
+  cmd_install; cmd_reset; cmd_perms; cmd_open
+  sleep 4
+  cmd_role
+  sleep 3
+  cmd_pair
+  cmd_perms
+  tap_text "$p" "Periksa sekarang"
+  expect "$p" "Scan selesai.*|HP ini sedang dilindungi" "Rondee selesai initial scan"
+}
+
+sc_uc01_pair() {
+  fresh_pair
+  expect "$(guardian)" "Semua aman|Perlu diperiksa" "Rondor sampai di beranda"
+}
+
+sc_uc01_qr() {
+  local p g code
+  p="$(protected)"; g="$(guardian)"
+  cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4; cmd_role; sleep 3
+  code="$(guardian_code "$g" "Ibu")"
+  say "QR Rondor berisi ronda://pair/$code — dibuka seperti hasil pindai kamera"
+  "$ADB" -s "$p" shell am start -a android.intent.action.VIEW -d "ronda://pair/$code" "$PKG" >/dev/null
+  expect "$p" "Kode sudah terisi dari QR.*" "Kode terisi otomatis, belum terhubung"
+  pause "Tunjukkan: tautan tidak memasangkan sendiri. Tekan HUBUNGKAN di Rondee"
+  expect "$p" "Periksa aplikasi lama" "Rondee terhubung setelah ditekan"
+}
+
+sc_uc01_multi() {
+  say "Butuh Rondor yang sudah paired (jalankan dulu: scripts/ronda scenario uc01-pair)"
+  cmd_add_rondee --auto
+  pause "Buka Setelan di Rondor: dua HP harus tercantum"
+}
+
+sc_uc01_disconnect_rondee() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  fresh_pair
+  rondee_home "$p"
+  tap_text "$p" "SETELAN"
+  tap_text "$p" "Putuskan Hubungan"
+  tap_text "$p" "YA, PUTUSKAN"
+  expect "$p" "Pilih bahasa" "Rondee kembali ke awal"
+  expect "$g" "Pilih bahasa" "Rondor (hanya 1 Rondee) kembali ke awal"
+}
+
+sc_uc01_disconnect_rondor() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  fresh_pair
+  tap_text "$g" "SETELAN"
+  tap_text "$g" "Putuskan hubungan"
+  tap_text "$g" "YA, PUTUSKAN"
+  expect "$g" "Pilih bahasa" "Rondor kembali ke awal"
+  expect "$p" "Pilih bahasa" "Rondee kembali ke awal"
+}
+
+sc_uc01_invalid() {
+  local p
+  p="$(protected)"
+  cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4
+  ui_onboard "$p" rondee
+  rondee_enter_code "$p" "ZZZZZZ"
+  expect "$p" "Kode tidak ditemukan.*" "Kode asal ditolak dengan pesan jelas"
+}
+
+sc_uc01_used() {
+  local p g code
+  p="$(protected)"; g="$(guardian)"
+  fresh_pair
+  code="$(ui_text "$g" "[A-Z0-9]{6}" || true)"
+  [ -n "$code" ] || { tap_text "$g" "SETELAN"; code="$(ui_text "$g" "[A-Z0-9]{6}")"; }
+  say "Rondee dihapus datanya tanpa putus, lalu memakai kode lama $code"
+  "$ADB" -s "$p" shell pm clear "$PKG" >/dev/null
+  grant_protected "$p"
+  rondee_home "$p"; sleep 2
+  ui_onboard "$p" rondee
+  rondee_enter_code "$p" "$code"
+  expect "$p" "Kode ini sudah dipakai.*" "Kode bekas ditolak"
+}
+
+sc_uc01_expired() {
+  local p g code
+  p="$(protected)"; g="$(guardian)"
+  cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4; cmd_role; sleep 3
+  code="$(guardian_code "$g" "Ibu")"
+  say "Kode $code berlaku 10 menit — hitung mundurnya terlihat di Rondor"
+  pause "Tunggu sampai kartu 'Kode ini sudah kedaluwarsa' muncul di Rondor (10 menit)"
+  expect "$g" "BUAT KODE BARU" "Rondor menawarkan kode baru"
+  rondee_enter_code "$p" "$code"
+  expect "$p" "Kode sudah kedaluwarsa.*" "Rondee menolak kode lama"
+}
+
+sc_uc01_offline() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4
+  ui_onboard "$p" rondee
+  airplane "$p" enable
+  rondee_enter_code "$p" "ACDEFG"
+  expect "$p" "Tidak bisa terhubung ke server.*" "Rondee offline: pesan jelas, kode tetap di kolom"
+  airplane "$p" disable
+  ui_onboard "$g" rondor
+  airplane "$g" enable
+  guardian_code "$g" "Ibu" >/dev/null || true
+  say "Rondor offline — kode tampil, lalu dalam 10 detik diganti kartu gagal"
+  sleep 12
+  expect "$g" "COBA LAGI|Coba lagi" "Rondor offline: kartu Coba lagi"
+  airplane "$g" disable
+}
+
+sc_uc02_initial() {
+  local p g
+  p="$(protected)"; g="$(guardian)"
+  cmd_install; cmd_reset; cmd_perms
+  say "Umpan dipasang SEBELUM pairing — hanya initial scan yang bisa menemukannya"
+  cmd_attack sms
+  cmd_open; sleep 4; cmd_role; sleep 3; cmd_pair; cmd_perms
+  tap_text "$p" "Periksa sekarang"
+  expect "$p" "Scan selesai: 1 aplikasi.*" "Initial scan menemukan umpan"
+  expect "$g" "Undangan Pernikahan" "Alert sampai di Rondor"
+}
+
+sc_uc02_realtime() {
+  fresh_pair
+  cmd_attack sms
+  expect "$(guardian)" "Undangan Pernikahan" "Alert real-time sampai di Rondor"
+}
+
+sc_uc02_scan_again() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  rondee_home "$p"
+  tap_text "$p" "Scan ulang"
+  expect "$p" "Scan selesai.*" "Scan ulang selesai dengan toast"
+}
+
+sc_uc02_safe_install() {
+  fresh_pair
+  cmd_attack sms playstore
+  cmd_attack overlay
+  pause "Cek Rondor: TIDAK ada alert baru (Play Store / izin lemah = tidak memenuhi dua sinyal)"
+}
+
+sc_uc02_offline() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  airplane "$p" enable
+  cmd_attack sms
+  cmd_victim sms
+  expect_overlay "$p" on "Overlay tetap jalan tanpa internet"
+  "$ADB" -s "$p" shell input keyevent KEYCODE_HOME
+  pause "Rondor belum dapat apa-apa. Lanjut untuk menyalakan internet Rondee"
+  airplane "$p" disable
+  expect "$(guardian)" "Undangan Pernikahan" "Alert tertunda terkirim setelah online"
+}
+
+sc_uc02_update() {
+  local p apk
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  pause "Satu alert 'Undangan Pernikahan' di Rondor. Lanjut untuk memperbarui aplikasinya"
+  apk="$ROOT/RondaTestSample/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
+  "$ADB" -s "$p" install -r -t "$apk" >/dev/null
+  say "Diperbarui (install -r). Blokir tetap, dan tidak ada alert kedua"
+  cmd_victim sms
+  pause "Cek Rondor: tetap SATU alert, tidak muncul lagi di 'Perlu diperiksa'"
+}
+
+sc_uc02_reinstall_safe() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  pause "Di Rondor: buka alert → Tandai aman → Ya, tandai aman. Tunggu 10 detik"
+  say "Dihapus lalu dipasang ulang"
+  "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null
+  sleep 3
+  cmd_attack sms
+  pause "Cek Rondor: kartu baru di 'Perlu diperiksa', DAN Riwayat masih mencatat 'aman' + 'dihapus' dari pemasangan pertama"
+}
+
+sc_uc03_overlay() {
+  fresh_pair
+  cmd_attack sms
+  cmd_victim sms
+}
+
+sc_uc03_back() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  cmd_victim sms
+  "$ADB" -s "$p" shell input keyevent KEYCODE_BACK
+  expect_overlay "$p" on "Back tidak menembus overlay"
+  "$ADB" -s "$p" shell input tap 540 1200
+  expect_overlay "$p" on "Ketukan tidak menembus overlay"
+  "$ADB" -s "$p" shell input keyevent KEYCODE_HOME
+}
+
+sc_uc03_permission() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  "$ADB" -s "$p" shell appops set "$PKG" SYSTEM_ALERT_WINDOW deny
+  say "Izin overlay dicabut"
+  "$ADB" -s "$p" shell am start -n "$SAMPLE_PKG/$SAMPLE_PKG.MainActivity" >/dev/null
+  expect_overlay "$p" off "Tanpa izin: overlay tidak jalan (alert tetap terkirim)"
+  rondee_home "$p"
+  expect "$p" "Lanjutkan pengaturan" "Beranda Rondee minta lanjutkan pengaturan"
+  grant_protected "$p"
+  rondee_home "$p"
+  cmd_victim sms
+}
+
+sc_uc03_reboot() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  say "Rondee di-restart. RONDA TIDAK dibuka setelahnya"
+  "$ADB" -s "$p" reboot
+  sleep 10
+  boot_avd "$PROTECTED_AVD"
+  sleep 15
+  cmd_victim sms
+}
+
+sc_uc04_uninstall() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  pause "Di Rondor: buka alert 'Undangan Pernikahan' → Hapus aplikasi ini"
+  expect "$p" "Penjaga Anda minta aplikasi ini dihapus" "Rondee menerima permintaan"
+  tap_text "$p" "Hapus aplikasi ini"
+  pause "Di Rondee: tekan OK di dialog sistem Android"
+  pause "Cek Rondor: notifikasi 'sudah dihapus', alert pindah ke Riwayat"
+}
+
+sc_uc04_safe() {
+  fresh_pair
+  cmd_attack sms
+  pause "Di Rondor: buka alert → Tandai aman → Ya, tandai aman"
+  cmd_victim sms
+  pause "Overlay tidak muncul; Rondee dapat notifikasi 'Rondor menandai aplikasi aman'"
+}
+
+sc_uc04_undo() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  pause "Di Rondor: Tandai aman → Ya, tandai aman → lalu Batalkan (dalam 10 detik)"
+  cmd_victim sms
+  say "Setelah Batalkan, app harus tertutup lagi di Rondee"
+}
+
+sc_uc04_defer() {
+  local p
+  p="$(protected)"
+  fresh_pair
+  cmd_attack sms
+  "$ADB" -s "$p" shell input keyevent KEYCODE_HOME
+  pause "Di Rondor: buka alert → Hapus aplikasi ini (HP Rondee sedang di beranda Android)"
+  pause "Di Rondee: ketuk notifikasi 'Penjaga Anda minta…' lalu tekan Nanti saja"
+  cmd_victim sms
+  pause "Di Rondor: detail masih menunggu, ada tombol 'Kirim lagi permintaannya' (UC04 Alt 4)"
+}
+
+sc_uc05_onboarding() {
+  cmd_install; cmd_reset; cmd_open
+  say "Splash → pilih bahasa → intro → pilih peran. Setiap layar punya tombol kembali"
+  pause "Jalankan onboarding di kedua HP secara manual"
+}
+
+sc_uc05_wizard() {
+  local p
+  p="$(protected)"
+  cmd_install; cmd_reset; cmd_open; sleep 4; cmd_role; sleep 3; cmd_pair
+  tap_text "$p" "Periksa sekarang"
+  expect "$p" "Langkah 1 dari 4" "Wizard izin muncul, satu izin per layar"
+  pause "Tekan Back di tengah wizard → beranda kuning + 'Lanjutkan pengaturan'"
+}
+
+sc_uc06_offline() {
+  local g
+  g="$(guardian)"
+  fresh_pair
+  airplane "$g" enable
+  expect "$g" "Terputus" "Rondor offline: penanda Terputus tampil"
+  airplane "$g" disable
+}
+
+# id | function | one-line description, listed in this order.
+SCENARIOS="
+uc01-pair|sc_uc01_pair|Pairing pertama lewat kode teks
+uc01-qr|sc_uc01_qr|Pairing lewat QR / deep link ronda://pair
+uc01-multi|sc_uc01_multi|Rondee kedua di Rondor yang sama (HP ketiga)
+uc01-disconnect-rondee|sc_uc01_disconnect_rondee|Rondee memutus → keduanya mulai dari awal
+uc01-disconnect-rondor|sc_uc01_disconnect_rondor|Rondor memutus → keduanya mulai dari awal
+uc01-invalid|sc_uc01_invalid|Kode salah ditolak
+uc01-used|sc_uc01_used|Kode yang sudah dipakai ditolak
+uc01-expired|sc_uc01_expired|Kode kedaluwarsa (menunggu 10 menit)
+uc01-offline|sc_uc01_offline|Pairing tanpa internet di kedua sisi
+uc02-initial|sc_uc02_initial|Initial scan menemukan APK yang sudah terpasang
+uc02-realtime|sc_uc02_realtime|Deteksi real-time saat APK dipasang
+uc02-scan-again|sc_uc02_scan_again|Scan ulang manual
+uc02-safe-install|sc_uc02_safe_install|Instalasi aman tidak memicu alert
+uc02-offline|sc_uc02_offline|Rondee offline: blokir jalan, alert menyusul
+uc02-update|sc_uc02_update|Update APK yang ditandai: tidak ada alert ganda
+uc02-reinstall-safe|sc_uc02_reinstall_safe|APK aman dihapus lalu dipasang ulang
+uc03-overlay|sc_uc03_overlay|Overlay menutup APK berbahaya
+uc03-back|sc_uc03_back|Back dan ketukan tidak menembus overlay
+uc03-permission|sc_uc03_permission|Izin overlay dicabut lalu dipulihkan
+uc03-reboot|sc_uc03_reboot|Restart HP: blokir pulih tanpa membuka RONDA
+uc04-uninstall|sc_uc04_uninstall|Rondor minta hapus, Rondee konfirmasi
+uc04-safe|sc_uc04_safe|Rondor tandai aman, overlay dicabut
+uc04-undo|sc_uc04_undo|Batalkan tandai aman, blokir kembali
+uc04-defer|sc_uc04_defer|Rondee menunda, Rondor kirim ulang
+uc05-onboarding|sc_uc05_onboarding|Splash dan onboarding dari awal
+uc05-wizard|sc_uc05_wizard|Wizard izin di HP Rondee
+uc06-offline|sc_uc06_offline|Rondor offline: penanda Terputus
+"
+
+cmd_scenario() {
+  local id="${1:-}" line sid fn desc
+  if [ -z "$id" ]; then
+    echo "scripts/ronda scenario <id>   (docs/USE_CASES.md)"
+    echo
+    echo "$SCENARIOS" | while IFS='|' read -r sid fn desc; do
+      if [ -n "$sid" ]; then printf '  %-24s %s\n' "$sid" "$desc"; fi
+    done
+    return
+  fi
+  line="$(echo "$SCENARIOS" | grep "^$id|" || true)"
+  [ -n "$line" ] || die "Skenario tidak dikenal: $id (lihat: scripts/ronda scenario)"
+  fn="$(echo "$line" | cut -d'|' -f2)"
+  desc="$(echo "$line" | cut -d'|' -f3)"
+  say "Skenario $id — $desc"
+  "$fn"
+  say "Skenario $id selesai"
+}
+
 cmd_help() {
   cat <<'EOF'
 scripts/ronda <perintah>
@@ -454,7 +951,7 @@ scripts/ronda <perintah>
 
   up        Nyalakan kedua emulator (skip yang sudah jalan)
   install   Build + pasang RONDA di semua HP yang jalan
-  reset     pm clear semua HP → balik ke layar pilih bahasa (peran write-once)
+  reset     pm clear semua HP → balik ke layar pilih bahasa (data RONDA dihapus)
   perms     Beri izin notifikasi, overlay, usage stats lewat adb
   open      Buka RONDA di semua HP
   role      Bahasa → intro → peran otomatis: HP-1 = Rondee, HP-2 = Rondor
@@ -475,15 +972,25 @@ scripts/ronda <perintah>
               attack sms playstore      → seolah dari Play Store → RONDA diam
                                           (bukti: butuh 2 sinyal buat alert)
 
+            Tambah --on rondee2 untuk memasang umpan di HP ketiga:
+              attack sms --on rondee2   → sideload SMS di Rondee kedua
+
             Skor tiap flavor ada di RondaTestSample/README.md.
-  victim [flavor]
+  victim [flavor] [--on rondee2]
             Buka APK umpan di HP orang tua → overlay RONDA menutupinya.
             Tanpa argumen: flavor dari `attack` terakhir.
-  add-rondee
+  add-rondee [--auto]
             HP ketiga = Rondee kedua di Rondor yang sama (demo multi-HP).
-            Bikin AVD RONDA_Rondee2 kalau belum ada, nyalakan, pasang,
-            kasih izin, pilih peran, lalu pairing lewat "Tambah HP lain"
-            di Rondor. Jalankan setelah `demo` (Rondor sudah paired).
+            Bikin AVD RONDA_Rondee2 kalau belum ada, nyalakan, pasang, kasih
+            izin, lalu berhenti — buka RONDA sendiri, mulai dari pilih bahasa.
+            --auto: jalankan terus sampai pairing lewat "Tambah HP lain" di
+            Rondor (Rondor harus sudah paired, jalankan setelah `demo`).
+  fixture   Rondor langsung ke mode demo DEMO01: lima aplikasi contoh,
+            tanpa jaringan dan tanpa HP kedua (cadangan kalau Wi-Fi venue jelek)
+  scenario [id]
+            Demo satu skenario dari docs/USE_CASES.md dari awal sampai
+            dicek hasilnya. Tanpa id: daftar semua skenario.
+            Contoh: scenario uc02-realtime, scenario uc01-disconnect-rondor
   status    Peran + pairing tiap HP
   logs      Logcat gabungan semua HP, hanya tag RONDA (Ctrl-C untuk berhenti)
   shot      Screenshot semua HP ke build/demo-shots/
@@ -498,8 +1005,9 @@ cmd="${1:-help}"
 if [ $# -gt 0 ]; then shift; fi
 
 case "$cmd" in
-  demo|up|install|reset|perms|open|role|pair|attack|victim|status|logs|shot|help)
+  demo|up|install|reset|perms|open|role|pair|attack|victim|fixture|status|logs|shot|help)
     "cmd_$cmd" "$@" ;;
   add-rondee) cmd_add_rondee "$@" ;;
+  scenario) cmd_scenario "$@" ;;
   *) die "Perintah tidak dikenal: $cmd (lihat: scripts/ronda help)" ;;
 esac

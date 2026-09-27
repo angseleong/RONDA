@@ -1,5 +1,6 @@
 package com.ronda.app.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
@@ -90,6 +91,28 @@ fun Wordmark(modifier: Modifier = Modifier, markHeight: Dp = 34.dp) {
             style = MaterialTheme.typography.headlineMedium.copy(letterSpacing = 0.06.em),
             color = RondaTheme.colors.textPrimary
         )
+    }
+}
+
+/**
+ * The wordmark that heads every first-run screen, with a back arrow before it
+ * when there is a step to go back to. A wrong tap during setup — Rondee for
+ * Rondor, say — must be undoable without clearing the app's data. System Back
+ * does the same thing, so the arrow is never the only way.
+ */
+@Composable
+fun WordmarkBar(onBack: (() -> Unit)?, modifier: Modifier = Modifier) {
+    if (onBack != null) BackHandler(onBack = onBack)
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        if (onBack != null) {
+            IconActionButton(
+                icon = RondaIcons.arrowLeft,
+                contentDescription = stringResource(R.string.detail_back),
+                onClick = onBack
+            )
+            Spacer(Modifier.width(12.dp))
+        }
+        Wordmark()
     }
 }
 

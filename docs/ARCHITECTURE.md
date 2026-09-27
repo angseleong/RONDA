@@ -8,6 +8,9 @@ com.ronda.app/
 ├── RondaApp.kt                  # Application class, enables RTDB disk persistence
 ├── Permissions.kt               # The three permissions and how to request each
 ├── RtdbExt.kt                   # Coroutine adapters for the Realtime Database SDK
+├── SettingsStore.kt             # First-run flags, theme, language, startSetupOver()
+├── RondaServices.kt             # Which services a phone runs + StartupReceiver (boot / self-update)
+├── RondaNotifications.kt        # Channels, RONDA status-bar mark, per-situation sounds (res/raw)
 │
 ├── detection/
 │   ├── DetectionService.kt      # Foreground Service, registers InstallReceiver at runtime
@@ -16,14 +19,16 @@ com.ronda.app/
 │   ├── RiskResult.kt            # Detection result + RiskLevel enum
 │   ├── FlaggedAppStore.kt       # Packages flagged HIGH RISK; handoff to the soft-block
 │   ├── SafeAppStore.kt          # Guardian's allowlist; only the guardian can add to it
-│   └── PendingUninstallStore.kt # Uninstall requests awaiting the user's confirmation
+│   ├── PendingUninstallStore.kt # Uninstall requests awaiting the user's confirmation
+│   ├── ProtectedHistoryStore.kt # The protected phone's own record of cleared / removed apps
+│   └── ScanEvents.kt            # In-process "scan finished" signal for the scan screen and toasts
 │
 ├── overlay/
 │   ├── OverlayService.kt        # Foreground Service drawing SYSTEM_ALERT_WINDOW
 │   └── ForegroundAppMonitor.kt  # Polls UsageStatsManager for current foreground app
 │
 ├── pairing/
-│   ├── RoleStore.kt             # Role (write-once), device id, pairing id
+│   ├── RoleStore.kt             # Role (reset when the last pairing ends), device id, pairing id
 │   ├── PairingRepository.kt     # Reads/writes pairing data to Firebase RTDB
 │   └── QrCodeUtils.kt           # Pairing code generation, validation, QR rendering
 │
@@ -154,7 +159,7 @@ after the code is typed. No lookup, no index.
 | Field               | Type    | Description                                  |
 |----------------------|---------|----------------------------------------------|
 | `alertId`            | String  | Links to the alert that triggered this        |
-| `action`             | String  | `"uninstall"` or `"mark_safe"`               |
+| `action`             | String  | `"uninstall"`, `"mark_safe"`, `"revoke_safe"` (undo of mark safe), `"scan"` or `"disconnect"` |
 | `packageName`        | String  | Carried on the command, not looked up from the alert |
 | `createdAt`          | Long    | `ServerValue.TIMESTAMP`                       |
 | `executedAt`         | Long    | Null until the protected device picks it up   |
@@ -215,7 +220,8 @@ switch off mobile data does not suppress the alert, it only delays it.
 ## 5. UI Screens per Role
 
 ### Onboarding (Both roles)
-1. **RoleSelectionScreen** — Choose Guardian or Protected. Stored in local SharedPreferences. Cannot be changed without app reinstall.
+1. **Splash → LanguageScreen → IntroScreen → RoleSelectionScreen** — Choose Guardian or Protected. Stored in local SharedPreferences. Every setup screen has a back arrow that undoes the one choice that moved it forward, so a wrong role tap needs no data wipe.
+2. **Starting over.** When a pairing ends, a protected phone — and a guardian whose last protected phone is gone — clears its setup (`SettingsStore.startSetupOver`) and returns to the language screen, free to take either role. A former protected phone keeps `keepsLocalProtection` set: detection and the overlay keep running for what it flagged until it is set up as a guardian.
 
 ### Guardian
 1. **GuardianPairingScreen** — Shown while unpaired. Large pairing code **and** a QR of `ronda://pair/{code}`.
@@ -251,8 +257,12 @@ The app checks permission state on every launch. If any required permission is m
 
 Permissions are requested **per role**. A guardian phone needs only
 `POST_NOTIFICATIONS`; it never runs detection or the overlay. A protected phone
-needs all three. `MainActivity.refreshStatus()` starts `DetectionService` only on
-a protected device and `GuardianAlertService` only on a paired guardian device.
+needs all three. `RondaServices.start()` — called from `MainActivity.refreshStatus()`
+and from `StartupReceiver` on boot and after a self-update — starts
+`DetectionService` (and `OverlayService` when something is flagged) on a protected
+device, or on a former protected device that has started setup over, and
+`GuardianAlertService` only on a paired guardian device. Protection therefore
+comes back after a restart without anyone opening RONDA.
 
 ## 7. Firebase Setup
 

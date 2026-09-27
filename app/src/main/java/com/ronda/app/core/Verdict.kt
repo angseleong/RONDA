@@ -71,6 +71,11 @@ enum class VerdictState {
 data class Verdict(
     val packageName: String,
     val pairingId: String = "",
+    /**
+     * The alert this verdict was read from, or empty off the wire. An app that
+     * was reinstalled has one alert per install, so history rows key on this.
+     */
+    val alertId: String = "",
     val appLabel: String,
     val score: Int,
     val level: RiskLevel,

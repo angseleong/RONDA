@@ -52,7 +52,7 @@ import com.ronda.app.ui.components.IconBox
 import com.ronda.app.ui.components.RondaIcon
 import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.TactileButton
-import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.WordmarkBar
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.LargePrint
 import com.ronda.app.ui.theme.LargePrintTitle
@@ -79,7 +79,8 @@ fun ProtectedPairingScreen(
     onPaired: (code: String, guardianName: String) -> Unit,
     modifier: Modifier = Modifier,
     /** Code read from a scanned `ronda://pair/…` QR, already validated. */
-    scannedCode: String? = null
+    scannedCode: String? = null,
+    onBack: (() -> Unit)? = null
 ) {
     val colors = RondaTheme.colors
     val repository = remember { PairingRepository() }
@@ -134,7 +135,8 @@ fun ProtectedPairingScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Wordmark()
+        // No way back mid-claim: the pairing may land after the screen is gone.
+        WordmarkBar(onBack.takeUnless { connecting })
 
         Spacer(Modifier.height(36.dp))
         IconBox(icon = RondaIcons.link, tone = Tone.TRUST, size = 56.dp)

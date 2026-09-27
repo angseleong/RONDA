@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.RondaNotifications
 import com.ronda.app.localized
 import com.ronda.app.core.RiskEvaluator
 import com.ronda.app.core.RiskLevel
@@ -106,7 +107,7 @@ class GuardianAlertService : Service() {
                     // guardian the job is actually done — the tap happened on
                     // the other phone and they have no other way to know.
                     known.filter {
-                        it.status == Alert.STATUS_UNINSTALLED &&
+                        (it.status == Alert.STATUS_UNINSTALLED || it.removedAt > 0L) &&
                             !seenAlerts.isNotified(outcomeKey(it.alertId))
                     }.forEach { alert ->
                         notifyUninstalled(alert)
@@ -123,25 +124,29 @@ class GuardianAlertService : Service() {
         val darurat = RiskLevel.of(alert.score) == RiskLevel.DARURAT
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(
-            NotificationChannel(
-                if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID,
-                loc.getString(R.string.channel_guardian_alerts),
-                if (darurat) NotificationManager.IMPORTANCE_HIGH
-                else NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = loc.getString(R.string.channel_guardian_alerts_desc)
-                enableVibration(true)
-                setBypassDnd(darurat)
-            }
-        )
+        // DARURAT and PERINGATAN sound different on purpose: the guardian
+        // should know which one it is from across the room.
+        val channel = RondaNotifications.ensureChannel(
+            this,
+            if (darurat) RondaNotifications.CHANNEL_GUARDIAN_ALERT
+            else RondaNotifications.CHANNEL_GUARDIAN_WARN,
+            loc.getString(
+                if (darurat) R.string.channel_guardian_alerts else R.string.channel_guardian_warnings
+            ),
+            if (darurat) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT,
+            if (darurat) RondaNotifications.Sound.DANGER else RondaNotifications.Sound.WARN,
+            loc.getString(R.string.channel_guardian_alerts_desc)
+        ) {
+            enableVibration(true)
+            setBypassDnd(darurat)
+        }
 
         val pendingIntent = openAlertIntent(alert)
 
         val body = loc.getString(R.string.alert_notification_body, alert.appLabel)
-        val notification =
-            NotificationCompat.Builder(this, if (darurat) ALERT_CHANNEL_ID else WARN_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_triangle_warning)
+        val notification = NotificationCompat.Builder(this, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(if (darurat) RondaNotifications.COLOR_DANGER else RondaNotifications.COLOR_WARN)
             .setContentTitle(
                 loc.getString(R.string.alert_notification_title) + " (${alert.score}/100)"
             )
@@ -195,16 +200,18 @@ class GuardianAlertService : Service() {
 
         val loc = localized()
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(
-            NotificationChannel(
-                OUTCOME_CHANNEL_ID,
-                loc.getString(R.string.channel_guardian_outcome),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply { description = loc.getString(R.string.channel_guardian_outcome_desc) }
+        val channel = RondaNotifications.ensureChannel(
+            this,
+            RondaNotifications.CHANNEL_GUARDIAN_OUTCOME,
+            loc.getString(R.string.channel_guardian_outcome),
+            NotificationManager.IMPORTANCE_DEFAULT,
+            RondaNotifications.Sound.RESOLVED,
+            loc.getString(R.string.channel_guardian_outcome_desc)
         )
 
-        val notification = NotificationCompat.Builder(this, OUTCOME_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_trash)
+        val notification = NotificationCompat.Builder(this, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_SAFE)
             .setContentTitle(loc.getString(R.string.uninstalled_notification_title))
             .setContentText(loc.getString(R.string.uninstalled_notification_body, alert.appLabel))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -247,7 +254,8 @@ class GuardianAlertService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_bell)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_TRUST)
             .setContentTitle(loc.getString(R.string.guardian_watch_title))
             .setContentText(loc.getString(R.string.guardian_watch_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -273,6 +281,7 @@ class GuardianAlertService : Service() {
                 .catch { Log.e(TAG, "Command stream failed", it) }
                 .collect { list ->
                     val roleStore = RoleStore(this@GuardianAlertService)
+                    var removed = false
                     for ((id, cmds) in list) {
                         if (id !in roleStore.pairingIds) continue
                         if (cmds.none { it.isDisconnectFrom(Command.FROM_PROTECTED) }) continue
@@ -281,29 +290,39 @@ class GuardianAlertService : Service() {
                         val name = roleStore.getProtectedName(id)
                         roleStore.removePairing(id)
                         notifyRondeeDisconnected(this@GuardianAlertService, name)
+                        removed = true
                     }
-                    if (roleStore.pairingIds.isEmpty()) stopSelf()
+                    if (roleStore.pairingIds.isEmpty()) {
+                        // The last Rondee is gone: this phone starts over. Only
+                        // when this pass removed it — an empty list for any
+                        // other reason may be a phone already being set up
+                        // again, and wiping that would undo the new setup.
+                        if (removed) {
+                            com.ronda.app.SettingsStore(this@GuardianAlertService).startSetupOver(roleStore)
+                        }
+                        stopSelf()
+                    }
                 }
         }
     }
 
     companion object {
         private const val NOTIF_ID_RONDEE_DISCONNECTED = 8001
-        private const val CHANNEL_ID_RONDEE_DISCONNECTED = "ronda_rondee_disconnected_channel"
 
         /** Shown on the Rondor's phone when a Rondee ends the pairing from their side. */
         fun notifyRondeeDisconnected(context: Context, rondeeName: String) {
             val loc = context.localized()
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID_RONDEE_DISCONNECTED,
-                    loc.getString(R.string.rondee_disconnected_notification_title),
-                    NotificationManager.IMPORTANCE_HIGH
-                )
+            val channel = RondaNotifications.ensureChannel(
+                context,
+                RondaNotifications.CHANNEL_RONDEE_DISCONNECTED,
+                loc.getString(R.string.rondee_disconnected_notification_title),
+                NotificationManager.IMPORTANCE_HIGH,
+                RondaNotifications.Sound.WARN
             )
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID_RONDEE_DISCONNECTED)
-                .setSmallIcon(R.drawable.ic_log_out)
+            val notification = NotificationCompat.Builder(context, channel)
+                .setSmallIcon(RondaNotifications.SMALL_ICON)
+                .setColor(RondaNotifications.COLOR_WARN)
                 .setContentTitle(loc.getString(R.string.rondee_disconnected_notification_title))
                 .setContentText(loc.getString(R.string.rondee_disconnected_notification_body, rondeeName))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -317,9 +336,6 @@ class GuardianAlertService : Service() {
         private const val ALERT_NOTIFICATION_ID_BASE = 2000
         private const val OUTCOME_NOTIFICATION_ID_BASE = 2500
         private const val CHANNEL_ID = "ronda_guardian_watch_channel"
-        private const val ALERT_CHANNEL_ID = "ronda_guardian_alert_channel"
-        private const val WARN_CHANNEL_ID = "ronda_guardian_warn_channel"
-        private const val OUTCOME_CHANNEL_ID = "ronda_guardian_outcome_channel"
 
         /** Safe to call repeatedly — starting a running service is a no-op. */
         fun start(context: Context) {

@@ -28,6 +28,13 @@ interface GuardianRepository {
     suspend fun decide(pairingId: String, packageName: String, safe: Boolean)
 
     /**
+     * Takes back a "safe" within the undo window. By then the protected phone
+     * may already have lifted the overlay, so this is not a status change
+     * alone — it has to put the block back on that phone as well.
+     */
+    suspend fun revokeSafe(pairingId: String, packageName: String)
+
+    /**
      * Asks the protected phone to open the system uninstall dialog. Android has
      * no way to remove an app silently without Device Owner, so the last tap
      * belongs to the person holding that phone.

@@ -26,6 +26,12 @@ data class Alert(
     val status: String = STATUS_PENDING,
     /** Set when the protected person tapped "Lanjutkan Saja" on the overlay. */
     val overrodeAt: Long = 0L,
+    /**
+     * Set when an app the guardian had cleared was removed anyway. Its status
+     * stays `safe` — that was the guardian's ruling — and this records that
+     * the app is nonetheless gone.
+     */
+    val removedAt: Long = 0L,
     val timestamp: Long = 0L
 ) {
     /** The RTDB key. Carried on the object for convenience, never written back. */

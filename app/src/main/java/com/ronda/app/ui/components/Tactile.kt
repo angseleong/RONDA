@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
@@ -40,6 +41,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.ronda.app.ui.theme.LargePrintLabel
@@ -74,20 +76,55 @@ fun InteractionSource.collectIsPressedVisibly(): Boolean {
 }
 
 /**
- * The press cue every tappable shares: a slight shrink while pressed. Goes
- * first in the chain so the whole control (shadow, border, face) scales as one.
+ * The press cue every tappable shares: a shrink while pressed, and a spring
+ * back on release that overshoots a hair past full size — the "click" of a
+ * physical key rather than a fade between two states. Goes first in the chain
+ * so the whole control (shadow, border, face) scales as one.
+ *
+ * Also the one place every tappable gets its touch-down tick, felt the moment
+ * the thumb lands rather than when it lifts.
  */
 @Composable
-fun Modifier.pressScale(interaction: InteractionSource, pressedScale: Float = 0.96f): Modifier {
+fun Modifier.pressScale(interaction: InteractionSource, pressedScale: Float = 0.94f): Modifier {
+    val pressed = interaction.collectIsPressedVisibly()
     val scale by animateFloatAsState(
-        targetValue = if (interaction.collectIsPressedVisibly()) pressedScale else 1f,
-        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing),
+        targetValue = if (pressed) pressedScale else 1f,
+        animationSpec = if (pressed) PressDown else ReleaseBounce,
         label = "pressScale"
     )
+
+    val haptic = LocalHapticFeedback.current
+    LaunchedEffect(interaction) {
+        interaction.interactions.collect {
+            if (it is PressInteraction.Press) haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+        }
+    }
+
     return graphicsLayer { scaleX = scale; scaleY = scale }
 }
 
 private const val PRESS_HOLD_MS = 120L
+
+/** In fast: the key gives way at once under the thumb. */
+private val PressDown = tween<Float>(durationMillis = 70, easing = FastOutSlowInEasing)
+
+/** Out with a bounce: low damping is what makes it overshoot and settle. */
+private val ReleaseBounce = spring<Float>(dampingRatio = 0.38f, stiffness = 520f)
+
+/** The face travelling onto its shadow, and springing back up off it. */
+private val LiftDown = tween<Dp>(durationMillis = 60, easing = FastOutSlowInEasing)
+private val LiftUp = spring<Dp>(dampingRatio = 0.45f, stiffness = 700f)
+
+/** Lift for a face resting [travel] above its shadow: pressed sits it on the shadow. */
+@Composable
+internal fun animateLift(pressed: Boolean, travel: Dp, label: String): Dp {
+    val lift by animateDpAsState(
+        targetValue = if (pressed) 0.dp else travel,
+        animationSpec = if (pressed) LiftDown else LiftUp,
+        label = label
+    )
+    return lift
+}
 
 /**
  * The signature of the system (DESIGN.md §6.1): a face resting 5dp above a
@@ -116,11 +153,7 @@ fun TactileButton(
 
     val interaction = remember { MutableInteractionSource() }
     val pressed = interaction.collectIsPressedVisibly()
-    val lift by animateDpAsState(
-        targetValue = if (pressed && active) 0.dp else travel,
-        animationSpec = tween(durationMillis = 90, easing = FastOutSlowInEasing),
-        label = "tactileLift"
-    )
+    val lift = animateLift(pressed && active, travel, "tactileLift")
 
     // The press is felt as well as seen: one tick on release, the other half
     // of the tactile device the brief borrows.
@@ -204,11 +237,7 @@ fun SecondaryButton(
 
     val interaction = remember { MutableInteractionSource() }
     val pressed = interaction.collectIsPressedVisibly()
-    val lift by animateDpAsState(
-        targetValue = if (pressed && enabled) 0.dp else travel,
-        animationSpec = tween(durationMillis = 90, easing = FastOutSlowInEasing),
-        label = "secondaryLift"
-    )
+    val lift = animateLift(pressed && enabled, travel, "secondaryLift")
 
     val edge = if (tone == Tone.DANGER) colors.dangerBorder else colors.border
     val ink = if (enabled) colors.fill(tone) else colors.textMuted

@@ -101,6 +101,9 @@ class FakeGuardianRepository(
             if (safe) VerdictState.RESOLVED_SAFE else VerdictState.RESOLVED_UNSAFE)
     }
 
+    override suspend fun revokeSafe(pairingId: String, packageName: String) =
+        decide(pairingId, packageName, safe = false)
+
     /**
      * Offline there is no other phone, so the fixture plays it: the "person
      * holding the phone" taps Hapus about four seconds later, which is how long

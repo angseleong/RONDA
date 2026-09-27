@@ -31,6 +31,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Restores protection after a restart without waiting for RONDA to be opened. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!--
         Soft-block (FR-8). Both are granted manually in system Settings.
         SYSTEM_ALERT_WINDOW only draws on top; PACKAGE_USAGE_STATS only reveals
@@ -53,6 +56,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.RONDA">
+
+        <!--
+            Boot and self-update: both kill the running services, and a Rondee
+            must not sit unprotected until someone happens to open RONDA.
+            Not exported beyond the system: only the OS sends these.
+        -->
+        <receiver
+            android:name=".StartupReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!--
             Persists the per-app language on API 30–32, where the framework has
