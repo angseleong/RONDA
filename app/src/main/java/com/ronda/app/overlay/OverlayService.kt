@@ -187,7 +187,8 @@ class OverlayService : Service() {
         notificationManager.createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_shield_alert)
+            .setSmallIcon(com.ronda.app.RondaNotifications.SMALL_ICON)
+            .setColor(com.ronda.app.RondaNotifications.COLOR_DANGER)
             .setContentTitle(getString(R.string.blocking_notification_title))
             .setContentText(getString(R.string.blocking_notification_body))
             .setPriority(NotificationCompat.PRIORITY_LOW)

@@ -27,6 +27,13 @@ class ProtectedHistoryStore(context: Context) {
         save(updated)
     }
 
+    /** Drops the newest [action] entry for [packageName] — a decision that was taken back. */
+    fun retract(packageName: String, action: String) {
+        val current = history()
+        val index = current.indexOfFirst { it.packageName == packageName && it.action == action }
+        if (index >= 0) save(current.filterIndexed { i, _ -> i != index })
+    }
+
     fun history(): List<ProtectedHistoryItem> {
         val raw = prefs.getString("items", null) ?: return emptyList()
         return try {

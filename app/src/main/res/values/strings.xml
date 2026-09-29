@@ -64,7 +64,9 @@
     <string name="pair_guardian_or_scan_label">Or scan</string>
     <string name="pair_guardian_or_scan">If both phones are in the same room, scan this QR code with the other phone\'s camera.</string>
     <string name="pair_guardian_waiting">Waiting for the other phone to enter the code…</string>
-    <string name="pair_guardian_expiry">The code is valid for 10 minutes.</string>
+    <string name="pair_guardian_expires_in">Valid for another %1$s</string>
+    <string name="pair_guardian_expired">This code has expired. Make a new one — the names you entered are kept.</string>
+    <string name="pair_guardian_new_code">Make a new code</string>
     <string name="pair_qr_desc">QR code containing the pairing code</string>
     <string name="pair_creating">Creating a code…</string>
     <string name="pair_retry">Try again</string>
@@ -160,6 +162,11 @@
     <string name="alert_notification_body">%1$s was installed on your Rondee phone.</string>
     <string name="channel_guardian_outcome">Outcomes</string>
     <string name="channel_guardian_outcome_desc">News when your request has been carried out on your Rondee phone.</string>
+    <string name="channel_guardian_warnings">Warnings</string>
+    <string name="channel_guardian_decision">Guardian decisions</string>
+    <string name="channel_guardian_decision_desc">When your guardian clears an app on this phone.</string>
+    <string name="marked_safe_notification_title">Your guardian cleared an app</string>
+    <string name="marked_safe_notification_body">%1$s is no longer covered and can be used.</string>
     <string name="uninstalled_notification_title">Dangerous app removed</string>
     <string name="outcome_safe">Marked safe by your Rondor</string>
     <string name="uninstalled_notification_body">%1$s has been removed from your Rondee phone.</string>
@@ -189,4 +196,27 @@
     <!-- Guardian-side: shown on the Rondor phone when the Rondee ends the pairing -->
     <string name="rondee_disconnected_notification_title">Rondee Disconnected</string>
     <string name="rondee_disconnected_notification_body">%1$s has ended the monitoring connection.</string>
+    <!-- Toasts: one short line about something that just changed -->
+    <string name="toast_paired_guardian">Connected to %1$s\'s phone</string>
+    <string name="toast_paired_protected">Connected. %1$s is now guarding this phone</string>
+    <string name="toast_alert_review">%1$s needs your decision</string>
+    <string name="toast_alert_monitored">%1$s added to the watch list</string>
+    <string name="toast_removed">%1$s has been removed</string>
+    <string name="toast_marked_safe">%1$s marked safe</string>
+    <string name="toast_marked_unsafe">%1$s marked dangerous</string>
+    <string name="toast_undone">Decision undone</string>
+    <string name="toast_uninstall_sent">Removal request sent to %1$s\'s phone</string>
+    <string name="toast_scan_sent">Scan request sent to %1$s\'s phone</string>
+    <string name="toast_device_disconnected">%1$s\'s phone disconnected</string>
+    <string name="toast_rondee_left">%1$s ended the connection</string>
+    <string name="toast_renamed">Name changed to %1$s</string>
+    <string name="toast_scan_clean">Scan done: no dangerous apps</string>
+    <plurals name="toast_scan_found">
+        <item quantity="one">Scan done: %d dangerous app found</item>
+        <item quantity="other">Scan done: %d dangerous apps found</item>
+    </plurals>
+    <string name="toast_flagged">%1$s looks dangerous and has been covered</string>
+    <string name="toast_cleared">Your guardian marked %1$s safe</string>
+    <string name="toast_disconnected_by_guardian">Your guardian ended the connection</string>
+    <string name="toast_disconnected_self">Disconnected</string>
 </resources>

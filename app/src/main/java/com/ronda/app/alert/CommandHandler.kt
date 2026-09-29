@@ -1,6 +1,5 @@
 package com.ronda.app.alert
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -9,6 +8,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.MainActivity
 import com.ronda.app.R
+import com.ronda.app.RondaNotifications
 import com.ronda.app.localized
 import com.ronda.app.detection.DetectionService
 import com.ronda.app.detection.FlaggedAppStore
@@ -46,6 +46,7 @@ class CommandHandler(private val context: Context) {
 
         when (command.action) {
             Command.ACTION_MARK_SAFE -> markSafe(pairingId, command)
+            Command.ACTION_REVOKE_SAFE -> revokeSafe(pairingId, command)
             Command.ACTION_UNINSTALL -> requestUninstall(command)
             Command.ACTION_SCAN -> requestScan()
             Command.ACTION_DISCONNECT -> handleDisconnect(pairingId)
@@ -64,6 +65,59 @@ class CommandHandler(private val context: Context) {
         alertRepository.updateStatus(pairingId, command.alertId, Alert.STATUS_SAFE)
         com.ronda.app.detection.ProtectedHistoryStore(context).record(command.packageName, command.packageName, "safe")
         Log.d(TAG, "Marked safe, block cleared: ${command.packageName}")
+        notifyMarkedSafe(command.packageName)
+    }
+
+    /**
+     * The guardian took "safe" back inside the undo window. Everything
+     * [markSafe] did is reversed: the app leaves the allowlist, is flagged
+     * again, and the overlay comes back. Without this the guardian's screen
+     * would say "dangerous" over an app that nothing on this phone covers.
+     */
+    private suspend fun revokeSafe(pairingId: String, command: Command) {
+        val packageName = command.packageName
+        SafeAppStore(context).forget(packageName)
+        com.ronda.app.detection.ProtectedHistoryStore(context).retract(packageName, "safe")
+        // Removed in the meantime: nothing left to cover.
+        if (isInstalled(packageName)) {
+            FlaggedAppStore(context).flag(packageName)
+            if (com.ronda.app.Permissions.canBlock(context)) {
+                com.ronda.app.overlay.OverlayService.start(context)
+            }
+        }
+        alertRepository.updateStatus(pairingId, command.alertId, Alert.STATUS_UNSAFE)
+        context.getSystemService(NotificationManager::class.java)
+            .cancel(MARKED_SAFE_NOTIFICATION_ID_BASE + packageName.hashCode())
+        Log.d(TAG, "Safe revoked, block restored: $packageName")
+    }
+
+    private fun isInstalled(packageName: String): Boolean = runCatching {
+        context.packageManager.getApplicationInfo(packageName, 0)
+    }.isSuccess
+
+    /**
+     * The block lifting is otherwise silent, and an app that was covered
+     * yesterday opening normally today would look like RONDA had stopped.
+     */
+    private fun notifyMarkedSafe(packageName: String) {
+        val loc = context.localized()
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = RondaNotifications.ensureChannel(
+            context,
+            RondaNotifications.CHANNEL_GUARDIAN_DECISION,
+            loc.getString(R.string.channel_guardian_decision),
+            NotificationManager.IMPORTANCE_DEFAULT,
+            RondaNotifications.Sound.RESOLVED,
+            loc.getString(R.string.channel_guardian_decision_desc)
+        )
+        val notification = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_SAFE)
+            .setContentTitle(loc.getString(R.string.marked_safe_notification_title))
+            .setContentText(loc.getString(R.string.marked_safe_notification_body, appLabelOf(packageName)))
+            .setAutoCancel(true)
+            .build()
+        manager.notify(MARKED_SAFE_NOTIFICATION_ID_BASE + packageName.hashCode(), notification)
     }
 
     /**
@@ -77,24 +131,26 @@ class CommandHandler(private val context: Context) {
         if (roleStore.pairingId != pairingId) return
 
         Log.d(TAG, "Guardian disconnected the pairing")
-        roleStore.unpair()
-        com.ronda.app.overlay.OverlayService.stop(context)
+        // A Rondee has one pairing, so this was the last: set up from scratch.
+        // Detection and the overlay keep running — this service included —
+        // so flagged apps stay covered; see RondaServices.runsDetection.
+        com.ronda.app.SettingsStore(context).startSetupOver(roleStore)
         notifyDisconnected()
     }
 
     private fun notifyDisconnected() {
         val loc = context.localized()
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "ronda_disconnect_channel"
-        manager.createNotificationChannel(
-            NotificationChannel(
-                channelId,
-                loc.getString(R.string.disconnect_notification_title),
-                NotificationManager.IMPORTANCE_HIGH
-            )
+        val channelId = RondaNotifications.ensureChannel(
+            context,
+            RondaNotifications.CHANNEL_DISCONNECTED,
+            loc.getString(R.string.disconnect_notification_title),
+            NotificationManager.IMPORTANCE_HIGH,
+            RondaNotifications.Sound.WARN
         )
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_log_out)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_WARN)
             .setContentTitle(loc.getString(R.string.disconnect_notification_title))
             .setContentText(loc.getString(R.string.disconnect_notification_body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -123,16 +179,14 @@ class CommandHandler(private val context: Context) {
     private fun notifyUninstallRequested(packageName: String) {
         val loc = context.localized()
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                loc.getString(R.string.channel_guardian_request),
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = loc.getString(R.string.channel_guardian_request_desc)
-                enableVibration(true)
-            }
-        )
+        val channel = RondaNotifications.ensureChannel(
+            context,
+            RondaNotifications.CHANNEL_GUARDIAN_REQUEST,
+            loc.getString(R.string.channel_guardian_request),
+            NotificationManager.IMPORTANCE_HIGH,
+            RondaNotifications.Sound.INFO,
+            loc.getString(R.string.channel_guardian_request_desc)
+        ) { enableVibration(true) }
 
         val open = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -144,8 +198,9 @@ class CommandHandler(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_delete)
+        val notification = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_TRUST)
             .setContentTitle(loc.getString(R.string.uninstall_request_notification_title))
             .setContentText(
                 loc.getString(
@@ -171,7 +226,7 @@ class CommandHandler(private val context: Context) {
 
     private companion object {
         const val TAG = "CommandHandler"
-        const val CHANNEL_ID = "ronda_guardian_request_channel"
         const val NOTIFICATION_ID_BASE = 3000
+        const val MARKED_SAFE_NOTIFICATION_ID_BASE = 3500
     }
 }

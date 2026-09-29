@@ -1,42 +1,46 @@
-# RONDA — Naskah Final Video
+# RONDA — Final Video Script
 
-**Track:** Human-Centric Security · **Target:** 2:57 · **Batas:** 3:00
-**Tim:** Dhanes, Alek, Malik
+**Track:** Human-Centric Security · **Target:** 2:57 · **Limit:** 3:00
+**Team:** Dhanes, Alek, Malik
 
-- Arahan shot berbahasa Indonesia. **Kalimat di blok kutip `>` diucapkan dalam
-  bahasa Inggris** — jangan diterjemahkan.
-- Teks di layar ditulis `seperti ini`.
-- **434 kata terucap** ≈ 2:48 pada 155 kata/menit, ditambah ±9 detik jeda visual
-  yang ditahan = **±2:57**. Margin **3 detik** — nyaris tidak ada. Kalau take
-  pertama melar sedikit saja, langsung pakai daftar potongan di bagian bawah.
+- Shot directions are notes for the crew. **Lines in `>` quote blocks are spoken
+  in English**, word for word.
+- On-screen text is written `like this`. Text quoted from RONDA's own screens is
+  in Indonesian, because that is the language the app is demoed in; an English
+  gloss follows in brackets.
+- **434 spoken words** ≈ 2:48 at 155 words/minute, plus about 9 seconds of held
+  visual pauses = **about 2:57**. A **3-second** margin — almost none. If the
+  first take runs even slightly long, go straight to the cut list at the bottom.
 
-## Istilah: victim & guardian
+## Terms: victim & guardian
 
-Naskah ini sudah dipindah dari framing spesifik ("ibu" / "anaknya") ke istilah
-umum: **victim** (lansia yang HP-nya dilindungi) dan **guardian** (orang
-terdekat yang mengambil keputusan). Dua aturan supaya konsisten:
+The script has moved from a specific framing ("mum" / "her son") to general
+terms: **victim** (the elderly person whose phone is protected) and **guardian**
+(the person close to them who makes the decision). Two rules keep it consistent:
 
-1. **§1, §2, §3, §5, §6 tetap generik** — pakai `the victim` / `the guardian`,
-   bukan `she`/`he`/`her`/`his`.
-2. **§4 (demo) satu-satunya tempat yang boleh konkret.** Dibuka dengan satu
-   kalimat jembatan (`For this demo, the victim is someone's mother...`), baru
-   sesudah itu narasi boleh pakai "her"/"his" karena rujukannya sudah jelas.
-   Ini juga jawaban langsung untuk permintaan: demo dicontohkan sebagai emak dan
-   anaknya, tapi definisi umum di bagian lain tetap victim/guardian.
+1. **§1, §2, §3, §5, §6 stay generic** — use `the victim` / `the guardian`, not
+   `she`/`he`/`her`/`his`.
+2. **§4 (the demo) is the only place allowed to be concrete.** It opens with one
+   bridging sentence (`For this demo, the victim is someone's mother...`), and
+   only after that may the narration use "her"/"his", because the reference is
+   now clear. This is also the direct answer to the request: the demo is shown
+   as a mother and her son, while everywhere else the general definition stays
+   victim/guardian.
 
 ---
 
-# NASKAH
+# SCRIPT
 
 ## §1 · HOOK — Dhanes — 0:00–0:17
-### ▸ Kriteria 1 — Problem Statement (1 dari 2)
+### ▸ Criterion 1 — Problem Statement (1 of 2)
 
-**Shot** Cold open, tanpa logo. Rekaman layar penuh chat WhatsApp. Berkas masuk:
-`Undangan Pernikahan.apk`. Kursor melayang di atasnya. Freeze.
-Caption pojok: `Ilustrasi skenario`. Grade sedikit lebih redup dari bagian demo.
+**Shot** Cold open, no logo. Full-screen recording of a WhatsApp chat. A file
+arrives: `Undangan Pernikahan.apk` [Wedding Invitation.apk]. The cursor hovers
+over it. Freeze.
+Corner caption: `Illustrated scenario`. Grade slightly darker than the demo.
 
-**Di layar** `64% of cyber incidents come from human error` · `— Kaspersky, 2023`
-(sepertiga bawah, detik ke-11)
+**On screen** `64% of cyber incidents come from human error` · `— Kaspersky, 2023`
+(lower third, at second 11)
 
 > This is a wedding invitation.
 >
@@ -49,11 +53,11 @@ Caption pojok: `Ilustrasi skenario`. Grade sedikit lebih redup dari bagian demo.
 
 ---
 
-## §2 · MASALAH — Dhanes — 0:17–0:35
-### ▸ Kriteria 1 — Problem Statement (2 dari 2)
+## §2 · THE PROBLEM — Dhanes — 0:17–0:35
+### ▸ Criterion 1 — Problem Statement (2 of 2)
 
-**Shot** Potong ke Dhanes, menghadap kamera, latar polos. Tahan di kalimat
-terakhir sebelum potong.
+**Shot** Cut to Dhanes, facing the camera, plain background. Hold on the last
+sentence before the cut.
 
 > The usual answer is training: teach people to spot the scam.
 >
@@ -65,17 +69,17 @@ terakhir sebelum potong.
 
 ---
 
-## §3 · SOLUSI — Malik — 0:35–1:07
-### ▸ Kriteria 2 — Proposed Solution & Unique Selling Proposition
+## §3 · THE SOLUTION — Malik — 0:35–1:07
+### ▸ Criterion 2 — Proposed Solution & Unique Selling Proposition
 
-*Catatan produksi, tidak diucapkan: dua kalimat terakhir di sini adalah USP
-utama RONDA — memindahkan keputusan, bukan melatih korban. Ini yang membedakan
-dari peserta lain di track yang sama.*
+*Production note, not spoken: the last two sentences here are RONDA's main USP —
+moving the decision, not training the victim. This is what sets it apart from
+the other entries in the same track.*
 
-**Shot** Title card: logo RONDA (wordmark), lalu potong ke Malik.
+**Shot** Title card: the RONDA logo (wordmark), then cut to Malik.
 
-**Di layar** `RONDA — Pelindung Keluarga`
-**Caption 4 detik**, muncul saat Malik menyebut nama track:
+**On screen** `RONDA — Family Protector`
+**4-second caption**, appearing as Malik names the track:
 `Human-Centric Security — "UX design to make secure choices more intuitive and
 accessible for everyone"`
 
@@ -91,31 +95,32 @@ accessible for everyone"`
 
 ---
 
-## §4 · DEMONSTRASI — Dhanes — 1:07–2:04
-### ▸ Kriteria 3 — Demonstration
+## §4 · DEMONSTRATION — Dhanes — 1:07–2:04
+### ▸ Criterion 3 — Demonstration
 
-**Shot 4a** Dua jendela emulator berdampingan, satu take menyambung.
-Label menempel **sepanjang bagian ini**:
-`Emulator 1 — HP Ibu (70 th)` dan `Emulator 2 — HP anaknya (penjaga)`.
-Caption 2 detik: `Sudah dipasangkan — kode 6 huruf, dibacakan lewat telepon`.
-Caption kedua: `"Ibu" = Mum`.
+**Shot 4a** Two emulator windows side by side, one continuous take.
+Labels stay on **for the whole section**:
+`Emulator 1 — Mum's phone (70)` and `Emulator 2 — her son's phone (guardian)`.
+2-second caption: `Already paired — a 6-letter code, read out over the phone`.
+Second caption: `"Ibu" = Mum`.
 
 > For this demo, the victim is someone's mother. The guardian is her son.
 >
 > Two Android emulators, live. Left, her phone. Right, his.
 
-**Shot 4b** Jalankan `scripts/ronda attack com.whatsapp`.
-Caption kecil 2 detik: `Instalasi diatribusikan ke WhatsApp — adb -i`
+**Shot 4b** Run `scripts/ronda attack` (or `scripts/ronda scenario uc02-realtime`
+for the whole setup in one go).
+Small 2-second caption: `Install attributed to WhatsApp — adb -i`
 
 > I install our test app on her phone. Harmless — one permission, nothing else.
 > We never use real malware; we simulate delivery, not detection.
 
-**Shot 4c** Kartu skor muncul di emulator penjaga. Zoom pelan.
-**Tahan 3 detik penuh** — tiap baris harus terbaca.
+**Shot 4c** The score card appears on the guardian emulator. Slow zoom.
+**Hold a full 3 seconds** — every line must be readable.
 
-**Di layar** (baca dari layar sungguhan, jangan dari naskah ini)
-`85 / 100 — PERINGATAN` · `PENCURIAN OTP` · `BUKAN PLAY STORE`
-· `TANDA TANGAN TIDAK RESMI`
+**On screen** (read from the real screen, not from this script)
+`85 / 100 — PERINGATAN` [WARNING] · `PENCURIAN OTP` [OTP THEFT] ·
+`BUKAN PLAY STORE` [NOT PLAY STORE] · `TANDA TANGAN TIDAK RESMI` [UNOFFICIAL SIGNATURE]
 
 > RONDA scores it. Not a verdict — a number out of a hundred.
 >
@@ -125,18 +130,19 @@ Caption kecil 2 detik: `Instalasi diatribusikan ke WhatsApp — adb -i`
 >
 > Watch both phones.
 
-**Shot 4d** Emulator ibu membuka aplikasinya → overlay merah menutupi.
-Emulator anaknya menampilkan alert. **Tahan 2 detik penuh — frame terpenting.**
-Emulator tidak bergetar: tegaskan dengan hentakan zoom halus ke jendela penjaga.
-**Jangan** menambahkan efek suara getaran.
+**Shot 4d** Mum's emulator opens the app → the red overlay covers it.
+The son's emulator shows the alert. **Hold a full 2 seconds — the most important
+frame.** Emulators don't vibrate: sell it with a subtle zoom punch into the
+guardian window. **Do not** add a vibration sound effect.
 
 > Covered offline, in under a second. Her son has the reasons, not just the
 > score.
 
-**Shot 4e** Tombol `Tandai berbahaya` → `Minta Ibu menghapus aplikasi ini`
-ditekan di emulator penjaga. Emulator ibu menampilkan layar konfirmasi.
-Konfirmasi → aplikasi hilang → overlay bersih → layar penjaga ter-update ke
-`Riwayat`.
+**Shot 4e** On the guardian emulator, the buttons `Tandai berbahaya` [Mark
+dangerous] → `Minta Ibu menghapus aplikasi ini` [Ask Mum to remove this app]
+are pressed. Mum's emulator shows the confirmation screen.
+Confirm → the app disappears → the overlay clears → the guardian's screen
+updates to `Riwayat` [History].
 
 > The guardian decides: uninstall. She confirms — Android requires it. No app
 > can delete another silently.
@@ -145,22 +151,21 @@ Konfirmasi → aplikasi hilang → overlay bersih → layar penjaga ter-update k
 
 ---
 
-## §5 · JALAN KE MVP — Malik — 2:04–2:28
-### ▸ Kriteria 4 — Pathway
+## §5 · PATH TO MVP — Malik — 2:04–2:28
+### ▸ Criterion 4 — Pathway
 
-*Catatan produksi, tidak diucapkan: kalimat terakhir di sini adalah USP kedua —
-sinyal deteksi dari banyak pasangan keluarga bisa jadi jaringan yang berguna
-untuk institusi mendeteksi pola serangan baru (zero-day) lebih awal daripada
-satu titik deteksi sendirian bisa lakukan.*
+*Production note, not spoken: the last sentence here is the second USP —
+detection signals from many family pairs can become a network that helps
+institutions spot new attack patterns (zero-day) earlier than any single point
+of detection could on its own.*
 
-**Shot** Malik menghadap kamera, framing sama persis seperti §3. **Tanpa
-grafis.** Tiga caption teks muncul bergantian di sepertiga bawah, satu per
-kalimat — teks putih di atas bar gelap transparan, tidak perlu ilustrasi apa
-pun:
+**Shot** Malik facing the camera, framed exactly as in §3. **No graphics.**
+Three text captions appear one after another in the lower third, one per
+sentence — white text on a translucent dark bar, no illustration needed:
 
-1. `Stock Android · minSdk 30 · tanpa root, tanpa server`
-2. `Tanpa accessibility service · tanpa izin SMS`
-3. `Berikutnya: HP fisik + kerja sama institusi`
+1. `Stock Android · minSdk 30 · no root, no server`
+2. `No accessibility service · no SMS permission`
+3. `Next: real phones + institutional partners`
 
 > It runs today on a stock Android image. No root, no server, no cloud model.
 >
@@ -172,13 +177,13 @@ pun:
 
 ---
 
-## §6 · PENUTUP — Alek — 2:28–2:57
-### ▸ Kriteria 5 — Wrap-Up
+## §6 · CLOSING — Alek — 2:28–2:57
+### ▸ Criterion 5 — Wrap-Up
 
-**Shot** Kembali ke kamera. Pada kalimat ketiga, dorongan pelan ke dua jendela
-emulator berdampingan. Potong ke hitam, logo.
+**Shot** Back to camera. On the third sentence, a slow push in to the two
+emulator windows side by side. Cut to black, logo.
 
-**Di layar** `RONDA — Pelindung Keluarga`
+**On screen** `RONDA — Family Protector`
 
 > Sixty-four percent of incidents come from human error — because the decision
 > lands on the person least able to make it.
@@ -193,24 +198,25 @@ emulator berdampingan. Potong ke hitam, logo.
 
 ---
 
-## Kalau kepanjangan
+## If it runs long
 
-Margin 3 detik itu nyaris tidak ada. Kalau take pertama lewat 3:00, potong
-berurutan:
+The 3-second margin is almost nothing. If the first take goes past 3:00, cut in
+this order:
 
 1. `and partnering with institutions to catch zero-day scam patterns before they
-   spread` (§5) → ganti jadi `Next: real hardware.` — hemat ~9 detik, tapi ini
-   USP kedua, jadi cek dulu apakah masih bisa masuk lewat caption di layar
-   sebelum dibuang total dari narasi
+   spread` (§5) → replace with `Next: real hardware.` — saves about 9 seconds,
+   but this is the second USP, so first check whether it can survive as an
+   on-screen caption before dropping it from the narration entirely
 2. `She confirms — Android requires it. No app can delete another silently.`
-   (§4e) — hemat ~6 detik, ganti caption
-   `Android mewajibkan konfirmasi pengguna` supaya pengakuan batasannya tidak
-   hilang sepenuhnya
+   (§4e) — saves about 6 seconds; replace with the caption
+   `Android requires the user's confirmation` so the admission of the limit is
+   not lost completely
 3. `The victim's phone was fine — the attack went through the person holding
-   it.` (§3) — hemat ~5 detik
+   it.` (§3) — saves about 5 seconds
 
-**Jangan pernah dipotong:** dua kalimat pengenal victim di §1, kalimat jembatan
-`For this demo, the victim is someone's mother...` di §4a, tahan 3 detik di
-kartu skor, tahan 2 detik saat overlay muncul, dan kalimat `We are those
-guardians` di §3 — itu satu-satunya baris yang mengunci kenapa tiga mahasiswa
-cowok pantas bicara soal victim lansia (lihat `VIDEO_SCRIPT.md` bagian pemeran).
+**Never cut:** the two sentences that introduce the victim in §1, the bridging
+sentence `For this demo, the victim is someone's mother...` in §4a, the 3-second
+hold on the score card, the 2-second hold when the overlay appears, and the line
+`We are those guardians` in §3 — the one line that establishes why three male
+students have standing to talk about elderly victims (see the cast section of
+`VIDEO_SCRIPT.md`).

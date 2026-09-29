@@ -23,5 +23,7 @@ class RondaApp : Application() {
         // Before the first Activity is created, so the splash and the first
         // frame already wear the theme the guardian chose.
         SettingsStore(this).applyTheme()
+
+        RondaNotifications.retireOldChannels(this)
     }
 }

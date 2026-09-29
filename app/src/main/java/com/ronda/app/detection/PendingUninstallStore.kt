@@ -33,6 +33,11 @@ class PendingUninstallStore(context: Context) {
         prefs.edit().remove(packageName).apply()
     }
 
+    /** The guardian who asked is gone; their requests go with them. */
+    fun clearAll() {
+        prefs.edit().clear().apply()
+    }
+
     /** The oldest outstanding request, or null. One prompt at a time. */
     fun firstPending(): PendingUninstall? =
         prefs.all.entries.firstOrNull()?.let { (packageName, alertId) ->

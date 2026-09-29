@@ -1,6 +1,5 @@
 package com.ronda.app.detection
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -9,6 +8,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ronda.app.Permissions
 import com.ronda.app.R
+import com.ronda.app.RondaNotifications
 import com.ronda.app.localized
 import com.ronda.app.alert.AlertRepository
 import com.ronda.app.core.RiskEvaluator
@@ -27,7 +27,6 @@ class InstallReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "InstallReceiver"
-        private const val CHANNEL_ID = "ronda_alert_channel"
         private const val NOTIFICATION_ID_BASE = 1000
         private const val ALERT_WRITE_TIMEOUT_MS = 8_000L
     }
@@ -36,7 +35,20 @@ class InstallReceiver : BroadcastReceiver() {
         val packageName = intent.data?.schemeSpecificPart ?: return
 
         when (intent.action) {
-            Intent.ACTION_PACKAGE_ADDED -> onPackageAdded(context, packageName)
+            Intent.ACTION_PACKAGE_ADDED -> {
+                // An update to an app that is already flagged is not news: the
+                // block stays and the guardian's decision about it stands.
+                // Re-filing it would put an app already ruled on back under
+                // "needs review" after every update. An update to an app not
+                // yet flagged is still judged — it may have added permissions.
+                val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                if (replacing && FlaggedAppStore(context).isFlagged(packageName)) {
+                    Log.d(TAG, "Flagged package updated, keeping its block: $packageName")
+                    if (Permissions.canBlock(context)) OverlayService.start(context)
+                    return
+                }
+                onPackageAdded(context, packageName)
+            }
             Intent.ACTION_PACKAGE_REMOVED -> {
                 // An update fires REMOVED + ADDED; the app is still installed,
                 // so it must stay flagged.
@@ -119,7 +131,9 @@ class InstallReceiver : BroadcastReceiver() {
     private fun onPackageRemoved(context: Context, packageName: String) {
         // A reinstall is a new question, so any earlier decision is forgotten
         // regardless of whether this package was the flagged one.
-        SafeAppStore(context).forget(packageName)
+        val safeApps = SafeAppStore(context)
+        val wasCleared = safeApps.isAllowed(packageName)
+        safeApps.forget(packageName)
 
         val pendingUninstalls = PendingUninstallStore(context)
         val requested = pendingUninstalls.alertIdFor(packageName) != null
@@ -136,7 +150,9 @@ class InstallReceiver : BroadcastReceiver() {
 
         // Only now is it true that the app is gone — report it to the guardian,
         // whether they asked for it or the victim removed it from RONDA's card.
-        if (requested || wasFlagged) reportUninstalled(context, packageName)
+        // A cleared app counts too: the guardian's history should say it left.
+        if (wasCleared) ProtectedHistoryStore(context).record(packageName, packageName, "uninstalled")
+        if (requested || wasFlagged || wasCleared) reportUninstalled(context, packageName)
     }
 
     private fun reportUninstalled(context: Context, packageName: String) {
@@ -165,17 +181,18 @@ class InstallReceiver : BroadcastReceiver() {
         val localizedContext = context.localized()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channel = NotificationChannel(
-            CHANNEL_ID,
+        val channel = RondaNotifications.ensureChannel(
+            context,
+            RondaNotifications.CHANNEL_DETECTION,
             localizedContext.getString(R.string.channel_detection),
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = localizedContext.getString(R.string.channel_detection_desc)
-        }
-        notificationManager.createNotificationChannel(channel)
+            NotificationManager.IMPORTANCE_HIGH,
+            RondaNotifications.Sound.DANGER,
+            localizedContext.getString(R.string.channel_detection_desc)
+        )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_shield_alert)
+        val notification = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(RondaNotifications.SMALL_ICON)
+            .setColor(RondaNotifications.COLOR_DANGER)
             .setContentTitle(localizedContext.getString(R.string.detected_notification_title, verdict.appLabel))
             .setContentText(verdict.reasons.firstOrNull().orEmpty().replace("**", ""))
             .setStyle(NotificationCompat.BigTextStyle()

@@ -51,7 +51,7 @@ Antivirus loses the trust battle, not the technical one. RONDA does not try to w
 - Risk rule: sideloaded (non-Play Store) **AND** declares at least one of 7 dangerous permissions (`READ_SMS`, `RECEIVE_SMS`, `SEND_SMS`, `BIND_ACCESSIBILITY_SERVICE`, `BIND_NOTIFICATION_LISTENER_SERVICE`, `SYSTEM_ALERT_WINDOW`, `BIND_DEVICE_ADMIN`) → flag as high risk.
 - Guardian ↔ Protected device pairing via QR code, performed once during setup.
 - On-device soft-block: a full-screen warning overlay that covers the flagged app whenever it is opened, using `PACKAGE_USAGE_STATS` + `SYSTEM_ALERT_WINDOW`.
-- Real-time push alert from protected device to guardian device via Firebase Cloud Messaging (FCM).
+- Real-time alert from protected device to guardian device via Firebase (a held-open Realtime Database listener on the guardian — see ARCHITECTURE.md §4 for why this replaced FCM).
 - Guardian-triggered remote uninstall (opens the system uninstall dialog on the protected device).
 - Benign test-sample APKs (flavors for `READ_SMS`, `BIND_ACCESSIBILITY_SERVICE`, `BIND_NOTIFICATION_LISTENER_SERVICE`, `SYSTEM_ALERT_WINDOW`) that do nothing, used for demos.
 
@@ -131,7 +131,7 @@ On first launch, the user chooses **Guardian** or **Protected**. One APK, one co
 ### FR-4 — Guardian alert
 
 - On HIGH RISK, the protected device writes an alert record (app name, package name, install source, flagged permissions, timestamp) to Firebase.
-- Firebase pushes to the guardian's FCM token.
+- The guardian's `GuardianAlertService` holds a Realtime Database listener open and sees the alert within a second of the write. (Originally FCM; replaced because the FCM legacy server key was shut off — ARCHITECTURE.md §4.)
 - The guardian device raises a high-priority notification that bypasses silent mode.
 
 ### FR-5 — Guardian response
@@ -151,7 +151,7 @@ On first launch, the user chooses **Guardian** or **Protected**. One APK, one co
 - On HIGH RISK, the protected device begins monitoring the foreground app via `UsageStatsManager`.
 - If the flagged package is brought to the foreground, RONDA draws a full-screen warning over it using `SYSTEM_ALERT_WINDOW`.
 - The overlay states plainly that the app is suspected of stealing banking codes and that the guardian has been notified. It offers no "continue anyway" path — the only exits are Home and waiting for the guardian.
-- The overlay runs entirely on-device and requires no network. If FCM delivery fails or the device is offline, the block still functions.
+- The overlay runs entirely on-device and requires no network. If alert delivery fails or the device is offline, the block still functions.
 - Both permissions (`PACKAGE_USAGE_STATS`, `SYSTEM_ALERT_WINDOW`) must be granted manually through system Settings during guardian-assisted setup, with an on-screen explanation of why each is needed.
 - The overlay is cleared when the guardian marks the app safe, or when the app is uninstalled.
 
@@ -180,7 +180,7 @@ These are hard rules. Any implementation that violates them is rejected regardle
 3. **RONDA must never read message content** from WhatsApp or any other app. Detection happens at install time and does not require it.
 4. **Data minimization.** Only package metadata is transmitted: package name, app label, install source, declared permissions, timestamp. No message content, contacts, location, files, or SMS.
 5. **Consent is mandatory and visible.** The protected person consents during pairing and can see at any time that monitoring is active and who the guardian is. RONDA must not operate as hidden or covert monitoring — that is stalkerware, and it is out of scope permanently, not just for the POC.
-6. **No unpairing without local confirmation.** Pairing changes require physical access to the protected device.
+6. **Ending a pairing is always visible, and never removes local protection.** Either side can end a pairing, each behind a confirmation on its own screen, and the other side is told immediately (notification or on-screen message). A protected phone whose pairing ends — from either side — starts setup over, but keeps covering every app it has flagged and keeps detecting new installs locally until it is set up again as a guardian. A guardian starts setup over only when its last protected phone is gone.
 7. **Least privilege for blocking.** The soft-block uses `PACKAGE_USAGE_STATS` (which reveals only the foreground package name) and `SYSTEM_ALERT_WINDOW` (which draws on top). Neither can read screen content, keystrokes, or app data. Accessibility Service would achieve a stronger block but grants full screen-reading and input-injection capability, and is prohibited under rule 2. RONDA accepts a weaker block in exchange for a far smaller privilege footprint.
 8. **The overlay must never impersonate a system dialog.** It is clearly branded as RONDA. Mimicking Android system UI is the technique used by overlay-based banking trojans and must not be reproduced.
 9. **The overlay may only target packages the detection engine has flagged.** It must never be applied to arbitrary apps, and never as a general-purpose app blocker.

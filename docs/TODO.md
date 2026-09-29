@@ -1,7 +1,7 @@
 # RONDA — Active Task List
 
-> **Rule:** AI hanya boleh mengerjakan tugas yang ada di bagian ACTIVE.
-> Tugas di bawah garis (---) adalah backlog. Jangan dikerjakan sampai dipindahkan ke atas.
+> **Rule:** AI may only work on tasks in the ACTIVE sections.
+> Tasks below the line (---) are backlog. Do not start them until they are moved up.
 
 ---
 
@@ -59,7 +59,7 @@
 3. Role gating held: protected ran only `DetectionService`, guardian only `GuardianAlertService`
 4. Test APK installed → `source=manual, isSideloaded=true, declaresSms=true, risk=HIGH`
 5. Alert `-OzwnOGG6SZEySyUA3lG` written to `alerts/QTDEZ3/`
-6. Guardian raised `importance=4, category=alarm`: "BAHAYA: aplikasi mencurigakan dipasang — Undangan Pernikahan dipasang di HP orang tua Anda."
+6. Guardian raised `importance=4, category=alarm`: "BAHAYA: aplikasi mencurigakan dipasang — Undangan Pernikahan dipasang di HP orang tua Anda." [DANGER: suspicious app installed — Undangan Pernikahan was installed on your parent's phone.]
 7. Opening the test APK on protected → RONDA overlay covered it
 
 Bug found and fixed during this run: `Pairing.isActive` was a derived property without
@@ -77,15 +77,15 @@ Bug found and fixed during this run: `Pairing.isActive` was a derived property w
 **Verification log (14 Aug, two Pixel 6 / API 33 emulators):**
 
 *Uninstall*
-1. Guardian tapped "Hapus aplikasi" → command written to `commands/QTDEZ3/`
+1. Guardian tapped "Hapus aplikasi" [Remove app] → command written to `commands/QTDEZ3/`
 2. Protected `CommandHandler` picked it up, raised `importance=4, category=alarm`, stored the request to disk
 3. `UninstallPromptScreen` explained the request, then opened the system dialog
 4. Confirmed → package gone, block cleared, `OverlayService` stopped itself
-5. `InstallReceiver` reported `status = uninstalled`; guardian's screen showed "Aplikasi sudah dihapus dari HP orang tua Anda"
+5. `InstallReceiver` reported `status = uninstalled`; guardian's screen showed "Aplikasi sudah dihapus dari HP orang tua Anda" [The app has been removed from your parent's phone]
 
 *Mark safe*
 6. Test APK reinstalled → fresh alert, overlay covering it
-7. Guardian tapped "Tandai aman" → overlay disappeared **while the app was still on screen**, no user action on the protected phone
+7. Guardian tapped "Tandai aman" [Mark safe] → overlay disappeared **while the app was still on screen**, no user action on the protected phone
 8. `SafeAppStore` persisted; reinstalling again logged "Package is on the guardian's allowlist, skipping"
 
 **Two bugs found by running it, neither catchable by a build:**
@@ -104,7 +104,7 @@ every resume. Re-verified end to end on two freshly reset emulators.
 
 Also added: the guardian now gets a notification when the protected phone
 actually completes the removal (`status = uninstalled` → "Aplikasi berbahaya
-sudah dihapus"), and that alert's original red notification is cancelled. Before
+sudah dihapus" [The dangerous app has been removed]), and that alert's original red notification is cancelled. Before
 this, the outcome was only visible if the guardian happened to have the alert
 open.
 
@@ -115,31 +115,49 @@ guardian is never told an app was removed because a command was received —
 Android requires the person holding the phone to confirm in a system dialog, and
 they may decline.
 
+## DONE — Block 6: Post-Testing Revisions (Sep 2026)
+
+Found while testing against `docs/USE_CASES.md`; every item is reflected there.
+
+- [x] Guardian history keeps every ruling across reinstalls (one card per install, not one per package)
+- [x] An app marked safe and then removed is reported to the guardian as removed
+- [x] Undo of "mark safe" re-covers the app on the protected phone (`revoke_safe` command)
+- [x] An update to a flagged app no longer files a second alert
+- [x] Pairing code: shown immediately, 10-minute countdown, expired card with "make a new code", failure card when offline
+- [x] Back navigation through every setup screen; a wrong role tap is undoable
+- [x] Ending the last pairing starts setup over from the language screen on both sides; a former protected phone keeps local protection
+- [x] Initial scan runs on every new pairing and reports already-flagged apps to the new guardian
+- [x] Protection restored after boot and after a self-update without opening RONDA (`StartupReceiver`)
+- [x] Toasts for every change; RONDA mark on every notification; per-situation notification sounds
+- [x] Animated splash; springier tactile buttons with a touch-down haptic
+- [x] `scripts/ronda`: `add-rondee` stops before onboarding (`--auto` keeps the old flow), `--on rondee2` for bait on the third phone, and `scenario <id>` for every use case
+- [ ] Known, pre-existing: `RiskEvaluatorTest.reasonsAreOrderedBySeverity` fails on `main`
+
 ## ACTIVE — Block 4A: Detection Engine Upgrade (Pre-Demo)
 
-- [ ] Perluas `DANGEROUS_PERMISSIONS` dari 2 → 7 di `RiskEvaluator`.
+- [ ] Extend `DANGEROUS_PERMISSIONS` from 2 → 7 in `RiskEvaluator`.
 - [ ] Update `RiskResult` enum KDoc.
-- [ ] Update user-facing strings di `strings.xml` agar mencakup izin baru.
-- [ ] Update `AlertDetailScreen` untuk menggunakan human-readable permission.
-- [x] Tambahkan product flavors di `RondaTestSample/app/build.gradle.kts` (`sms`, `accessibility`, `notification`, `overlay`, + `deviceadmin`, `dropper`).
-- [x] Buat manifest dan strings terpisah untuk setiap flavor.
+- [ ] Update the user-facing strings in `strings.xml` to cover the new permissions.
+- [ ] Update `AlertDetailScreen` to use human-readable permission names.
+- [x] Add product flavors in `RondaTestSample/app/build.gradle.kts` (`sms`, `accessibility`, `notification`, `overlay`, + `deviceadmin`, `dropper`).
+- [x] Create a separate manifest and strings for each flavor.
 
 ## ACTIVE — Block 4D: Resilience - Battery Optimization (Pre-Demo)
 
-- [ ] Tambah `isBatteryOptimized` check dan `batteryOptimizationIntent` di `Permissions.kt`.
-- [ ] Tambah baris "Tidak dibatasi baterai" di `SetupScreen.kt`.
-- [ ] Tambah string relevan di `strings.xml`.
+- [ ] Add an `isBatteryOptimized` check and `batteryOptimizationIntent` in `Permissions.kt`.
+- [ ] Add a "Tidak dibatasi baterai" [Not battery-restricted] row in `SetupScreen.kt`.
+- [ ] Add the relevant strings in `strings.xml`.
 
 ---
 
 ## ACTIVE — Block 4F: Guardian Dashboard UX (Pre-Demo)
 
-- [ ] Buat file `docs/design.md` yang merancang detail UI/UX untuk Guardian Dashboard (komponen, status state, tata letak, dan flow).
-- [ ] Update data class `Pairing` di Firebase untuk menyimpan atribut keamanan (hasOverlay, hasUsageStats, dll) dan `SecurityLevel`.
-- [ ] Buat logika di HP Protected (`DetectionService` / `MainActivity`) untuk sync nilai permission ke Firebase.
-- [ ] Implementasi UI berdasarkan `design.md`: Rombak layout `GuardianHomeScreen` per perangkat (Header nama HP, icon shield status, dan last seen).
-- [ ] Implementasi UI berdasarkan `design.md`: Pisahkan daftar alert menjadi "Butuh Tindakan Segera" (merah) dan "Riwayat Pengawasan" (abu-abu).
-- [ ] Update `strings.xml` untuk status teks (`status_safe`, `history_uninstalled`, dll).
+- [ ] Create `docs/design.md` detailing the Guardian Dashboard UI/UX (components, status states, layout and flow).
+- [ ] Update the `Pairing` data class in Firebase to store security attributes (hasOverlay, hasUsageStats, etc.) and a `SecurityLevel`.
+- [ ] Add logic on the protected phone (`DetectionService` / `MainActivity`) to sync permission state to Firebase.
+- [ ] Implement the UI from `design.md`: rework the `GuardianHomeScreen` layout per device (phone-name header, shield status icon and last seen).
+- [ ] Implement the UI from `design.md`: split the alert list into "Needs action now" (red) and "Monitoring history" (grey).
+- [ ] Update `strings.xml` with the status texts (`status_safe`, `history_uninstalled`, etc.).
 
 ---
 
@@ -153,22 +171,22 @@ they may decline.
 ## BACKLOG — Post-Demo
 
 ### Block 4B: Initial Scan
-- [x] Panggil `scanExistingApps()` sekali saat `onCreate()` di `DetectionService`.
-- [x] Pindahkan/ekstrak `publishAlert()` dari `InstallReceiver` agar bisa digunakan di `DetectionService`.
+- [x] Call `scanExistingApps()` once in `DetectionService.onCreate()`.
+- [x] Move/extract `publishAlert()` out of `InstallReceiver` so `DetectionService` can use it.
 
-### Block 4C: Multi-Ortu
-- [x] Ubah `pairingId` menjadi multiple (`pairingIds`) di `RoleStore.kt` untuk sisi Guardian.
-- [x] Tambah `protectedLabel` ke data `Pairing` di Firebase.
-- [x] Update `GuardianAlertService` agar collect alert dari semua `pairingIds`.
-- [x] Update `GuardianPairingScreen` untuk memasukkan label HP (misal: "HP Ibu").
-- [x] Rombak `GuardianHomeScreen` untuk menampilkan daftar HP dan tombol tambah perangkat.
-- [x] Tangani flow tambah perangkat baru di `MainActivity`.
+### Block 4C: Multiple Protected Phones
+- [x] Turn `pairingId` into a set (`pairingIds`) in `RoleStore.kt` on the guardian side.
+- [x] Add `protectedLabel` to the `Pairing` data in Firebase.
+- [x] Update `GuardianAlertService` to collect alerts from every `pairingIds` entry.
+- [x] Update `GuardianPairingScreen` to take a phone label (for example "HP Ibu" [Mum's phone]).
+- [x] Rework `GuardianHomeScreen` to list the phones and add an add-device button.
+- [x] Handle the add-device flow in `MainActivity`.
 
 ### Block 4D: Resilience - QR Deep Link
-- [x] Tambah intent filter `ronda://pair` di `AndroidManifest.xml`.
-- [x] Tangani deep link di `onCreate()` dan `onNewIntent()` pada `MainActivity.kt`.
-- [x] Pre-fill kode pairing di `ProtectedPairingScreen` jika dibuka lewat deep link.
+- [x] Add the `ronda://pair` intent filter in `AndroidManifest.xml`.
+- [x] Handle the deep link in `onCreate()` and `onNewIntent()` in `MainActivity.kt`.
+- [x] Pre-fill the pairing code in `ProtectedPairingScreen` when opened from a deep link.
 
 ### Block 4E: Strategy Document
-- [x] Buat file `docs/STRATEGY.md`.
-- [x] Tulis poin-poin kemitraan (OJK, Kominfo, Bank) dan roadmap monetisasi.
+- [x] Create `docs/STRATEGY.md`.
+- [x] Write the partnership points (OJK, Kominfo, banks) and the monetisation roadmap.

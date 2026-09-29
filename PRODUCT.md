@@ -21,7 +21,7 @@ Antivirus warns the victim; the victim has already been socially engineered and 
 
 ## Operating Context
 
-- Single APK, two roles chosen once at first launch (write-once). Role and pairing state live in SharedPreferences; the screen shown is a function of that state (no NavGraph).
+- Single APK, two roles chosen during setup. Every setup screen can step back, so a wrong role tap is undoable; once paired the role holds until the last pairing ends, when the phone starts setup over. Role and pairing state live in SharedPreferences; the screen shown is a function of that state (no NavGraph).
 - Pairing: guardian shows a 6-character code + QR; protected person types the code (camera is never required). The guardian's first name travels in the pairing record so the protected phone can say who is guarding it ("Dijaga oleh Rina").
 - Detection + soft-block run fully offline. Alerting goes through Firebase RTDB (held-open listener, not FCM). Commands come back the same way.
 - Android cannot silently uninstall: the guardian's "uninstall" opens the system dialog on the protected phone, where the final tap happens. Stated openly, never hidden.
@@ -31,14 +31,14 @@ Antivirus warns the victim; the victim has already been socially engineered and 
 ## Capabilities and Constraints
 
 - Risk score 0–100 with bands AMAN (0–29) / RENDAH (30–59) / PERINGATAN (60–89) / DARURAT (90–100), shown under exactly those names (Safe / Low / Warning / Danger in English). Guardian threshold is 60. Each signal has a plain-Indonesian consequence sentence; combos replace their members.
-- Guardian decisions: uninstall (request; protected confirms) or mark safe (confirmed, undoable for 10 s). Override notice when the protected person reopened a flagged app.
+- Guardian decisions: uninstall (request; protected confirms) or mark safe (confirmed, undoable for 10 s — undo re-covers the app on the protected phone).
 - Protected permissions requiring a trip to system Settings: draw-over-apps, usage access, notifications, battery exemption. Re-checked on every launch.
 - **Hard security rules (violation = disqualification):** never request SMS permissions; never use AccessibilityService; never read message content; overlay must be branded RONDA and never mimic a system dialog; overlay only covers packages the engine flagged; monitoring is visible and consensual (never stalkerware); transmit package metadata only.
 - Protected screens: ≥20 sp text, high contrast, no jargon, at most one decision per screen; no destructive or pairing-change buttons.
 - Guardian screens may be information-dense.
 - Tech: Kotlin, Jetpack Compose Material 3, Coroutines/Flow, minSdk 30, AndroidX + Firebase only. Fonts must ship in the APK (offline demo).
 - Languages: Indonesian (default) and English, selectable at first launch and in guardian settings. Decided in this pass.
-- Disconnect: local only (RTDB rules do not allow writing `revoked`); requires local confirmation. Not offered on protected screens in this pass (open decision — DESIGN.md forbids pairing changes there, USERFLOW.md mentions it).
+- Disconnect: offered on both sides, each behind a confirmation, delivered to the other side as a `disconnect` command (RTDB rules do not allow writing `revoked`). A protected phone whose pairing ends starts setup over but keeps local protection for what it flagged; a guardian starts over when its last protected phone is gone.
 
 ## Brand Commitments
 
@@ -58,7 +58,7 @@ Antivirus warns the victim; the victim has already been socially engineered and 
 1. The victim is never the decision-maker; the guardian is. Every screen respects which of the two is holding the phone.
 2. Zero false positives beats zero misses: quiet apps must read quiet, so loud ones stay credible.
 3. Say the consequence, not the capability. If a word would not appear in a WhatsApp message to a friend, it does not belong.
-4. Honest limits, stated in the UI: soft-block, protected person taps the final "Hapus", local-only disconnect.
+4. Honest limits, stated in the UI: soft-block, protected person taps the final "Hapus" [Remove], a disconnect never silently lifts protection.
 5. Consensual and visible: the protected phone always shows that it is guarded and by whom.
 
 ## Accessibility & Inclusion

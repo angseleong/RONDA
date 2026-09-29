@@ -65,7 +65,9 @@
     <string name="pair_guardian_or_scan_label">Atau pindai</string>
     <string name="pair_guardian_or_scan">Kalau kedua HP ada di satu tempat, pindai kode QR ini dengan kamera HP Rondor.</string>
     <string name="pair_guardian_waiting">Menunggu HP Rondor memasukkan kode…</string>
-    <string name="pair_guardian_expiry">Kode berlaku 10 menit.</string>
+    <string name="pair_guardian_expires_in">Berlaku %1$s lagi</string>
+    <string name="pair_guardian_expired">Kode ini sudah kedaluwarsa. Buat kode baru — nama yang sudah diisi tetap tersimpan.</string>
+    <string name="pair_guardian_new_code">Buat kode baru</string>
     <string name="pair_qr_desc">Kode QR berisi kode penghubung</string>
     <string name="pair_creating">Membuat kode…</string>
     <string name="pair_retry">Coba lagi</string>
@@ -171,6 +173,11 @@
     <string name="alert_notification_body">%1$s dipasang di HP Rondee Anda.</string>
     <string name="channel_guardian_outcome">Hasil tindakan</string>
     <string name="channel_guardian_outcome_desc">Kabar saat permintaan Anda selesai dijalankan di HP Rondee.</string>
+    <string name="channel_guardian_warnings">Peringatan</string>
+    <string name="channel_guardian_decision">Keputusan Rondor</string>
+    <string name="channel_guardian_decision_desc">Saat Rondor menyatakan sebuah aplikasi di HP ini aman.</string>
+    <string name="marked_safe_notification_title">Rondor menandai aplikasi aman</string>
+    <string name="marked_safe_notification_body">%1$s tidak ditutup lagi dan bisa dipakai.</string>
     <string name="uninstalled_notification_title">Aplikasi berbahaya sudah dihapus</string>
     <string name="outcome_safe">Ditandai aman oleh Rondor Anda</string>
     <string name="uninstalled_notification_body">%1$s sudah dihapus dari HP Rondee Anda.</string>
@@ -200,4 +207,26 @@
     <!-- Sisi Rondor: ditampilkan di HP Rondor saat Rondee yang mengakhiri pairing -->
     <string name="rondee_disconnected_notification_title">Rondee Memutuskan Hubungan</string>
     <string name="rondee_disconnected_notification_body">%1$s telah mengakhiri koneksi pemantauan.</string>
+    <!-- Toast: satu kalimat pendek tentang sesuatu yang baru berubah -->
+    <string name="toast_paired_guardian">Terhubung dengan HP %1$s</string>
+    <string name="toast_paired_protected">Terhubung. %1$s sekarang menjaga HP ini</string>
+    <string name="toast_alert_review">%1$s perlu keputusan Anda</string>
+    <string name="toast_alert_monitored">%1$s masuk daftar pantauan</string>
+    <string name="toast_removed">%1$s sudah dihapus</string>
+    <string name="toast_marked_safe">%1$s ditandai aman</string>
+    <string name="toast_marked_unsafe">%1$s ditandai berbahaya</string>
+    <string name="toast_undone">Keputusan dibatalkan</string>
+    <string name="toast_uninstall_sent">Permintaan hapus dikirim ke HP %1$s</string>
+    <string name="toast_scan_sent">Permintaan scan dikirim ke HP %1$s</string>
+    <string name="toast_device_disconnected">HP %1$s sudah diputus</string>
+    <string name="toast_rondee_left">%1$s memutus koneksi</string>
+    <string name="toast_renamed">Nama diubah jadi %1$s</string>
+    <string name="toast_scan_clean">Scan selesai: tidak ada aplikasi berbahaya</string>
+    <plurals name="toast_scan_found">
+        <item quantity="other">Scan selesai: %d aplikasi berbahaya ditemukan</item>
+    </plurals>
+    <string name="toast_flagged">%1$s terdeteksi berbahaya dan sudah ditutup</string>
+    <string name="toast_cleared">Rondor menyatakan %1$s aman</string>
+    <string name="toast_disconnected_by_guardian">Rondor memutus koneksi</string>
+    <string name="toast_disconnected_self">Koneksi sudah diputus</string>
 </resources>

@@ -365,7 +365,10 @@ private fun HistoryTab(
                 )
             }
         } else {
-            items(state.history, key = { "history:${it.pairingId}:${it.packageName}" }) { verdict ->
+            items(
+                state.history,
+                key = { "history:${it.alertId.ifEmpty { "${it.pairingId}:${it.packageName}" }}" }
+            ) { verdict ->
                 AlertRow(
                     verdict = verdict,
                     protectedName = devices.firstOrNull { it.id == verdict.pairingId }?.name

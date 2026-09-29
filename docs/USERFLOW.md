@@ -52,4 +52,5 @@
 ## 6. Disconnect Flow
 * **Trigger:** Initiated from Top Bar / Settings by either role.
 * **Confirmation:** Requires local confirmation to prevent accidental unpairing.
+* **Result:** The other side is told immediately. A Protected device starts setup over from the language screen (keeping local protection for apps it flagged); a Guardian starts over only when its last Protected device is gone.
 * **Action:** Revokes pairing in RTDB, returns device to `RoleSelectionScreen` or `PairingScreen`.

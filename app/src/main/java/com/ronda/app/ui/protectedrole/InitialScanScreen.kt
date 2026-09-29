@@ -17,32 +17,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ronda.app.R
+import com.ronda.app.detection.ScanEvents
 import com.ronda.app.ui.components.IconBox
 import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.TactileButton
-import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.WordmarkBar
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.LargePrint
 import com.ronda.app.ui.theme.LargePrintTitle
 import com.ronda.app.ui.theme.RondaTheme
 import com.ronda.app.ui.theme.Tone
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun InitialScanScreen(
     onScan: () -> Unit,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
+    /** Undoes the pairing. Offered until the scan starts, never during it. */
+    onBack: (() -> Unit)? = null
 ) {
     val colors = RondaTheme.colors
     var scanning by remember { mutableStateOf(false) }
 
     LaunchedEffect(scanning) {
-        if (scanning) {
+        if (!scanning) return@LaunchedEffect
+        val startedAt = System.currentTimeMillis()
+        coroutineScope {
+            // Listening before the scan is asked for: the result is a one-off
+            // event, and a fast scan could otherwise finish unheard.
+            val result = async(start = CoroutineStart.UNDISPATCHED) {
+                withTimeoutOrNull(SCAN_TIMEOUT_MS) { ScanEvents.results.first() }
+            }
             onScan()
-            // Simulate scanning progress for UX
-            delay(3000)
-            onComplete()
+            result.await()
         }
+        // A phone with few apps finishes instantly; a screen that flashes past
+        // reads as "nothing happened" rather than "all checked".
+        val elapsed = System.currentTimeMillis() - startedAt
+        if (elapsed < MIN_VISIBLE_MS) delay(MIN_VISIBLE_MS - elapsed)
+        onComplete()
     }
 
     Column(
@@ -51,7 +69,7 @@ fun InitialScanScreen(
             .screenInsets()
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Wordmark()
+        WordmarkBar(onBack.takeUnless { scanning })
 
         Spacer(Modifier.height(36.dp))
         IconBox(
@@ -87,3 +105,8 @@ fun InitialScanScreen(
         )
     }
 }
+
+private const val MIN_VISIBLE_MS = 1_800L
+
+/** Past this the screen moves on anyway; the scan keeps running in the service. */
+private const val SCAN_TIMEOUT_MS = 30_000L

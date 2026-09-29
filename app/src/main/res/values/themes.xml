@@ -11,13 +11,15 @@
     </style>
 
     <!--
-        Splash (USERFLOW §1): the RONDA shield on brand green, drawn by the
-        system on Android 12+ and by core-splashscreen on API 30–31. Swapped
-        for Theme.RONDA by installSplashScreen() before the first frame.
+        Splash, first half: only the page colour, drawn by the system on
+        Android 12+ and by core-splashscreen on API 30–31. The logo is left
+        out on purpose — SplashIntro animates it in Compose straight after,
+        and a static one here would flash before the pop. window_bg has a
+        night value, so a dark phone does not open on a white flash.
     -->
     <style name="Theme.RONDA.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenBackground">@color/window_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_blank</item>
         <item name="postSplashScreenTheme">@style/Theme.RONDA</item>
     </style>
 </resources>

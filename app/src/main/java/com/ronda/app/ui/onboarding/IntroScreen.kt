@@ -28,7 +28,7 @@ import com.ronda.app.ui.components.RondaCard
 import com.ronda.app.ui.components.RondaIcon
 import com.ronda.app.ui.components.RondaIcons
 import com.ronda.app.ui.components.TactileButton
-import com.ronda.app.ui.components.Wordmark
+import com.ronda.app.ui.components.WordmarkBar
 import com.ronda.app.ui.components.screenInsets
 import com.ronda.app.ui.theme.LargePrint
 import com.ronda.app.ui.theme.LargePrintTitle
@@ -47,7 +47,8 @@ import com.ronda.app.ui.theme.Tone
 @Composable
 fun IntroScreen(
     onStart: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null
 ) {
     val colors = RondaTheme.colors
 
@@ -62,7 +63,7 @@ fun IntroScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 24.dp)
         ) {
-            Wordmark()
+            WordmarkBar(onBack)
 
             Spacer(Modifier.height(28.dp))
             BrandMark(height = 72.dp)
