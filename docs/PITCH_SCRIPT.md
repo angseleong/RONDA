@@ -80,15 +80,17 @@ screen.*
 
 *Click.*
 
-### Slide 5 · Why warnings fail — 0:30
+### Slide 5 · Why warnings fail — 0:35
 
 *Point at the four phone prompts, left to right.*
 
 > She opens the file. Allows the source. Taps
-> install. Allows SMS. Four safeguards — and she ignores every single one,
+> install. Allows SMS. Four warnings — she ignores every single one. Why?
 >
-> She's been on the phone with the scammer for twenty minutes. The script even
-> says, "a warning will appear, just tap continue."
+> Because by then, she has trusted the caller for twenty minutes, and a pop-up
+> can't compete with that. The scammer even warns her first: "a warning will
+> appear, just tap continue." And antivirus is always one step behind, because
+> the app is repackaged for every new campaign.
 >
 > Our track asks us to change behaviour. Our answer: don't train the victim.
 > Change who decides.
@@ -249,8 +251,8 @@ Cut in this order. Each line is safe to drop.
    (saves about 8 s)
 3. Slide 9 — say only: "Not a mockup. One guardian can watch several parents,
    and it catches more than SMS theft." (saves about 8 s)
-4. Slide 5 — drop the "twenty minutes / tap continue" sentences (saves about
-   8 s)
+4. Slide 5 — drop the "Because by then…" paragraph (saves about
+   15 s)
 
 **Never cut:** the slide 2 story (especially "She was being kind"), "Don't train the victim. Change who decides.",
 the demo, the break-even line on slide 14, and the closing line.
