@@ -1,6 +1,6 @@
 # RONDA — Presentation Deck (Final Pitching)
 
-**Draft v6** · 2 Okt 2026 · File slide: [RONDA_Pitch_Deck_v3.pptx](RONDA_Pitch_Deck_v3.pptx) · Final Pitching HackNusa 2026, Telkom University, 3 Okt 2026
+**Draft v7** · 2 Okt 2026 · File slide: [RONDA_Pitch_Deck_v3.pptx](RONDA_Pitch_Deck_v3.pptx) · Final Pitching HackNusa 2026, Telkom University, 3 Okt 2026
 **Waktu:** 12 menit total → **±7 menit pitch + ±5 menit Q&A** · **Bahasa:** Inggris (Guideline FAQ #7)
 **Format:** gaya consulting (BCG): slide padat dan bisa dibaca sendiri, tapi yang **diucapkan** pendek.
 **Kriteria juri:** Accordance with Track 5% · USP 25% · Technical Feasibility 25% · PoC 25% · Level of its patentability 10% · Scalability & Readiness 10%. Setiap kriteria punya slide sendiri, dan waktunya dibagi sesuai bobot.
@@ -13,7 +13,7 @@
 
 1. **Judul = kesimpulan (action title).** Satu kalimat, maksimal 15 kata, yang menyatakan *takeaway*-nya (*"Every safeguard asks the person being tricked"*), bukan label (*"Problem"*). **Kalau juri cuma membaca judul slide 1–15 berurutan, ceritanya harus tetap utuh** (cek bagian *Storyline* di bawah).
 2. **Kerangka tetap di setiap slide** (kecuali slide 1, 2, 8, 15):
-   - **Tracker** kanan atas, memakai **nama kriteria juri** sesuai urutan presentasi: `Track · USP · PoC · Feasibility · Patentability · Scalability`. Kriteria yang sedang dibahas ditebalkan. Dengan begitu juri selalu tahu kriteria mana yang sedang dijawab dan bisa langsung mencentang di lembar nilainya.
+   - **Tracker** kanan atas (mulai slide 5; slide 3–4 belum masuk penilaian per kriteria), memakai **nama kriteria juri** sesuai urutan presentasi: `Track · USP · PoC · Feasibility · Patentability · Scalability`. Kriteria yang sedang dibahas ditebalkan. Dengan begitu juri selalu tahu kriteria mana yang sedang dijawab dan bisa langsung mencentang di lembar nilainya.
    - **Judul aksi** di kiri atas.
    - **Body maksimal 3 blok** (kolom, tabel, atau diagram). Lebih dari 3 blok = pecah atau pindah ke backup.
    - **Kotak *So what*** satu baris di bawah body, latar hijau tint: kalimat yang harus diingat juri.
@@ -42,10 +42,10 @@
 1. RONDA — a second pair of eyes on your parents' phone.
 2. *(hook, tanpa judul)*
 3. Bu Ratna is fictional. Her story isn't, and the money never comes back.
-4. We're the ones our parents call. So we built the watch they need.
+4. Introducing RONDA: a guardian on watch over every app your parents install.
 5. Every safeguard asks the person being tricked.
 6. RONDA moves the decision to someone the scammer can't reach.
-7. In Indonesia, every defence asks the victim. Only RONDA asks a guardian.
+7. At the moment of install, every defence asks the victim. Only RONDA asks a guardian.
 8. *(demo video)*
 9. A working app, not a mockup: built end-to-end and pinned by tests.
 10. Two questions score every app: what can it do, and where did it come from?
@@ -64,7 +64,7 @@
 | 1 | Pembuka formal | — | Dhanes | 0:10 |
 | 2 | Hook: cerita Bu Ratna | — (empati) | Dhanes | 0:45 |
 | 3 | Data: ceritanya nyata | — (konteks masalah) | Dhanes | 0:24 |
-| 4 | Kami RONDA | — (perkenalan tim, *why us*) | Dhanes | 0:18 |
+| 4 | Introducing RONDA (produk) | — (perkenalan produk) | Dhanes | 0:18 |
 | 5 | Semua pengaman bertanya ke korban | **Track** · USP | Dhanes | 0:25 |
 | 6 | Solusi: Connect → Detect → Block → Alert → Decide | **USP** | Malik | 0:27 |
 | 7 | Keunggulan vs kompetitor | **USP** | Malik | 0:30 |
@@ -76,13 +76,13 @@
 | 13 | Tingkat patentability | **Patentability** | Alek | 0:30 |
 | 14 | Skala, model bisnis, dampak & ask | **Scalability & Readiness** | Malik | 0:32 |
 | 15 | Penutup (bookend) + Thank you | — | Alek | 0:20 |
-| — | Q&A (pakai backup B1–B7) | semua | semua | ±5:00 |
+| — | Q&A (pakai backup B1–B13) | semua | semua | ±5:00 |
 
 **Total pitch ±6:50**, jadi cadangannya cuma ±10 detik. Tempo yang dipakai ±135 kata/menit, plus jeda di hook dan demo (jumlah kata per slide ada di naskah). Kalau saat gladi temponya lebih lambat dari itu, langsung pakai daftar potongan di bawah.
 
 ### Pembagian waktu per kriteria
 
-Slide 1–4 dan 15 (±1:57) adalah pembuka, empati, perkenalan, dan penutup. Bagian ini tidak dinilai per kriteria, tapi menentukan apakah juri mau mendengarkan. Sisa **±4:53** dibagi mengikuti bobot juri:
+Slide 1–4 dan 15 (±1:57) adalah pembuka, empati, perkenalan produk, dan penutup. Bagian ini tidak dinilai per kriteria, tapi menentukan apakah juri mau mendengarkan. Sisa **±4:53** dibagi mengikuti bobot juri:
 
 | Kriteria juri | Bobot | Target (dari ±4:53) | Slide | Rencana | Porsi |
 |---|---|---|---|---|---|
@@ -99,7 +99,7 @@ Catatan: kriteria juga **ditampilkan**, bukan hanya diucapkan. Tracker di setiap
 
 **Kalau kepanjangan, potong berurutan** (urutannya dipilih supaya bobot kriteria tetap aman):
 1. Slide 9: ucapkan kalimat pertama saja (*"That wasn't a mockup."*). Strip screenshot tetap tampil 5 detik.
-2. Slide 4: cukup nama + definisi *ronda*.
+2. Slide 4: cukup kalimat kedua (*"RONDA does that for a parent's phone…"*).
 3. Slide 14: lewati kalimat dampak, langsung ke kalimat ask.
 4. **Jangan potong** slide 12 dan 13. Itu satu-satunya slide untuk sebagian bobot Feasibility dan seluruh bobot Patentability.
 
@@ -124,46 +124,51 @@ Catatan: kriteria juga **ditampilkan**, bukan hanya diucapkan. Tracker di setiap
 **Visual:** latar putih bersih dengan aksen hijau RONDA tipis di tepi bawah. Foto tim **harus seragam**: crop setengah badan, latar polos, pencahayaan sama.
 
 **Yang diomongin (Dhanes):**
-> Good morning, judges. We're team RONDA, in the Human-Centric Security track. Before we tell you who we are, let us tell you about Bu Ratna.
+> Good morning, judges. I'm Dhanes, with Alek and Malik — we're team RONDA, in the Human-Centric Security track. Before we show you what we built, let us tell you about Bu Ratna.
 
 **Catatan tim:**
 - Isi kolom **[peran]** (misalnya *Android & detection engine*, *Backend & security*, *Product & business*). Peran ini jadi jawaban *"siapa mengerjakan apa"* kalau ditanya.
-- Jangan berhenti lama di slide ini. Perkenalan sesungguhnya ada di slide 4.
+- **Ini satu-satunya perkenalan tim.** Slide 4 sudah menjadi perkenalan produk, jadi nama ketiga anggota wajib disebut di sini. Jangan berhenti lama.
 
 ---
 
-# SLIDE 2 — Hook: *"She wasn't stupid. She was alone."*
+# SLIDE 2 — Hook: *"She did nothing wrong. Nobody was watching."*
 
 **Kriteria:** — (empati, tanpa data)
 
-**Di slide (sinematik, latar gelap navy `#0A0F1E`, hampir tanpa teks):** tiga "momen" berurutan dari kiri ke kanan, muncul satu per satu (animasi *appear* mengikuti narasi):
+**Di slide (sinematik, latar gelap navy `#0A0F1E`, hampir tanpa teks):** tiga "momen" berurutan dari kiri ke kanan, muncul satu per satu (animasi *appear* mengikuti narasi).
 
-| Momen | Visual | Teks di layar |
+**Semua teks yang tampil di layar 100% bahasa Inggris**, termasuk isi bubble chat, label saldo, dan layar panggilan. Juri tidak perlu menerjemahkan apa pun. Tidak ada teks Indonesia, tidak ada terjemahan kecil.
+
+| Momen | Visual | Teks di layar (EN) |
 |---|---|---|
-| ① **Sat · 21:47** | Bubble chat WhatsApp dari nomor tak dikenal | *"Assalamualaikum Bu, ini undangan pernikahan anak saya. Mohon doa restunya 🙏"* + file `Undangan Pernikahan.apk` |
-| ② **Mon · 08:15** | Buku tabungan / layar saldo, angka diburamkan | *Tabungan haji* (saldo diburamkan, sengaja **tanpa angka**) |
-| ③ **Mon · 08:32** | Layar panggilan keluar: **"Calling: Anakku 💚"** | Kutipan besar: ***"Maafin Ibu, Nak. Ibu bodoh."*** + terjemahan kecil: *"I'm sorry, son. Your mother is stupid."* |
+| ① **Sat · 9:47 PM** | Bubble chat WhatsApp dari nomor tak dikenal | *"Good evening, Ma'am. Here's my daughter's wedding invitation. Please open it 🙏"* + file `Wedding Invitation.apk` |
+| ② **Mon · 8:15 AM** | Layar saldo bank, angka diburamkan | Label: **Savings · Son's tuition** · status merah: **Balance: —** (sengaja **tanpa angka**) |
+| ③ **Mon · 8:32 AM** | Layar panggilan keluar: **"Calling: Dimas (son)"** | Kutipan besar: ***"Dimas… your tuition money is gone."*** |
+| Penutup (muncul terakhir, tengah bawah) | Teks saja, putih | **She did nothing wrong. Nobody was watching.** |
 
 Pojok kanan bawah, kecil (8 pt, abu): `Illustrative story`
 
-**Fokus mata:** kutipan di momen ③.
+**Fokus mata:** kutipan di momen ③, lalu kalimat penutup.
 
-**Yang diomongin (Dhanes, pelan, ada jeda):**
-> Bu Ratna is sixty-eight. A retired teacher. Her son works in Jakarta; she lives alone.
+**Yang diomongin (Dhanes, tenang, ada jeda):**
+> Meet Bu Ratna. Sixty-eight, a retired teacher, living alone. Her son Dimas is in his final year of university in Jakarta, and for years she's been saving to pay for it.
 >
-> One Saturday night, a message: a wedding invitation, from someone who sounds like a former student. She taps the file. Her phone asks questions in English. She taps *Allow* — she just wants to see who's getting married.
+> One Saturday night, a message: a wedding invitation, from someone who sounds like a former student. She taps the file. Her phone asks a few questions in English. She taps *Allow*. She just wants to see who's getting married.
 >
-> Monday morning, the bank tells her the money she saved for her hajj is gone.
+> Monday morning, the bank account is empty: her savings, and her son's tuition with them.
 >
-> She calls her son. Her first words aren't "help me." They're: *"I'm sorry, son. Your mother is stupid."*
+> She calls Dimas: *"Your tuition money is gone."*
 >
-> *(jeda 2 detik)* She wasn't stupid. She was alone.
+> *(jeda 2 detik)* She did nothing wrong. Nobody was watching.
 
 **Catatan tim:**
 - **Tidak ada angka** di slide maupun di naskah ini. Empati dulu, data di slide berikutnya.
-- Kalimat *"Maafin Ibu, Nak. Ibu bodoh."* boleh diucapkan dalam bahasa Indonesia aslinya dulu, lalu terjemahannya. Rasa malu korban adalah inti emosinya: korban scam sering menyalahkan diri sendiri dan tidak melapor.
+- **Nada: tenang dan faktual, bukan sedih berlebihan.** Juri orang luar Indonesia, jadi taruhannya dibuat universal: **tabungan + biaya kuliah anak** (bukan tabungan haji). Jangan memperpanjang jeda atau memainkan nada suara.
+- Kalimat penutup *"Nobody was watching"* sengaja disiapkan untuk slide 4 (RONDA = ada yang berjaga) dan slide 15 (bookend). Kalimat ini muncul di layar **bersamaan** dengan saat diucapkan, jangan lebih dulu.
+- Format jam memakai AM/PM supaya akrab bagi juri internasional.
 - Label *Illustrative story* **wajib ada**. Slide 3 langsung membuka bahwa ceritanya fiktif. Juri yang merasa "dikerjai" cerita palsu akan meragukan semua angka setelahnya.
-- Nama "Bu Ratna" fiktif. Jangan dipakai nama orang yang dikenal tim.
+- Nama "Bu Ratna" dan "Dimas" fiktif. Jangan dipakai nama orang yang dikenal tim.
 
 ---
 
@@ -197,26 +202,45 @@ Pojok kanan bawah, kecil (8 pt, abu): `Illustrative story`
 
 ---
 
-# SLIDE 4 — *"We're the ones our parents call. So we built the watch they need."*
+# SLIDE 4 — *"Introducing RONDA: a guardian on watch over every app your parents install."*
 
-**Kriteria:** — (perkenalan tim & *why us*)
+**Kriteria:** — (perkenalan produk: *apa* yang kami buat dan *untuk siapa*; detail *cara kerja* tetap di slide 6)
+**Tracker:** tidak ditampilkan (slide perkenalan produk, belum masuk penilaian per kriteria)
 
-**Di slide — 3 blok:**
+**Peran slide ini:** jembatan dari cerita (slide 2–3) ke problem statement (slide 5). Juri harus keluar dari slide ini dengan satu kalimat di kepala: *RONDA is an Android app that lets a trusted person decide about risky apps on their parent's phone.* Tidak ada perkenalan tim lagi (sudah di slide 1).
 
-| Blok | Isi |
+**Di slide — 3 blok (gaya product launch: bersih, banyak ruang kosong):**
+
+**Blok kiri (WHAT WE BUILT): kepanjangan + positioning statement**
+- Label kecil `RONDA STANDS FOR` → **Real-time On-device Detection Agent**
+- Kalimat positioning (besar, ink):
+  > **For families whose parents use Android, RONDA is an on-device guardian app that scores every newly installed app, blocks the risky ones, and lets someone they trust decide.**
+- Label `ONE APP · TWO PHONES` → *Parent's phone detects and blocks, even offline. Guardian's phone sees why, and decides.*
+
+**Blok tengah (fokus): kartu teal makna nama** (dari v3, tetap)
+- ***ronda*** *(n., Indonesian)*: neighbours taking turns keeping watch at night, so everyone else can sleep. + foto pos ronda.
+
+**Blok kanan: product at a glance** (3 kartu kecil vertikal, masing-masing ikon + 1 baris)
+
+| Kartu | Isi |
 |---|---|
-| **Kiri: tim** | 3 foto (lebih kecil dari slide 1) + nama + peran + satu baris kontribusi, misalnya *"built the scoring engine"* |
-| **Tengah: makna nama (fokus)** | ***ronda*** *(n., Indonesian)*: neighbours taking turns keeping watch at night, so everyone else can sleep. Ilustrasi kecil: kentongan / pos ronda |
-| **Kanan: why us** | ✓ We're the guardians: our parents call us when their phone acts strange · ✓ Built and tested a working two-phone system · ✓ Human-Centric Security: security as shared responsibility, not individual skill |
+| **Who it protects** | Parents and grandparents on Android: they make **zero** security decisions |
+| **Who decides** | A trusted guardian: an adult child, or a neighbourhood volunteer |
+| **What it guards** | The moment a new app is installed, before any permission is granted |
 
-**So what:** *That Saturday night, nobody was on watch. RONDA makes sure someone is.*
+**So what:** *That Saturday night, nobody was on watch. With RONDA, someone always is.*
 
-**Fokus mata:** definisi *ronda*.
+**Fokus mata:** kartu teal *ronda*, lalu kalimat positioning di kiri.
 
-**Yang diomongin (Dhanes):**
-> We're Dhanes, Alek and Malik — the ones our parents call when their phone acts strange.
+**Yang diomongin (Dhanes, ±40 kata):**
+> That's why we built RONDA. *Ronda* is what Indonesian neighbourhoods do at night: neighbours take turns keeping watch, so everyone else can sleep.
 >
-> *Ronda* means neighbours keeping watch at night, so everyone else can sleep. That night, nobody watched Bu Ratna. We built RONDA so someone does.
+> RONDA does that for a parent's phone. It watches every new app, and when one looks dangerous, someone they trust makes the call.
+
+**Catatan tim:**
+- Slide ini **tidak menjelaskan cara kerja** (pairing, skor, band, uninstall). Itu semua di slide 6. Kalau di sini sudah dijelaskan, slide 6 jadi pengulangan.
+- Istilah internal *Rondee/Rondor* **tidak dipakai** di slide ini. Untuk juri cukup *parent* dan *guardian*.
+- Opsional nanti: kalau screenshot asli overlay *Blocked* + alert *85/100* sudah ada, bisa ditaruh di kartu tengah menggantikan foto pos ronda.
 
 ---
 
@@ -225,9 +249,17 @@ Pojok kanan bawah, kecil (8 pt, abu): `Illustrative story`
 **Kriteria:** **Accordance with Track** (utama) · USP (dasar argumen)
 **Tracker:** **Track** · USP · PoC · Feasibility · Patentability · Scalability
 
-**Di slide — 3 blok:**
+**Di slide — banner problem statement + 3 blok:**
 
-**Blok atas (fokus): alur 4 layar HP kecil**, kiri ke kanan, masing-masing dengan jari yang menekan:
+**Banner problem statement (fokus, langsung di bawah judul, lebar penuh, latar merah tint, garis kiri merah tebal `#C93B3B`):**
+
+> **PROBLEM STATEMENT**
+> **Fake-APK scams succeed because every safeguard on the phone asks the one person being tricked, and once she taps "Allow", less than 2% of the money ever comes back.**
+> *How might we stop the scam without relying on the victim's judgement?*
+
+Ukuran: label `PROBLEM STATEMENT` 11 pt caps merah, kalimat utama 18–20 pt ExtraBold ink, baris *How might we* 13 pt italic abu. Ini elemen paling besar di slide setelah judul.
+
+**Blok atas: alur 4 layar HP kecil**, kiri ke kanan, masing-masing dengan jari yang menekan:
 1. Chat: `Undangan Pernikahan.apk` — *"Mohon dibuka ya Bu"*
 2. Android: *"Allow from this source"* → toggle
 3. Android: *"Do you want to install this app?"* → **Install**
@@ -248,18 +280,23 @@ Di bawah keempat layar ada baris merah: **Who decides? → Victim · Victim · V
 > 64% of cyber incidents stem from human error (Kaspersky, 2023)
 > **Our answer: don't train the victim. Change who decides.**
 
-**So what:** *The weak point isn't the phone. It's who the phone is asking.*
+**So what:** *The weak point isn't the phone. It's who the phone is asking.* (dikecilkan, karena banner sudah membawa pesannya)
 
-**Footer sumber:** Kaspersky Human Factor 360 Report 2023 · Guideline HackNusa 2026 (teks track)
+**Footer sumber:** Kaspersky Human Factor 360 Report 2023 · Guideline HackNusa 2026 (teks track) · OJK, SP 15/GKPB/OJK/I/2026
 
-**Fokus mata:** baris merah *Victim · Victim · Victim · Victim*.
+**Fokus mata:** banner problem statement, lalu baris merah *Victim · Victim · Victim · Victim*.
 
 **Yang diomongin (Dhanes):**
-> Android did try to protect her: allow this source? Install? Allow SMS? Every question went to the one person being tricked — often with the scammer on the line saying "just tap continue."
+> So here is the problem, stated plainly: every safeguard on the phone asks the one person being tricked.
+>
+> Android did try to protect her: allow this source? Install? Allow SMS? Every question went to her, often with the scammer on the line saying "just tap continue." And once she says yes, the money almost never comes back.
 >
 > Our track, Human-Centric Security, asks us to change behaviour to reduce risk. We don't make her an expert. We change *who decides*.
 
-**Catatan tim:** RONDA menilai app **tepat setelah instalasi selesai** (`InstallReceiver`, `ACTION_PACKAGE_ADDED`), yaitu sebelum app dibuka dan sebelum izin apa pun diberikan. Teks prompt Android berbeda-beda tergantung merek HP, jadi tulis versi pendek saja.
+**Catatan tim:**
+- Kalimat pembuka *"So here is the problem, stated plainly"* **wajib diucapkan**. Itu penanda eksplisit bagi juri bahwa ini problem statement-nya, bukan sekadar cerita.
+- Slide ini sekarang ±10 kata lebih panjang. Kalau waktu mepet, potong kalimat *"And once she says yes…"* (angka < 2% sudah ada di banner).
+- RONDA menilai app **tepat setelah instalasi selesai** (`InstallReceiver`, `ACTION_PACKAGE_ADDED`), yaitu sebelum app dibuka dan sebelum izin apa pun diberikan. Teks prompt Android berbeda-beda tergantung merek HP, jadi tulis versi pendek saja.
 
 ---
 
@@ -298,7 +335,7 @@ Di bawah keempat layar ada baris merah: **Who decides? → Victim · Victim · V
 
 ---
 
-# SLIDE 7 — *"In Indonesia, every defence asks the victim. Only RONDA asks a guardian."*
+# SLIDE 7 — *"At the moment of install, every defence asks the victim. Only RONDA asks a guardian."*
 
 **Kriteria:** **USP**
 **Tracker:** Track · **USP** · PoC · Feasibility · Patentability · Scalability
@@ -313,7 +350,7 @@ Di bawah keempat layar ada baris merah: **Who decides? → Victim · Victim · V
 | Android developer verification (30 Sep 2026) | Blocks unverified apps from app stores | Chat-sent APKs wait until 2027; verified ≠ safe | Victim |
 | Bank apps | Block screen-control abuse; check at transfer | Protects one app; the OTP has already leaked | Victim |
 | Telco filters | Filter calls & links in the network | WhatsApp is encrypted; APK never passes the filter | — |
-| Family-alert apps (US) | Alert family on scam calls | US-only, call-centric, not in Indonesia | Family |
+| Truecaller Family Protection · Seraph Secure (US) | Alert family on scam calls (Truecaller) or PC scams (Seraph) | Guard calls or PCs; neither sees an app being installed | Family |
 | **RONDA** | **Scores every install; blocks; alerts** | **—** | **Guardian** |
 
 **Blok kanan: 3 differentiators**
@@ -323,17 +360,19 @@ Di bawah keempat layar ada baris merah: **Who decides? → Victim · Victim · V
 
 **So what:** *Google strengthens the door. RONDA changes who opens it.*
 
-**Footer sumber:** Google Indonesia Blog (18 Feb 2025) · Android Developers Blog (Mar & Jun 2026)
+**Footer sumber:** Google Indonesia Blog (18 Feb 2025) · Android Developers Blog (Mar & Jun 2026) · TechCrunch (12 Mar 2026) · seraphsecure.com
 
 **Fokus mata:** kolom *Who decides?*
 
 **Yang diomongin (Malik):**
-> That's our USP. Every defence in Indonesia — Google's, the banks', the telcos' — ends with a question on the victim's screen. RONDA is the only one here that brings in a second person the scammer can't reach.
+> That's our USP. Every defence at the moment of install — Google's, the banks', the telcos' — ends with a question on the victim's screen. Truecaller and Seraph already bring in family, but for calls and PCs. RONDA is the only one that brings in a second person the moment a scam app lands on the phone.
 >
 > It gives a score, not a yes-or-no, so harmless apps stay quiet. And it doesn't replace Google or the banks — it covers the blind spot each of them has.
 
 **Catatan tim:**
-- Baris *Family-alert apps (US)* sengaja ditampilkan: itu bukti model guardian laku dijual. Karena itu klaimnya **"only one in Indonesia"**, bukan "only one in the world". Jangan diubah.
+- **Klaim berubah dari v6.** Truecaller Family Protection (gratis, admin keluarga dapat alert dan bisa memutus panggilan scam di Android) sudah rollout **global** sejak Maret 2026, kemungkinan termasuk Indonesia. Jadi klaim lama *"only one in Indonesia"* **tidak aman lagi**. Klaim baru: **satu-satunya guardian di momen instalasi app**. Truecaller menjaga *panggilan*, Seraph Secure menjaga *PC/laptop*; APK yang dikirim lewat chat WhatsApp tidak lewat keduanya.
+- Baris ini tetap sengaja ditampilkan: itu bukti model guardian sudah diterima pasar. RONDA membawa model yang sama ke titik serangan yang belum dijaga.
+- Sebelum pitching, cek di HP sendiri apakah fitur Family Protection Truecaller sudah muncul di Indonesia, supaya bisa menjawab dengan pasti.
 - Pertanyaan yang paling mungkin muncul: *"Google already does this."* Jawabannya ada di Lampiran A #1.
 
 ---
@@ -385,16 +424,16 @@ Di bawah keempat layar ada baris merah: **Who decides? → Victim · Victim · V
 ① **Installed** · ② **Blocked** · ③ **Alerted** · ④ **Score & reasons** · ⑤ **Asked** · ⑥ **Removed**
 Garis bawah strip: *Parent makes zero security decisions. Guardian makes all of them.*
 
-**Blok kiri bawah: beyond the demo** (6 baris, ikon RONDA sendiri, bukan emoji)
+**Blok kiri bawah: beyond the demo** (6 poin, judul saja tanpa keterangan, ikon RONDA sendiri, bukan emoji)
 
-| Fitur | Keterangan singkat |
-|---|---|
-| **One guardian, many parents** | Mum, Dad, Grandma in one app |
-| **Scans what's already installed** | the moment phones connect, plus "Scan again" |
-| **Catches more than SMS theft** | screen control · fake login screens · notification reading · hidden icon · fake bank name · installs other apps |
-| **Plain-language reasons** | Indonesian & English |
-| **Reversible decisions** | "mark safe" has a 10-second undo |
-| **Either side can disconnect** | with confirmation; the other phone is told |
+- **One guardian, many parents**
+- **Scans what's already installed**
+- **Catches more than SMS theft**
+- **Plain-language reasons**
+- **Reversible decisions**
+- **Either side can disconnect**
+
+*(Detail tiap poin tidak ditulis di slide, simpan untuk Q&A: multi-Rondee · initial scan saat pairing + "Scan again" · screen control, fake login screen, notification reading, hidden icon, fake bank name, installs other apps · Bahasa Indonesia & Inggris · "mark safe" punya undo 10 detik · disconnect dengan konfirmasi, HP lain diberi tahu.)*
 
 **Blok kanan bawah: proof in numbers** (angka besar, label kecil)
 **63** Kotlin files · **≈11k** lines · **30** unit tests (16-case score calibration) · **6** harmless decoy APKs · **0** real malware used
@@ -415,7 +454,15 @@ Garis bawah strip: *Parent makes zero security decisions. Guardian makes all of 
 **Kriteria:** **Technical Feasibility** (utama: metode deteksinya masuk akal, bisa dijelaskan, dan teruji) · PoC (angka dikunci di test)
 **Tracker:** Track · USP · PoC · **Feasibility** · Patentability · Scalability
 
-**Di slide — 3 blok:**
+**Di slide — subjudul rumus + 2 blok + pita bawah:**
+
+**Bar rumus (langsung di bawah judul, lebar penuh, latar teal tint + garis tepi teal; label kecil `SCORING MODEL` emas di kiri, rumus bold teal dengan font deck):**
+
+```
+Score = min(100, Impact × Trust)   ·   Impact = S_max + 0.4·ΣS_rest + combo bonus   ·   Trust = Π multipliers, 0.45–1.6
+```
+
+Kalau terlalu panjang untuk satu baris, pakai versi pendek: `Score = Impact (what it can do) × Trust (where it came from), capped at 100`.
 
 **Blok kiri (fokus): struk skor app demo** (kotak putih, font mono, angka tebal):
 
@@ -443,24 +490,26 @@ SCORE                          85 / 100  → guardian alerted
 | Screen control + fake screens | 32 | 90 | 100 | 100 |
 | Almost every permission | **45** ◀ WhatsApp | 100 | 100 | 100 |
 
-**Blok kanan: how it's built** (4 baris)
-- **16 impact signals + 7 trust multipliers + 5 combo bonuses**
-- **Diminishing returns** (0.4×) keep busy-but-legit apps out of the red
-- Adapted from **CVSS**, each signal mapped to **MITRE ATT&CK for Mobile**
-- Deterministic, offline, explainable: runs on a Rp1-million phone
+**Blok kanan: HOW IT'S BUILT** (4 baris dengan ikon, seperti v3)
+- **16 + 7 + 5**: impact signals, trust multipliers, combo bonuses
+- **Diminishing returns**: 0.4× on secondary signals keeps busy-but-legit apps out of the red
+- **CVSS-style · MITRE**: each ability mapped to a MITRE ATT&CK for Mobile technique
+- **Deterministic & offline**: explainable, auditable, runs on a Rp1-million phone
 
-**So what:** *Real WhatsApp scores 45 and stays silent, which is why guardians keep listening.*
+**Tanpa kotak *So what*.** Kalimat "Real WhatsApp scores 45 and stays silent" dihapus; pesannya sudah terlihat lewat sel **45 ◀ WhatsApp** di heatmap dan tetap diucapkan di naskah.
 
 **Footer:** `core/Signal.kt`, `RiskEvaluator`, `RiskEvaluatorTest.kt` (sel 45 / 55 / 85 / 100 dikunci di test)
 
-**Fokus mata:** angka **85** di struk, lalu sel **45** di heatmap.
+**Fokus mata:** angka **85** di struk, lalu sel **45** di heatmap. Rumus di subjudul **tidak dibacakan**; itu untuk juri teknis yang ingin membaca sendiri.
 
 **Yang diomongin (Dhanes):**
-> On technical feasibility: two questions decide the score. What can the app do — the worst ability counts in full, the rest count a little, and dangerous pairs get a bonus. And where did it come from — the Play Store lowers the score; a chat message or an unofficial signature raises it.
+> On technical feasibility: two questions decide the score, and you can see the formula right under the title. What can the app do — the worst ability counts in full, the rest count a little, and dangerous pairs get a bonus. And where did it come from — the Play Store lowers the score; a chat message or an unofficial signature raises it.
 >
 > Our demo app: eighty-five, guardian alerted. Real WhatsApp: forty-five, silent. Adapted from CVSS, mapped to MITRE ATT&CK, pinned in unit tests.
 
-**Catatan tim:** kalau slide terasa terlalu padat saat gladi, pindahkan heatmap ke backup B1 dan perbesar struknya.
+**Catatan tim:**
+- Rumus sesuai kode (`RiskEvaluator.kt`): `impact = min(100, sorted[0] + 0.4·sum(sorted[1..]) + combo bonuses)`, `trust = ΠM` di-clamp ke 0.45–1.6, `score = min(100, round(impact × trust))`. Cek struk: 59 × 1.25 × 1.15 = 84.8 → **85**.
+- Kalau slide terasa terlalu padat saat gladi, pindahkan heatmap ke backup B1 dan perbesar struknya.
 
 ---
 
@@ -637,20 +686,20 @@ Catatan kecil: *An alert is a few hundred bytes, sent only when a risky app is i
 **Kriteria:** — (bookend)
 
 **Di slide (sinematik, mengulang tata letak slide 2 tapi terang):**
-- Momen ① sama: `Sat · 21:47` · `Undangan Pernikahan.apk`
-- Momen ② berubah: HP Bu Ratna dengan overlay RONDA (*"Jangan buka aplikasi ini"*, stempel **Blocked**)
-- Momen ③ berubah: **"Incoming call: Anakku 💚"**, yang menelepon **anaknya**, bukan Bu Ratna. Di HP anaknya ada notifikasi *"Undangan Pernikahan · 85/100 · blocked on Mum's phone"*
+- Momen ① sama: `Sat · 21:47` · `Wedding Invitation.apk`
+- Momen ② berubah: HP Bu Ratna dengan overlay RONDA (*"Don't open this app"*, stempel **Blocked**)
+- Momen ③ berubah: **"Incoming call: Dimas (son)"**, yang menelepon **anaknya**, bukan Bu Ratna. Di HP Dimas ada notifikasi *"Wedding Invitation · 85/100 · blocked on Mum's phone"*
 - Tengah bawah, besar: **Not a better warning. A second pair of eyes.**
 - Pojok bawah: logo RONDA · `Thank you` · QR ke repo / video demo
 
 **Fokus mata:** panggilan masuk dari anaknya, kebalikan dari slide 2.
 
 **Yang diomongin (Alek):**
-> Back to Bu Ratna. Same Saturday night, same invitation. This time RONDA covers the app, and her son's phone rings. *He* calls *her*. The hajj money stays where it is.
+> Back to Bu Ratna. Same Saturday night, same invitation. This time RONDA covers the app, and Dimas's phone rings. *He* calls *her*. The savings stay put, and so does his final year of university.
 >
 > Not a better warning. A second pair of eyes. Thank you.
 
-**Catatan tim:** pakai screenshot asli ② (overlay) dan ④ (alert) dari slide 9 kalau sudah ada. Setelah slide ini, langsung tampilkan backup B1–B7 saat menjawab Q&A (tidak perlu slide Q&A terpisah).
+**Catatan tim:** pakai screenshot asli ② (overlay) dan ④ (alert) dari slide 9 kalau sudah ada. Setelah slide ini, langsung tampilkan backup B1–B13 saat menjawab Q&A (tidak perlu slide Q&A terpisah). Teks di slide 2 dan 15 sekarang berbahasa Inggris supaya juri luar bisa langsung membaca; screenshot app asli (Bahasa Indonesia) tetap apa adanya.
 
 ---
 
@@ -674,9 +723,12 @@ Catatan kecil: *An alert is a few hundred bytes, sent only when a risky app is i
 | 14 | *What's patentable?* | The inter-device protocol: local verdict and block on phone A → decision by a pre-paired human on phone B → executed back on A. The scanner itself isn't novel, and we don't claim it. Because it produces a technical effect across devices, it's a computer-implemented invention, not "only a computer program" under Article 4 of the Patent Law. |
 | 15 | *When exactly does RONDA step in?* | The moment installation finishes — before the app is opened and before it can ask for any permission. It reads what the app *declares*, not what it was granted. |
 | 16 | *Was the opening story real?* | No — Bu Ratna is illustrative, and the slide says so. The Batang case on the next slide is real and reported in the press. |
-| 17 | *Others already alert families.* | Yes — in the US, for phone calls. That proves families will pay for it. Nobody does it in Indonesia, and nobody does it at app install. |
+| 17 | *Truecaller / others already alert families.* | Yes, and that's good news: it proves families want a guardian. Truecaller guards the *call*, Seraph Secure guards the *PC*. The fake APK arrives as a WhatsApp file and never passes through either. RONDA is the guardian at the moment the app is installed — and the call can come hours later. |
 | 18 | *Your code is public — doesn't that kill novelty?* | It may. That's why we're checking with DJKI and our university's IP centre before filing. If novelty is lost, the public repo becomes a defensive publication: nobody else can patent the mechanism either, and it stays free for the families who need it. |
 | 19 | *Is this feasible for a bank to adopt?* | Yes. Detection is a small on-device library with no special permissions, and the transport can move onto the bank's own infrastructure. The bank's app can host the guardian flow. |
+| 20 | *What if the guardian doesn't respond?* | The block doesn't wait for the guardian. The app is covered every time it's opened until someone decides, and the alert stays in the guardian's queue. Silence is the safe default. |
+| 21 | *How big is the market?* | About 18 million Indonesians over 60 already use a phone. At an estimated Rp18 thousand per device per year, that's roughly Rp320 billion a year, paid by banks, telcos and insurers. That's an estimate, not a forecast. |
+| 22 | *How is this different from antivirus?* | Antivirus matches known malware and then asks the victim what to do. RONDA scores what *any* new app can do and where it came from, so a freshly repackaged APK is still caught, and the decision goes to someone else. |
 
 ---
 
@@ -688,9 +740,15 @@ Catatan kecil: *An alert is a few hundred bytes, sent only when a risky app is i
 | B2 | Diagram arsitektur lengkap + data model (`pairings/`, `alerts/`, `commands/`) — lihat [PROJECT_REPORT §4](PROJECT_REPORT.md) | A9 |
 | B3 | Tabel 23 sinyal + MITRE ATT&CK ID (lihat `core/Signal.kt`) | A13 |
 | B4 | 6 decoy APK: sms 85 · accessibility 100 · notification 70 · deviceadmin 88 · dropper 63 · overlay 43 (silent) — *cek dulu di emulator* | A5 |
-| B5 | Tabel kompetitor lengkap (Play Protect EFP, developer verification, bank apps, telco, Seraph Secure / Scammer Guardian). Android Live Threat Detection **tidak** dimasukkan karena klaimnya belum terverifikasi | A1, A17 |
+| B5 | Tabel kompetitor lengkap (Play Protect EFP, developer verification, bank apps, telco, Truecaller Family Protection, Seraph Secure). Android Live Threat Detection **tidak** dimasukkan karena klaimnya belum terverifikasi | A1, A17, A22 |
 | B6 | Model bisnis + unit economics (lihat [STRATEGY §6](STRATEGY.md)) | A11 |
 | B7 | Draf klaim paten (1 klaim independen sistem + metode, 3 klaim turunan) + hasil prior-art search kalau sudah ada | A14, A18 |
+| B8 | **Anatomi serangan fake-APK:** timeline 6 langkah (chat → install → open → permission → OTP dicuri → transfer), dengan penanda di langkah mana tiap pertahanan bekerja (Google, RONDA, bank, telco). RONDA menyala di langkah *install*, paling awal | A1, A6, A15 |
+| B9 | **Apa yang keluar dari HP orang tua:** dua kolom *Sent* (package name, label, install source, declared permissions, score) vs *Never sent* (pesan, kontak, lokasi, isi layar, password) + screenshot layar consent saat pairing dan indikator permanen *"Guarded by …"* | A2, A9 |
+| B10 | **Honest limits & mitigations:** overlay bisa ditutup tombol Home → guardian tetap dialert · uninstall = request, bukan silent · baru diuji di emulator · database belum dikunci per device → Anonymous Auth · guardian tidak merespons → block tetap aktif | A3, A4, A9, A10, A20 |
+| B11 | **Rencana validasi:** studi false-positive 100 app populer Play Store (metode: install → catat skor → hitung yang ≥ 60) + matriks uji HP low-end (Xiaomi, Oppo, Vivo, Samsung A-series; Android 11–15). Target ditulis sebagai *target*, bukan hasil | A5, A10 |
+| B12 | **Integrasi bank (planned):** RONDA sebagai SDK di app bank → transfer di luar pola butuh persetujuan guardian. Diagram 3 kotak: app bank orang tua → server bank → app guardian. Label *(planned)* wajib | A6, A19 |
+| B13 | **Ukuran pasar (estimate):** ≈34 jt lansia × 52% pakai HP ≈ **17.8 jt** perangkat → × Rp18 rb/tahun ≈ **Rp320 M/tahun**. Tampilkan sebagai corong 3 tingkat, semua angka diberi "≈" | A11, A21 |
 
 ---
 
@@ -714,6 +772,10 @@ Catatan kecil: *An alert is a few hundred bytes, sent only when a risky app is i
 | Pemicu RONDA = saat instalasi selesai | `InstallReceiver` (`ACTION_PACKAGE_ADDED`) |
 | Syarat paten (baru, langkah inventif, dapat diterapkan di industri; paten sederhana tanpa langkah inventif) · program komputer murni dikecualikan, invensi yang diimplementasikan komputer tidak · masa tenggang 6 bulan | UU No. 13 Tahun 2016 tentang Paten, [Pasal 3](https://penelitian.ugm.ac.id/wp-content/uploads/sites/295/2021/01/UU-Nomor-13-Tahun-2016.pdf), [Pasal 4](https://pasal.id/peraturan/uu/uu-no-13-tahun-2016/pasal-4) (beserta penjelasannya), [Pasal 6](https://pasal.id/peraturan/uu/uu-no-13-tahun-2016/pasal-6) |
 | Break-even 1 kasus / 2,000 HP | Asumsi lisensi ±Rp18 rb/HP/tahun (lihat [STRATEGY §6](STRATEGY.md)) |
+| Rumus skor (slide 10): `score = min(100, round(impact × trust))`, faktor 0.4, trust 0.45–1.6 | `app/src/main/java/com/ronda/app/core/RiskEvaluator.kt` |
+| Truecaller Family Protection: grup sampai 5 orang, admin dapat alert & bisa memutus panggilan scam (Android), gratis; rilis Des 2025 di beberapa negara, rollout global Mar 2026 | [TechCrunch, 12 Mar 2026](https://techcrunch.com/2026/03/12/truecallers-now-lets-you-hang-up-on-scammers-on-behalf-of-your-family/) · [TechRepublic](https://www.techrepublic.com/article/news-truecaller-family-protection-phone-scams/) |
+| Seraph Secure: anti-scam untuk PC, blokir remote-access tool & situs scam, alert real-time ke guardian via email/SMS | [seraphsecure.com/features](https://www.seraphsecure.com/features) · [seraphsecure.com/senior-care](https://www.seraphsecure.com/senior-care) |
+| Ukuran pasar B13: ≈17.8 jt lansia pengguna HP, ≈Rp320 M/tahun | Hitungan kami: 34 jt × 52.23% ≈ 17.76 jt; × Rp18 rb ≈ Rp319.7 M (**estimasi**) |
 
 **Sudah ada di kode (boleh diklaim, per commit `299e9bc`):** initial scan app yang sudah terpasang saat pairing · satu penjaga untuk beberapa HP (multi-Rondee) · disconnect dua arah.
 
