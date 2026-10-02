@@ -20,8 +20,24 @@ class FlaggedAppStore(context: Context) {
     }
 
     fun unflag(packageName: String) {
-        prefs.edit().putStringSet(KEY_FLAGGED, flaggedPackages() - packageName).apply()
+        prefs.edit()
+            .putStringSet(KEY_FLAGGED, flaggedPackages() - packageName)
+            .remove(KEY_REPORTED_PREFIX + packageName)
+            .apply()
     }
+
+    /**
+     * Which pairing has already been sent an alert for this package. The
+     * initial scan of a pairing re-files flagged apps for a new guardian, and
+     * without this it also re-filed the one the install receiver had just
+     * sent to the same guardian, so it showed up twice.
+     */
+    fun markReported(packageName: String, pairingId: String) {
+        prefs.edit().putString(KEY_REPORTED_PREFIX + packageName, pairingId).apply()
+    }
+
+    fun reportedTo(packageName: String): String? =
+        prefs.getString(KEY_REPORTED_PREFIX + packageName, null)
 
     fun isFlagged(packageName: String): Boolean = packageName in flaggedPackages()
 
@@ -35,5 +51,6 @@ class FlaggedAppStore(context: Context) {
     private companion object {
         const val PREFS_NAME = "ronda_flagged_apps"
         const val KEY_FLAGGED = "flagged_packages"
+        const val KEY_REPORTED_PREFIX = "reported_to_"
     }
 }

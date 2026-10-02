@@ -112,6 +112,9 @@ class InstallReceiver : BroadcastReceiver() {
             Log.w(TAG, "Not paired yet — guardian cannot be notified about ${verdict.packageName}")
             return
         }
+        // Recorded before the write lands: a write that times out stays queued
+        // by RTDB persistence, so the guardian still gets exactly this one.
+        FlaggedAppStore(context).markReported(verdict.packageName, pairingId)
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {

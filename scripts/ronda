@@ -31,6 +31,17 @@ ADB="$ANDROID_HOME/platform-tools/adb"
 EMULATOR="$ANDROID_HOME/emulator/emulator"
 AVD_HOME="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
 
+# Bahasa yang dipilih di layar pertama RONDA: en (default) | id. Semua teks UI
+# yang di-tap atau dicek di bawah ikut bahasa ini lewat t.
+RONDA_LANG="${RONDA_LANG:-en}"
+case "$RONDA_LANG" in
+  en|id) ;;
+  *) printf 'RONDA_LANG tidak dikenal: %s (en|id)\n' "$RONDA_LANG" >&2; exit 1 ;;
+esac
+
+# Teks UI sesuai bahasa. t <indonesia> <english>
+t() { if [ "$RONDA_LANG" = en ]; then echo "$2"; else echo "$1"; fi; }
+
 say()  { printf '\033[1;36m▸ %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m! %s\033[0m\n' "$*"; }
 die()  { printf '\033[1;31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
@@ -167,16 +178,16 @@ ui_scroll_down() { "$ADB" -s "$1" shell input swipe 540 1800 540 700 300; sleep 
 ui_onboard() {
   local s="$1" role="$2" card
   case "$role" in
-    rondee) card="Rondee \(Perangkat yang Dijaga\)" ;;
-    rondor) card="Rondor \(Perangkat Penjaga\)" ;;
+    rondee) card="$(t 'Rondee \(Perangkat yang Dijaga\)' 'Rondee \(Protected Device\)')" ;;
+    rondor) card="$(t 'Rondor \(Perangkat Penjaga\)' 'Rondor \(Guardian Device\)')" ;;
   esac
-  ui_tap "$s" "Bahasa Indonesia" || die "Layar pilih bahasa tidak muncul di $s (sudah pernah dipakai? jalankan: scripts/ronda reset)"
+  ui_tap "$s" "$(t 'Bahasa Indonesia' 'English')" || die "Layar pilih bahasa tidak muncul di $s (sudah pernah dipakai? jalankan: scripts/ronda reset)"
   # Label tombol masih ikut bahasa sistem sampai bahasa dipilih.
   ui_tap "$s" "(Continue|Lanjutkan)" || die "Tombol lanjut di layar bahasa tidak ketemu ($s)"
-  ui_has "$s" "Mulai" || ui_scroll_down "$s"
-  ui_tap "$s" "Mulai" || die "Layar intro tidak muncul ($s)"
+  ui_has "$s" "$(t Mulai 'Get started')" || ui_scroll_down "$s"
+  ui_tap "$s" "$(t Mulai 'Get started')" || die "Layar intro tidak muncul ($s)"
   ui_tap "$s" "$card" || die "Kartu peran $role tidak ketemu ($s)"
-  ui_tap "$s" "Lanjutkan" || die "Tombol Lanjutkan di layar peran tidak ketemu ($s)"
+  ui_tap "$s" "$(t Lanjutkan Continue)" || die "Tombol lanjut di layar peran tidak ketemu ($s)"
 }
 
 # Get the Rondor onto a fresh pairing code and print it. Works for the very
@@ -184,20 +195,25 @@ ui_onboard() {
 # guardian_code <serial> <panggilan>
 guardian_code() {
   local g="$1" nickname="$2"
-  if ui_has "$g" "Setelan"; then
-    ui_tap "$g" "Setelan" >/dev/null || die "Tab Setelan tidak ketemu di Rondor"
-    ui_has "$g" "Tambah HP lain" || ui_scroll_down "$g"
-    ui_tap "$g" "Tambah HP lain" >/dev/null || die "Tombol Tambah HP lain tidak ketemu di Rondor"
+  local settings add name_hint next
+  settings="$(t Setelan Settings)"
+  add="$(t 'Tambah HP lain' 'Add another device')"
+  name_hint="$(t 'Misalnya: Rina' 'For example: Rina')"
+  next="$(t Lanjutkan Continue)"
+  if ui_has "$g" "$settings"; then
+    ui_tap "$g" "$settings" >/dev/null || die "Tab $settings tidak ketemu di Rondor"
+    ui_has "$g" "$add" || ui_scroll_down "$g"
+    ui_tap "$g" "$add" >/dev/null || die "Tombol $add tidak ketemu di Rondor"
   fi
   # Identity step. The Rondor's own name is remembered after the first pairing.
-  if ui_has "$g" "Misalnya: Rina"; then
-    ui_tap "$g" "Misalnya: Rina" >/dev/null
+  if ui_has "$g" "$name_hint"; then
+    ui_tap "$g" "$name_hint" >/dev/null
     "$ADB" -s "$g" shell input text "Rina"
   fi
   "$ADB" -s "$g" shell input keyevent 111   # tutup keyboard (ESC, bukan Back)
   ui_tap "$g" "$nickname" >/dev/null || die "Pilihan panggilan '$nickname' tidak ketemu di Rondor"
-  ui_has "$g" "Lanjutkan" || ui_scroll_down "$g"
-  ui_tap "$g" "Lanjutkan" >/dev/null || die "Tombol Lanjutkan di Rondor tidak ketemu"
+  ui_has "$g" "$next" || ui_scroll_down "$g"
+  ui_tap "$g" "$next" >/dev/null || die "Tombol $next di Rondor tidak ketemu"
   ui_text "$g" "[A-Z0-9]{6}" || die "Kode pairing belum muncul di Rondor"
 }
 
@@ -213,7 +229,7 @@ rondee_enter_code() {
   sleep 1
   "$ADB" -s "$p" shell input text "$code"
   "$ADB" -s "$p" shell input keyevent 111
-  ui_tap "$p" "Hubungkan" || die "Tombol Hubungkan tidak ketemu di $p"
+  ui_tap "$p" "$(t Hubungkan Connect)" || die "Tombol Hubungkan/Connect tidak ketemu di $p"
 }
 
 # -------------------------------------------------------------- commands ----
@@ -256,7 +272,7 @@ cmd_add_rondee() {
   sleep 3
   ui_onboard "$p2" rondee
   say "$PROTECTED2_AVD → Rondee kedua"
-  code="$(guardian_code "$g" "Ayah")"
+  code="$(guardian_code "$g" "$(t Ayah Dad)")"
   say "Kode baru dari Rondor: $code"
   rondee_enter_code "$p2" "$code"
   sleep 4
@@ -333,7 +349,7 @@ cmd_role() {
 cmd_pair() {
   local p g code
   p="$(protected)"; g="$(guardian)"
-  code="$(guardian_code "$g" "Ibu")"
+  code="$(guardian_code "$g" "$(t Ibu Mum)")"
   say "Kode dari Rondor: $code"
   rondee_enter_code "$p" "$code"
   sleep 4
@@ -373,6 +389,9 @@ XML
 XML
   "$ADB" -s "$g" shell "run-as $PKG sh -c 'cat > shared_prefs/ronda_settings.xml'" < "$tmp"
   rm -f "$tmp"
+  # language_chosen di atas melewati layar bahasa, jadi bahasanya dipasang
+  # langsung. Android 13+ saja; di bawah itu ikut bahasa sistem.
+  "$ADB" -s "$g" shell cmd locale set-app-locales "$PKG" --locales "$RONDA_LANG" >/dev/null 2>&1 || true
   "$ADB" -s "$g" shell am start -n "$PKG/.MainActivity" >/dev/null
   say "Rondor di mode demo DEMO01 — lima aplikasi contoh, tanpa jaringan"
 }
@@ -599,31 +618,31 @@ fresh_pair() {
   sleep 3
   cmd_pair
   cmd_perms
-  tap_text "$p" "Periksa sekarang"
-  expect "$p" "Scan selesai.*|HP ini sedang dilindungi" "Rondee selesai initial scan"
+  tap_text "$p" "$(t 'Periksa sekarang' 'Scan now')"
+  expect "$p" "$(t 'Scan selesai.*|HP ini sedang dilindungi' 'Scan done.*|This phone is protected')" "Rondee selesai initial scan"
 }
 
 sc_uc01_pair() {
   fresh_pair
-  expect "$(guardian)" "Semua aman|Perlu diperiksa" "Rondor sampai di beranda"
+  expect "$(guardian)" "$(t 'Semua aman|Perlu diperiksa' 'All clear|Needs a decision')" "Rondor sampai di beranda"
 }
 
 sc_uc01_qr() {
   local p g code
   p="$(protected)"; g="$(guardian)"
   cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4; cmd_role; sleep 3
-  code="$(guardian_code "$g" "Ibu")"
+  code="$(guardian_code "$g" "$(t Ibu Mum)")"
   say "QR Rondor berisi ronda://pair/$code — dibuka seperti hasil pindai kamera"
   "$ADB" -s "$p" shell am start -a android.intent.action.VIEW -d "ronda://pair/$code" "$PKG" >/dev/null
-  expect "$p" "Kode sudah terisi dari QR.*" "Kode terisi otomatis, belum terhubung"
-  pause "Tunjukkan: tautan tidak memasangkan sendiri. Tekan HUBUNGKAN di Rondee"
-  expect "$p" "Periksa aplikasi lama" "Rondee terhubung setelah ditekan"
+  expect "$p" "$(t 'Kode sudah terisi dari QR.*' 'Code filled in from the QR.*')" "Kode terisi otomatis, belum terhubung"
+  pause "Tunjukkan: tautan tidak memasangkan sendiri. Tekan $(t HUBUNGKAN CONNECT) di Rondee"
+  expect "$p" "$(t 'Periksa aplikasi lama' 'Check existing apps')" "Rondee terhubung setelah ditekan"
 }
 
 sc_uc01_multi() {
   say "Butuh Rondor yang sudah paired (jalankan dulu: scripts/ronda scenario uc01-pair)"
   cmd_add_rondee --auto
-  pause "Buka Setelan di Rondor: dua HP harus tercantum"
+  pause "Buka $(t Setelan Settings) di Rondor: dua HP harus tercantum"
 }
 
 sc_uc01_disconnect_rondee() {
@@ -631,22 +650,22 @@ sc_uc01_disconnect_rondee() {
   p="$(protected)"; g="$(guardian)"
   fresh_pair
   rondee_home "$p"
-  tap_text "$p" "SETELAN"
-  tap_text "$p" "Putuskan Hubungan"
-  tap_text "$p" "YA, PUTUSKAN"
-  expect "$p" "Pilih bahasa" "Rondee kembali ke awal"
-  expect "$g" "Pilih bahasa" "Rondor (hanya 1 Rondee) kembali ke awal"
+  tap_text "$p" "$(t 'SETELAN' 'Settings')"
+  tap_text "$p" "$(t 'Putuskan Hubungan' 'Disconnect')"
+  tap_text "$p" "$(t 'YA, PUTUSKAN' 'Yes, disconnect')"
+  expect "$p" "(Pilih bahasa|Choose a language)" "Rondee kembali ke awal"
+  expect "$g" "(Pilih bahasa|Choose a language)" "Rondor (hanya 1 Rondee) kembali ke awal"
 }
 
 sc_uc01_disconnect_rondor() {
   local p g
   p="$(protected)"; g="$(guardian)"
   fresh_pair
-  tap_text "$g" "SETELAN"
-  tap_text "$g" "Putuskan hubungan"
-  tap_text "$g" "YA, PUTUSKAN"
-  expect "$g" "Pilih bahasa" "Rondor kembali ke awal"
-  expect "$p" "Pilih bahasa" "Rondee kembali ke awal"
+  tap_text "$g" "$(t 'SETELAN' 'Settings')"
+  tap_text "$g" "$(t 'Putuskan hubungan' 'Disconnect')"
+  tap_text "$g" "$(t 'YA, PUTUSKAN' 'Yes, disconnect')"
+  expect "$g" "(Pilih bahasa|Choose a language)" "Rondor kembali ke awal"
+  expect "$p" "(Pilih bahasa|Choose a language)" "Rondee kembali ke awal"
 }
 
 sc_uc01_invalid() {
@@ -655,7 +674,7 @@ sc_uc01_invalid() {
   cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4
   ui_onboard "$p" rondee
   rondee_enter_code "$p" "ZZZZZZ"
-  expect "$p" "Kode tidak ditemukan.*" "Kode asal ditolak dengan pesan jelas"
+  expect "$p" "$(t 'Kode tidak ditemukan.*' 'Code not found.*')" "Kode asal ditolak dengan pesan jelas"
 }
 
 sc_uc01_used() {
@@ -670,19 +689,19 @@ sc_uc01_used() {
   rondee_home "$p"; sleep 2
   ui_onboard "$p" rondee
   rondee_enter_code "$p" "$code"
-  expect "$p" "Kode ini sudah dipakai.*" "Kode bekas ditolak"
+  expect "$p" "$(t 'Kode ini sudah dipakai.*' 'This code has already been used.*')" "Kode bekas ditolak"
 }
 
 sc_uc01_expired() {
   local p g code
   p="$(protected)"; g="$(guardian)"
   cmd_install; cmd_reset; cmd_perms; cmd_open; sleep 4; cmd_role; sleep 3
-  code="$(guardian_code "$g" "Ibu")"
+  code="$(guardian_code "$g" "$(t Ibu Mum)")"
   say "Kode $code berlaku 10 menit — hitung mundurnya terlihat di Rondor"
-  pause "Tunggu sampai kartu 'Kode ini sudah kedaluwarsa' muncul di Rondor (10 menit)"
-  expect "$g" "BUAT KODE BARU" "Rondor menawarkan kode baru"
+  pause "Tunggu sampai kartu '$(t 'Kode ini sudah kedaluwarsa' 'This code has expired')' muncul di Rondor (10 menit)"
+  expect "$g" "$(t 'BUAT KODE BARU' 'Make a new code')" "Rondor menawarkan kode baru"
   rondee_enter_code "$p" "$code"
-  expect "$p" "Kode sudah kedaluwarsa.*" "Rondee menolak kode lama"
+  expect "$p" "$(t 'Kode sudah kedaluwarsa.*' 'This code has expired.*')" "Rondee menolak kode lama"
 }
 
 sc_uc01_offline() {
@@ -692,14 +711,14 @@ sc_uc01_offline() {
   ui_onboard "$p" rondee
   airplane "$p" enable
   rondee_enter_code "$p" "ACDEFG"
-  expect "$p" "Tidak bisa terhubung ke server.*" "Rondee offline: pesan jelas, kode tetap di kolom"
+  expect "$p" "$(t 'Tidak bisa terhubung ke server.*' 'Could not reach the server.*')" "Rondee offline: pesan jelas, kode tetap di kolom"
   airplane "$p" disable
   ui_onboard "$g" rondor
   airplane "$g" enable
-  guardian_code "$g" "Ibu" >/dev/null || true
+  guardian_code "$g" "$(t Ibu Mum)" >/dev/null || true
   say "Rondor offline — kode tampil, lalu dalam 10 detik diganti kartu gagal"
   sleep 12
-  expect "$g" "COBA LAGI|Coba lagi" "Rondor offline: kartu Coba lagi"
+  expect "$g" "$(t 'COBA LAGI|Coba lagi' 'Try again')" "Rondor offline: kartu Coba lagi"
   airplane "$g" disable
 }
 
@@ -710,8 +729,8 @@ sc_uc02_initial() {
   say "Umpan dipasang SEBELUM pairing — hanya initial scan yang bisa menemukannya"
   cmd_attack sms
   cmd_open; sleep 4; cmd_role; sleep 3; cmd_pair; cmd_perms
-  tap_text "$p" "Periksa sekarang"
-  expect "$p" "Scan selesai: 1 aplikasi.*" "Initial scan menemukan umpan"
+  tap_text "$p" "$(t 'Periksa sekarang' 'Scan now')"
+  expect "$p" "$(t 'Scan selesai: 1 aplikasi.*' 'Scan done: 1 dangerous app.*')" "Initial scan menemukan umpan"
   expect "$g" "Undangan Pernikahan" "Alert sampai di Rondor"
 }
 
@@ -726,8 +745,8 @@ sc_uc02_scan_again() {
   p="$(protected)"
   fresh_pair
   rondee_home "$p"
-  tap_text "$p" "Scan ulang"
-  expect "$p" "Scan selesai.*" "Scan ulang selesai dengan toast"
+  tap_text "$p" "$(t 'Scan ulang' 'Scan again')"
+  expect "$p" "$(t 'Scan selesai.*' 'Scan done.*')" "Scan ulang selesai dengan toast"
 }
 
 sc_uc02_safe_install() {
@@ -761,7 +780,7 @@ sc_uc02_update() {
   "$ADB" -s "$p" install -r -t "$apk" >/dev/null
   say "Diperbarui (install -r). Blokir tetap, dan tidak ada alert kedua"
   cmd_victim sms
-  pause "Cek Rondor: tetap SATU alert, tidak muncul lagi di 'Perlu diperiksa'"
+  pause "Cek Rondor: tetap SATU alert, tidak muncul lagi di '$(t 'Perlu diperiksa' 'Needs a decision')'"
 }
 
 sc_uc02_reinstall_safe() {
@@ -769,12 +788,12 @@ sc_uc02_reinstall_safe() {
   p="$(protected)"
   fresh_pair
   cmd_attack sms
-  pause "Di Rondor: buka alert → Tandai aman → Ya, tandai aman. Tunggu 10 detik"
+  pause "Di Rondor: buka alert → $(t 'Tandai aman → Ya, tandai aman' 'Mark safe → Yes, mark safe'). Tunggu 10 detik"
   say "Dihapus lalu dipasang ulang"
   "$ADB" -s "$p" uninstall "$SAMPLE_PKG" >/dev/null
   sleep 3
   cmd_attack sms
-  pause "Cek Rondor: kartu baru di 'Perlu diperiksa', DAN Riwayat masih mencatat 'aman' + 'dihapus' dari pemasangan pertama"
+  pause "Cek Rondor: kartu baru di '$(t 'Perlu diperiksa' 'Needs a decision')', DAN $(t Riwayat History) masih mencatat $(t "'aman' + 'dihapus'" "'Marked safe' + 'Removed'") dari pemasangan pertama"
 }
 
 sc_uc03_overlay() {
@@ -806,7 +825,7 @@ sc_uc03_permission() {
   "$ADB" -s "$p" shell am start -n "$SAMPLE_PKG/$SAMPLE_PKG.MainActivity" >/dev/null
   expect_overlay "$p" off "Tanpa izin: overlay tidak jalan (alert tetap terkirim)"
   rondee_home "$p"
-  expect "$p" "Lanjutkan pengaturan" "Beranda Rondee minta lanjutkan pengaturan"
+  expect "$p" "$(t 'Lanjutkan pengaturan' 'Continue setup')" "Beranda Rondee minta lanjutkan pengaturan"
   grant_protected "$p"
   rondee_home "$p"
   cmd_victim sms
@@ -830,19 +849,19 @@ sc_uc04_uninstall() {
   p="$(protected)"
   fresh_pair
   cmd_attack sms
-  pause "Di Rondor: buka alert 'Undangan Pernikahan' → Hapus aplikasi ini"
-  expect "$p" "Penjaga Anda minta aplikasi ini dihapus" "Rondee menerima permintaan"
-  tap_text "$p" "Hapus aplikasi ini"
+  pause "Di Rondor: buka alert 'Undangan Pernikahan' → $(t 'Hapus aplikasi ini' 'Remove this app')"
+  expect "$p" "$(t 'Penjaga Anda minta aplikasi ini dihapus' 'Your guardian asks you to remove this app')" "Rondee menerima permintaan"
+  tap_text "$p" "$(t 'Hapus aplikasi ini' 'Remove this app')"
   pause "Di Rondee: tekan OK di dialog sistem Android"
-  pause "Cek Rondor: notifikasi 'sudah dihapus', alert pindah ke Riwayat"
+  pause "Cek Rondor: notifikasi '$(t 'sudah dihapus' 'Dangerous app removed')', alert pindah ke $(t Riwayat History)"
 }
 
 sc_uc04_safe() {
   fresh_pair
   cmd_attack sms
-  pause "Di Rondor: buka alert → Tandai aman → Ya, tandai aman"
+  pause "Di Rondor: buka alert → $(t 'Tandai aman → Ya, tandai aman' 'Mark safe → Yes, mark safe')"
   cmd_victim sms
-  pause "Overlay tidak muncul; Rondee dapat notifikasi 'Rondor menandai aplikasi aman'"
+  pause "Overlay tidak muncul; Rondee dapat notifikasi '$(t 'Rondor menandai aplikasi aman' 'Your guardian cleared an app')'"
 }
 
 sc_uc04_undo() {
@@ -850,7 +869,7 @@ sc_uc04_undo() {
   p="$(protected)"
   fresh_pair
   cmd_attack sms
-  pause "Di Rondor: Tandai aman → Ya, tandai aman → lalu Batalkan (dalam 10 detik)"
+  pause "Di Rondor: $(t 'Tandai aman → Ya, tandai aman → lalu Batalkan' 'Mark safe → Yes, mark safe → lalu Undo') (dalam 10 detik)"
   cmd_victim sms
   say "Setelah Batalkan, app harus tertutup lagi di Rondee"
 }
@@ -861,10 +880,10 @@ sc_uc04_defer() {
   fresh_pair
   cmd_attack sms
   "$ADB" -s "$p" shell input keyevent KEYCODE_HOME
-  pause "Di Rondor: buka alert → Hapus aplikasi ini (HP Rondee sedang di beranda Android)"
-  pause "Di Rondee: ketuk notifikasi 'Penjaga Anda minta…' lalu tekan Nanti saja"
+  pause "Di Rondor: buka alert → $(t 'Hapus aplikasi ini' 'Remove this app') (HP Rondee sedang di beranda Android)"
+  pause "Di Rondee: ketuk notifikasi '$(t 'Penjaga Anda minta…' 'Your guardian asks…')' lalu tekan $(t 'Nanti saja' 'Not now')"
   cmd_victim sms
-  pause "Di Rondor: detail masih menunggu, ada tombol 'Kirim lagi permintaannya' (UC04 Alt 4)"
+  pause "Di Rondor: detail masih menunggu, ada tombol '$(t 'Kirim lagi permintaannya' 'Send the request again')' (UC04 Alt 4)"
 }
 
 sc_uc05_onboarding() {
@@ -877,9 +896,9 @@ sc_uc05_wizard() {
   local p
   p="$(protected)"
   cmd_install; cmd_reset; cmd_open; sleep 4; cmd_role; sleep 3; cmd_pair
-  tap_text "$p" "Periksa sekarang"
-  expect "$p" "Langkah 1 dari 4" "Wizard izin muncul, satu izin per layar"
-  pause "Tekan Back di tengah wizard → beranda kuning + 'Lanjutkan pengaturan'"
+  tap_text "$p" "$(t 'Periksa sekarang' 'Scan now')"
+  expect "$p" "$(t 'Langkah 1 dari 4' 'Step 1 of 4')" "Wizard izin muncul, satu izin per layar"
+  pause "Tekan Back di tengah wizard → beranda kuning + '$(t 'Lanjutkan pengaturan' 'Continue setup')'"
 }
 
 sc_uc06_offline() {
@@ -887,7 +906,7 @@ sc_uc06_offline() {
   g="$(guardian)"
   fresh_pair
   airplane "$g" enable
-  expect "$g" "Terputus" "Rondor offline: penanda Terputus tampil"
+  expect "$g" "$(t 'Terputus' 'Offline')" "Rondor offline: penanda Terputus tampil"
   airplane "$g" disable
 }
 
@@ -998,6 +1017,8 @@ scripts/ronda <perintah>
 install/reset/perms/open ikut menyentuh HP ketiga kalau sedang jalan.
 AVD bisa diganti lewat env: RONDA_PROTECTED_AVD, RONDA_GUARDIAN_AVD,
 RONDA_PROTECTED2_AVD
+Bahasa yang dipilih di RONDA: RONDA_LANG=en (default) | id
+  Contoh: RONDA_LANG=id scripts/ronda demo
 EOF
 }
 

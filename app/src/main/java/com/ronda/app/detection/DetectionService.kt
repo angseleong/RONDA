@@ -166,7 +166,8 @@ class DetectionService : Service() {
      * Scans all installed non-system apps for risks. Used for initial scan and manual scans.
      *
      * A manual scan skips apps that are already flagged: this guardian has
-     * them already. The [initial] scan of a pairing includes them — a phone
+     * them already. The [initial] scan of a pairing includes them unless they
+     * were already reported to this same pairing — a phone
      * set up again with a new guardian keeps its flags, and without this the
      * new guardian would never learn of an app that is still installed and
      * still blocked. Apps an earlier guardian cleared stay cleared.
@@ -197,7 +198,8 @@ class DetectionService : Service() {
                 if (appInfo != null && appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) continue
 
                 if (SafeAppStore(this@DetectionService).isAllowed(packageName)) continue
-                val alreadyFlagged = FlaggedAppStore(this@DetectionService).isFlagged(packageName)
+                val flagged = FlaggedAppStore(this@DetectionService)
+                val alreadyFlagged = flagged.isFlagged(packageName)
                 if (alreadyFlagged && !initial) continue
 
                 val activeKeys = extractor.extract(packageName)
@@ -217,9 +219,14 @@ class DetectionService : Service() {
                     // The person here has been told about a flagged app already.
                     if (!alreadyFlagged) {
                         showRiskNotification(this@DetectionService, verdict)
-                        FlaggedAppStore(this@DetectionService).flag(packageName)
+                        flagged.flag(packageName)
                     }
-                    publishAlert(pairingId, verdict)
+                    // Still counted, since it is still blocked, but this
+                    // guardian already has it from the install receiver.
+                    if (flagged.reportedTo(packageName) != pairingId) {
+                        flagged.markReported(packageName, pairingId)
+                        publishAlert(pairingId, verdict)
+                    }
                 }
             }
 
