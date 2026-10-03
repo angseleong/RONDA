@@ -137,8 +137,8 @@ quiet. Silence while the judges watch is good.*
 |---|---|
 | Installed | "She installs the wedding invitation." |
 | Guardian alerted | "Within a second, her son's phone lights up." |
-| Blocked offline | "She opens it — covered. Even with data off." |
-| Score 85 + reasons | "And he sees why. Eighty-five out of a hundred: reads SMS, not from the Play Store, unofficial signature. That's OTP theft." |
+| Blocked offline | "She opens it — we blocked the app." |
+| Score 85 + reasons | "And he sees why. Eighty-five out of a hundred. it comes with all the reasons. That's OTP theft." |
 | Guardian asks | "One tap: ask Mum to remove it." |
 | Removed | "She confirms — Android requires that. No app can delete another one silently." |
 | Confirmed | "Gone. And he knows it's gone." |
@@ -210,15 +210,11 @@ The math lives in backup B1 for Q&A.*
 
 ### Slide 14 · Scalability & business — 0:35
 
-> It scales on the phone, not the server — today, infrastructure costs zero.
->
-> And the elderly never pay. Banks, telcos and insurers do; they already carry
-> the loss. At eighteen thousand rupiah per phone per year, against thirty-six
-> million lost per case, a bank breaks even by stopping one scam in two
-> thousand phones.
->
-> Next: a community pilot right here in Bandung. We're looking for OJK and
-> IASC, a digital bank, and Kaspersky.
+> Detection runs on each phone, so the server only passes messages.
+
+> We scale in three stages. Today's proof of concept: Firebase's free tier, zero rupiah. The pilot, up to twenty thousand phones, stays on Firebase, but every device gets its own secure identity. In production, we build our own backend and database in Indonesia — a relay, not a warehouse: it keeps only pairings and pending alerts, deleted once the guardian decides.
+
+> The elderly user never pays: banks, telcos and insurers already carry this loss, and every case stopped saves a family about thirty-six million rupiah. Next: real phones, the Play Store, a bank pilot. We're looking for OJK, a digital bank, and Kaspersky.
 
 *Click.*
 
